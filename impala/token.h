@@ -35,12 +35,12 @@ using namespace thorin::literals;
     f(K_struct,       "struct") \
     f(K_trait,        "trait") \
     /* delimiters */ \
-    f(D_l_paren,      "(") \
-    f(D_r_paren,      ")") \
     f(D_l_brace,      "{") \
     f(D_r_brace,      "}") \
     f(D_l_bracket,    "[") \
     f(D_r_bracket,    "]") \
+    f(D_l_paren,      "(") \
+    f(D_r_paren,      ")") \
     /* punctation */ \
     f(P_dot,          ".") \
     f(P_dots,         "...") \

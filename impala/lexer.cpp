@@ -95,6 +95,18 @@ uint32_t Lexer::next() {
     return 0;
 }
 
+void Lexer::eat_comments() {
+    while (true) {
+        while (!eof() && peek() != '*') next();
+        if (eof()) {
+            error("non-terminated multiline comment");
+            return;
+        }
+        next();
+        if (accept('/')) break;
+    }
+}
+
 Token Lexer::lex() {
     while (true) {
         // skip whitespace
@@ -107,41 +119,114 @@ Token Lexer::lex() {
         front_line_ = peek_line_;
         front_col_ = peek_col_;
 
-        if (stream_.eof())
-            return {location(), Token::Tag::M_eof};
+        if (eof()) return {location(), Token::Tag::M_eof};
 
-        if (accept('{')) return {location(), Token::Tag::D_l_brace};
-        if (accept('}')) return {location(), Token::Tag::D_r_brace};
         if (accept('(')) return {location(), Token::Tag::D_l_paren};
         if (accept(')')) return {location(), Token::Tag::D_r_paren};
+        if (accept('{')) return {location(), Token::Tag::D_l_brace};
+        if (accept('}')) return {location(), Token::Tag::D_r_brace};
         if (accept('[')) return {location(), Token::Tag::D_l_bracket};
         if (accept(']')) return {location(), Token::Tag::D_r_bracket};
-        if (accept('<')) {
-            if (accept('-')) return {location(), Token::Tag::Arrow};
-            return {location(), Token::Tag::L_Angle};
+
+        if (accept('.')) {
+            if (accept('.')) {
+                if (accept('.')) return {location(), Token::Tag::P_dots};
+                error("unknown token '..'");
+                return {location()};
+            }
+            return {location(), Token::Tag::P_dot};
         }
-        if (accept('>')) return {location(), Token::Tag::R_Angle};
+        if (accept(',')) return {location(), Token::Tag::P_comma};
+        if (accept(';')) return {location(), Token::Tag::P_semi};
         if (accept(':')) {
-            if (accept(':')) return {location(), Token::Tag::ColonColon};
-            else if (accept('=')) return {location(), Token::Tag::ColonEqual};
-            else return {location(), Token::Tag::Colon};
+            if (accept(':')) return {location(), Token::Tag::P_colone_colon};
+            return {location(), Token::Tag::P_colon};
         }
-        if (accept('=')) return {location(), Token::Tag::Equal};
-        if (accept(',')) return {location(), Token::Tag::Comma};
-        if (accept('.')) return {location(), Token::Tag::Dot};
-        if (accept(';')) return {location(), Token::Tag::Semicolon};
-        if (accept('*')) return {location(), Token::Tag::Star};
-
-        if (accept('\\')) {
-            if (accept("lambda")) return {location(), Token::Tag::Lambda};
-            if (accept("pi"))     return {location(), Token::Tag::Pi};
-            //if (accept("true"))   return {location(), Literal(Literal::Tag::Lit_bool, Box(true))};
-            //if (accept("false"))  return {location(), Literal(Literal::Tag::Lit_bool, Box(false))};
-
-            return {location(), Token::Tag::Backslash};
+        if (accept('=')) {
+            if (accept('=')) return {location(), Token::Tag::O_cmp_eq};
+            return {location(), Token::Tag::O_eq};
+        }
+        if (accept('<')) {
+            if (accept('<')) {
+                if (accept('=')) return {location(), Token::Tag::O_l_shift_eq};
+                return {location(), Token::Tag::O_l_shift};
+            }
+            if (accept('=')) return {location(), Token::Tag::O_cmp_le};
+            return {location(), Token::Tag::O_cmp_lt};
+        }
+        if (accept('>')) {
+            if (accept('>')) {
+                if (accept('=')) return {location(), Token::Tag::O_r_shift_eq};
+                return {location(), Token::Tag::O_r_shift};
+            }
+            if (accept('=')) return {location(), Token::Tag::O_cmp_ge};
+            return {location(), Token::Tag::O_cmp_gt};
+        }
+        if (accept('+')) {
+            if (accept('+')) return {location(), Token::Tag::O_inc};
+            if (accept('=')) return {location(), Token::Tag::O_add_eq};
+            return {location(), Token::Tag::O_add};
+        }
+        if (accept('-')) {
+            if (accept('>')) return {location(), Token::Tag::O_arrow};
+            if (accept('-')) return {location(), Token::Tag::O_dec};
+            if (accept('=')) return {location(), Token::Tag::O_sub_eq};
+            return {location(), Token::Tag::O_sub};
+        }
+        if (accept('*')) {
+            if (accept('=')) return {location(), Token::Tag::O_mul_eq};
+            return {location(), Token::Tag::O_mul};
+        }
+        if (accept('/')) {
+            // Handle comments here
+            if (accept('*')) { eat_comments(); continue; }
+            if (accept('/')) {
+                while (!eof() && peek() != '\n') next();
+                continue;
+            }
+            if (accept('=')) return {location(), Token::Tag::O_div_eq};
+            return {location(), Token::Tag::O_div};
+        }
+        if (accept('%')) {
+            if (accept('=')) return {location(), Token::Tag::O_mod_eq};
+            return {location(), Token::Tag::O_mod};
+        }
+        if (accept('&')) {
+            if (accept('&')) return {location(), Token::Tag::O_and_and};
+            if (accept('=')) return {location(), Token::Tag::O_and_eq};
+            return {location(), Token::Tag::O_and};
+        }
+        if (accept('|')) {
+            if (accept('|')) return {location(), Token::Tag::O_or_or};
+            if (accept('=')) return {location(), Token::Tag::O_or_eq};
+            return {location(), Token::Tag::O_or};
+        }
+        if (accept('^')) {
+            if (accept('=')) return {location(), Token::Tag::O_xor_eq};
+            return {location(), Token::Tag::O_xor};
         }
 
-        if (accept('#')) return {location(), Token::Tag::Sharp};
+        if (accept('!')) {
+            if (accept('=')) return {location(), Token::Tag::O_cmp_ne};
+            return {location(), Token::Tag::O_not};
+        }
+
+        if (std::isdigit(peek()) || peek() == '.') {
+            auto lit = parse_literal();
+            return {location(), str_.c_str(), lit};
+        }
+
+        if (std::isalpha(peek()) || peek() == '_') {
+            accept();
+            while (std::isalnum(peek()) || peek() == '_') accept();
+
+            if (str_ == "true")  return Token(loc_, str_, true);
+            if (str_ == "false") return Token(loc_, str_, false);
+
+            auto key_it = keywords.find(str_);
+            if (key_it == keywords.end()) return Token(loc_, str_);
+            return Token(loc_, key_it->second);
+        }
 
         // TODO utf-8 stuff here
 
@@ -150,26 +235,17 @@ Token Lexer::lex() {
             return {location(), lit};
         }
 
-        // arity descriptor for index literals
-        u64 index_arity = 0;
-        auto is_arity_subscript = [] (uint32_t p) { return p > 0x002079 && p < 0x002090; };
-        auto update_index_arity = [&] (uint32_t p) { index_arity = 10 * index_arity + (p - 0x002080); };
-        if (auto opt = accept_opt([&] (uint32_t p) { return p != 0x002080 && is_arity_subscript(p); }))
-            update_index_arity(*opt);
-        while (auto opt = accept_opt(is_arity_subscript))
-            update_index_arity(*opt);
-        if (index_arity != 0)
-            return {location(), {Literal::Tag::Lit_index_arity, index_arity}};
-
+#if 0
         // identifier
         if (accept_if(sym)) {
             while (accept_if(sym) || accept_if(dec)) {}
 
             // TODO make this mechanism better
-            if (str() == "cn")   return {location(), Token::Tag::Cn};
-            if (str() == "bool") return {location(), Token::Tag::Bool};
+            if (str() == "cn")   return {location(), Token::Tag::Tag::Cn};
+            if (str() == "bool") return {location(), Token::Tag::Tag::Bool};
             return {location(), str()};
         }
+#endif
 
         error("invalid character '{}'", peek_bytes_);
         next();
