@@ -3,8 +3,8 @@
 ## Building
 
 ```
-git clone git@github.com:leissa/thorin2.git
-cd thorin2
+git clone git@github.com:leissa/impala2.git
+cd impala2
 mkdir build
 cd build
 cmake ..
