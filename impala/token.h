@@ -11,6 +11,8 @@ namespace impala {
 using thorin::Box;
 using thorin::Location;
 using thorin::Symbol;
+using namespace thorin::literals;
+
 
 #define IMPALA_TOKENS(f) \
     /* misc */ \
@@ -112,7 +114,7 @@ public:
     Location location() const { return location_; }
     Box box() const { return box_; }
     //const std::string& identifier() const { assert(is_identifier()); return symbol_; }
-    //const std::string& string() const { return symbol_; }
+    Symbol symbol() const { return symbol_; }
 
     //bool is_identifier() const { return tag_ == M_id; }
     //bool is_literal() const { return tag_ == Lit; }

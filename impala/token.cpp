@@ -4,11 +4,12 @@ namespace impala {
 
 std::ostream& operator<<(std::ostream& os, const Token& token) {
     os << token.location() << ": ";
-    if (tag() == Token::Tag::Identifier)
-        return os << token.symbol();
-    if (token.isa(Token::Tag::Literal))
-        return os << token.literal().box.get_u64();
-    return os << Token::tag_to_string(token.tag());
+    switch (token.tag()) {
+        case Token::Tag::M_id:  [[fallthrough]];
+        case Token::Tag::M_lit: return os << token.symbol();
+        default: return os << Token::tag_to_string(token.tag());
+    }
+    THORIN_UNREACHABLE;
 }
 
 }

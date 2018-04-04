@@ -14,8 +14,9 @@ inline bool oct(uint32_t c) { return '0' <= c && c <= '7'; }
 inline bool eE(uint32_t c)  { return c == 'e' || c == 'E'; }
 inline bool sgn(uint32_t c) { return c == '+' || c == '-'; }
 
-Lexer::Lexer(std::istream& is, const char* filename)
-    : stream_(is)
+Lexer::Lexer(Compiler& compiler, std::istream& is, const char* filename)
+    : compiler_(compiler)
+    , stream_(is)
     , filename_(filename)
 {
     if (!stream_)

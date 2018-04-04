@@ -9,7 +9,7 @@ add_subdirectory(thorin2)
 # target: library impala
 
 add_library(impala
-    impala/lexer.h
+    impala/compiler.h
     impala/lexer.cpp
     impala/token.h
     impala/token.cpp

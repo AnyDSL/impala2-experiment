@@ -1,8 +1,9 @@
 #ifndef IMPALA_LEXER_H
 #define IMPALA_LEXER_H
 
+#include "impala/compiler.h"
+
 #include "thorin/util/location.h"
-#include "thorin/util/stream.h"
 
 #include "impala/token.h"
 
@@ -10,13 +11,13 @@ namespace impala {
 
 class Lexer {
 public:
-    Lexer(std::istream&, const char* filename);
+    Lexer(Compiler& compiler, std::istream&, const char* filename);
 
     Token lex(); ///< Get next \p Token in stream.
     const char* filename() const { return filename_; }
 
 private:
-    Literal parse_literal();
+    Token parse_literal();
 
     template <typename Pred>
     std::optional<uint32_t> accept_opt(Pred pred) {
@@ -45,19 +46,13 @@ private:
         }
         return true;
     }
-    template<typename... Args>
-    [[noreturn]] void error(const char* fmt, Args... args) {
-        std::ostringstream oss;
-        streamf(oss, "{}: lex error: ", location());
-        streamf(oss, fmt, std::forward<Args>(args)...);
-        throw std::logic_error(oss.str());
-    }
 
     uint32_t next();
     uint32_t peek() const { return peek_; }
     const std::string& str() const { return str_; }
     Location location() const { return {filename_, front_line_, front_col_, back_line_, back_col_}; }
 
+    Compiler& compiler_;
     std::istream& stream_;
     uint32_t peek_ = 0;
     char peek_bytes_[5] = {0, 0, 0, 0, 0};
