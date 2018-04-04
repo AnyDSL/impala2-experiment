@@ -15,7 +15,7 @@ add_library(impala
 set_target_properties(impala PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
 set_target_properties(impala PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(impala PROPERTIES SOVERSION 2)
-target_include_directories(impala PRIVATE . thorin2/ half-src/include/)
+target_include_directories(impala PRIVATE . thorin2/ thorin2/half/include/)
 
 # target: executable impala-bin
 
