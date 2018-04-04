@@ -8,34 +8,16 @@
 #include "thorin/util/types.h"
 #include "thorin/util/utility.h"
 
-namespace thorin::fe {
+namespace impala {
 
-#define IMPALAP_ARG_TOKENS(f) \
+#define IMPALAP_TOKENS(f) \
     f(L_Brace,          "{") \
-    f(L_Paren,          "(") \
-    f(L_Bracket,        "[") \
-    f(L_Angle,          "<") \
-    f(QualifierU,       "ᵁ") \
-    f(QualifierR,       "ᴿ") \
-    f(QualifierA,       "ᴬ") \
-    f(QualifierL,       "ᴸ") \
-    f(Backslash,        "\\") \
-    f(Pi,               "\\pi") \
-    f(Lambda,           "\\lambda") \
-    f(Bool,             "bool") \
-    f(Identifier,       "identifier") \
-    f(Literal,          "literal")
-
-#define IMPALART_TOKENS(f) \
-    f(Arity_Kind,       "\\arity_kind") \
-    f(Multi_Arity_Kind, "\\multi_arity_kind") \
-    f(Qualifier_Type,   "\\qualifier_type") \
-    f(Star,             "*")
-
-#define IMPALA_TOKENS(f) \
     f(R_Brace,          "}") \
+    f(L_Paren,          "(") \
     f(R_Paren,          ")") \
+    f(L_Bracket,        "[") \
     f(R_Bracket,        "]") \
+    f(L_Angle,          "<") \
     f(R_Angle,          ">") \
     f(Colon,            ":") \
     f(ColonColon,       "::") \
@@ -45,9 +27,13 @@ namespace thorin::fe {
     f(Equal,            "=") \
     f(Semicolon,        ";") \
     f(Sharp,            "#") \
-    f(Arrow,            "<-") \
-    f(Cn,               "cn") \
-    f(Eof,              "eof")
+    f(L_Arrow,          "->") \
+    f(R_Arrow,          "<-") \
+    f(cn,               "cn") \
+    f(Cn,               "Cn") \
+    f(fn,               "fn") \
+    f(Fn,               "Fn") \
+    f(eof,              "eof")
 
 struct Literal {
     enum class Tag {
