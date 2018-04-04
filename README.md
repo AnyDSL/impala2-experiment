@@ -3,7 +3,7 @@
 ## Building
 
 ```
-git clone git@github.com:leissa/impala2.git
+git clone --recurse-submodules git@github.com:leissa/impala2.git
 cd impala2
 mkdir build
 cd build
