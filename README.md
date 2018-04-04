@@ -1,3 +1,14 @@
+|                   | Debug             | Release           |
+|-------------------|-------------------|-------------------|
+| **gcc**           | [![Build1][1]][5] | [![Build2][2]][5] |
+| **clang**         | [![Build3][3]][5] | [![Build4][4]][5] |
+
+[1]: https://travis-matrix-badges.herokuapp.com/repos/leissa/impala2/branches/master/1
+[2]: https://travis-matrix-badges.herokuapp.com/repos/leissa/impala2/branches/master/2
+[3]: https://travis-matrix-badges.herokuapp.com/repos/leissa/impala2/branches/master/3
+[4]: https://travis-matrix-badges.herokuapp.com/repos/leissa/impala2/branches/master/4
+[5]: https://travis-ci.org/leissa/impala2/
+
 # Impala 2
 
 ## Building
