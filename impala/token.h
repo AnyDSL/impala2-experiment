@@ -1,8 +1,6 @@
 #ifndef IMPALA_TOKEN_H
 #define IMPALA_TOKEN_H
 
-#include <string>
-
 #include "thorin/util/location.h"
 #include "thorin/util/symbol.h"
 #include "thorin/util/types.h"
@@ -10,114 +8,138 @@
 
 namespace impala {
 
-#define IMPALAP_TOKENS(f) \
-    f(L_Brace,          "{") \
-    f(R_Brace,          "}") \
-    f(L_Paren,          "(") \
-    f(R_Paren,          ")") \
-    f(L_Bracket,        "[") \
-    f(R_Bracket,        "]") \
-    f(L_Angle,          "<") \
-    f(R_Angle,          ">") \
-    f(Colon,            ":") \
-    f(ColonColon,       "::") \
-    f(ColonEqual,       ":=") \
-    f(Comma,            ",") \
-    f(Dot,              ".") \
-    f(Equal,            "=") \
-    f(Semicolon,        ";") \
-    f(Sharp,            "#") \
-    f(L_Arrow,          "->") \
-    f(R_Arrow,          "<-") \
-    f(cn,               "cn") \
-    f(Cn,               "Cn") \
-    f(fn,               "fn") \
-    f(Fn,               "Fn") \
-    f(eof,              "eof")
+using thorin::Box;
+using thorin::Location;
+using thorin::Symbol;
 
-struct Literal {
-    enum class Tag {
-#define CODE(T) Lit_##T,
-        IMPALA_TYPES(CODE)
-#undef CODE
-        Lit_arity,
-        Lit_index,
-        Lit_index_arity,
-        Lit_untyped
-    };
-
-    Tag tag;
-    Box box;
-
-    Literal() {}
-    Literal(Tag tag, Box box)
-        : tag(tag), box(box)
-    {}
-};
+#define IMPALA_TOKENS(f) \
+    /* misc */ \
+    f(M_eof,          "<eof>") \
+    f(M_error,        "<unknown token>") \
+    f(M_id,           "<identifier>") \
+    f(M_lit,          "<literal>") \
+    /* keywords */ \
+    f(K_cn,           "cn") \
+    f(K_Cn,           "Cn") \
+    f(K_else,         "else") \
+    f(K_fn,           "fn") \
+    f(K_Fn,           "Fn") \
+    f(K_for,          "for") \
+    f(K_if,           "if") \
+    f(K_impl,         "impl") \
+    f(K_let,          "let") \
+    f(K_mut,          "mut") \
+    f(K_self,         "Self") \
+    f(K_struct,       "struct") \
+    f(K_trait,        "trait") \
+    /* punctation */ \
+    f(P_l_paren,      "(") \
+    f(P_r_paren,      ")") \
+    f(P_l_brace,      "{") \
+    f(P_r_brace,      "}") \
+    f(P_l_bracket,    "[") \
+    f(P_r_bracket,    "]") \
+    f(P_dot,          ".") \
+    f(P_dots,         "...") \
+    f(P_comma,        ",") \
+    f(P_semi,         ";") \
+    f(P_colone_colon, "::") \
+    f(P_colon,        ":") \
+    /* operators */ \
+    f(O_arrow,        "->") \
+    f(O_inc,          "++") \
+    f(O_dec,          "--") \
+    f(O_eq,           "=") \
+    f(O_add_eq,       "+=") \
+    f(O_sub_eq,       "-=") \
+    f(O_mul_eq,       "*=") \
+    f(O_div_eq,       "/=") \
+    f(O_mod_eq,       "%=") \
+    f(O_l_shift_eq,   "<<=") \
+    f(O_r_shift_eq,   ">>=") \
+    f(O_and_eq,       "&=") \
+    f(O_or_eq,        "|=") \
+    f(O_xor_eq,       "^=") \
+    f(O_add,          "+") \
+    f(O_sub,          "-") \
+    f(O_mul,          "*") \
+    f(O_div,          "/") \
+    f(O_mod,          "%") \
+    f(O_l_shift,      "<<") \
+    f(O_r_shift,      ">>") \
+    f(O_and,          "&") \
+    f(O_and_and,      "&&") \
+    f(O_or,           "|") \
+    f(O_or_or,        "||") \
+    f(O_xor,          "^") \
+    f(O_not,          "!") \
+    f(O_cmp_le,       "<=") \
+    f(O_cmp_ge,       ">=") \
+    f(O_cmp_lt,       "<") \
+    f(O_cmp_gt,       ">") \
+    f(O_cmp_eq,       "==") \
+    f(O_cmp_ne,       "!=")
 
 class Token {
 public:
     enum class Tag {
-#define CODE(T, S) T,
-        IMPALA_APP_ARG_TOKENS(CODE)
-        IMPALA_SORT_TOKENS(CODE)
-        IMPALA_OP_TOKENS(CODE)
+#define CODE(t, str) t,
+        IMPALA_TOKENS(CODE)
 #undef CODE
     };
 
-    Token() {}
-    Token(Location loc, Literal lit)
-        : tag_(Tag::Literal)
-        , location_(loc)
-        , literal_(lit)
+    Token(Location location)
+        : Token(location, Tag::M_error)
     {}
-    Token(Location loc, const std::string& identifier)
-        : tag_(Tag::Identifier)
-        , location_(loc)
-        , symbol_(identifier)
+    Token(Location location, Tag tag)
+        : location_(location)
+        , tag_(tag)
+        , symbol_(tag_to_string(tag))
     {}
-    Token(Location loc, Tag tag)
-        : tag_(tag)
-        , location_(loc)
+    Token(Location location, const char* str, Box box)
+        : location_(location)
+        , tag_(Tag::M_lit)
+        , symbol_(str)
+        , box_(box)
+    {}
+    Token(Location location, const char* str)
+        : location_(location)
+        , tag_(Tag::M_id)
+        , symbol_(str)
     {}
 
     Tag tag() const { return tag_; }
-    Literal literal() const { return literal_; }
-    Symbol symbol() const { return symbol_; }
     Location location() const { return location_; }
+    Box box() const { return box_; }
+    //const std::string& identifier() const { assert(is_identifier()); return symbol_; }
+    //const std::string& string() const { return symbol_; }
 
-    bool isa(Tag tag) const { return tag_ == tag; }
-    bool is_app_arg() const {
-        switch (tag_) {
-#define CODE(T, S) case Tag::T:
-            IMPALA_APP_ARG_TOKENS(CODE)
-#undef CODE
-                return true;
-            default: return false;
-        }
-    }
+    //bool is_identifier() const { return tag_ == M_id; }
+    //bool is_literal() const { return tag_ == Lit; }
 
-    static std::string tag_to_string(Tag tag) {
+
+    //bool operator == (const Token& token) const { return token.location_ == location_ && token.symbol_ == symbol_; }
+    //bool operator != (const Token& token) const { return token.location_ != location_ || token.symbol_ != symbol_; }
+    //uint32_t hash() const { return hash_combine(location_.hash(), hash_string(symbol_)); }
+
+    static const char* tag_to_string(Tag tag) {
         switch (tag) {
-#define CODE(T, S) case Tag::T: return S;
-            IMPALA_APP_ARG_TOKENS(CODE)
-            IMPALA_SORT_TOKENS(CODE)
-            IMPALA_OP_TOKENS(CODE)
+#define CODE(t, str) case Tag::t: return str;
+            IMPALA_TOKENS(CODE)
 #undef CODE
-            default: IMPALA_UNREACHABLE;
+            default: THORIN_UNREACHABLE;
         }
     }
 
 private:
-    Tag tag_;
     Location location_;
-
-    Literal literal_;
+    Tag tag_;
     Symbol symbol_;
+    Box box_;
 };
 
 std::ostream& operator<<(std::ostream& os, const Token& t);
 
 }
 
-#endif // TOKEN_H
+#endif
