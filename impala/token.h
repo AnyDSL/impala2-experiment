@@ -13,14 +13,7 @@ using thorin::Location;
 using thorin::Symbol;
 using namespace thorin::literals;
 
-
-#define IMPALA_TOKENS(f) \
-    /* misc */ \
-    f(M_eof,          "<eof>") \
-    f(M_error,        "<unknown token>") \
-    f(M_id,           "<identifier>") \
-    f(M_lit,          "<literal>") \
-    /* keywords */ \
+#define IMPALA_KEYWORDS(f) \
     f(K_cn,           "cn") \
     f(K_Cn,           "Cn") \
     f(K_else,         "else") \
@@ -33,7 +26,14 @@ using namespace thorin::literals;
     f(K_mut,          "mut") \
     f(K_self,         "Self") \
     f(K_struct,       "struct") \
-    f(K_trait,        "trait") \
+    f(K_trait,        "trait")
+
+#define IMPALA_TOKENS(f) \
+    /* misc */ \
+    f(M_eof,          "<eof>") \
+    f(M_error,        "<unknown token>") \
+    f(M_id,           "<identifier>") \
+    f(M_lit,          "<literal>") \
     /* delimiters */ \
     f(D_l_brace,      "{") \
     f(D_r_brace,      "}") \
@@ -87,6 +87,7 @@ class Token {
 public:
     enum class Tag {
 #define CODE(t, str) t,
+        IMPALA_KEYWORDS(CODE)
         IMPALA_TOKENS(CODE)
 #undef CODE
     };
@@ -128,6 +129,7 @@ public:
     static const char* tag_to_string(Tag tag) {
         switch (tag) {
 #define CODE(t, str) case Tag::t: return str;
+            IMPALA_KEYWORDS(CODE)
             IMPALA_TOKENS(CODE)
 #undef CODE
             default: THORIN_UNREACHABLE;
