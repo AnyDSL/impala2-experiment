@@ -72,6 +72,7 @@ private:
              back_col_   = 1,
              peek_line_  = 1,
              peek_col_   = 1;
+    thorin::SymbolMap<Token::Tag> keywords_;
 };
 
 }

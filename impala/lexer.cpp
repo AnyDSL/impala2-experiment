@@ -19,6 +19,10 @@ Lexer::Lexer(Compiler& compiler, std::istream& is, const char* filename)
     , stream_(is)
     , filename_(filename)
 {
+#define CODE(tag, str) keywords_[str] = Token::Tag::tag;
+    IMPALA_KEYWORDS(CODE)
+#undef CODE
+
     if (!stream_)
         throw std::runtime_error("stream is bad");
     next();
@@ -216,16 +220,11 @@ Token Lexer::lex() {
             return {location(), str_.c_str(), lit};
         }
 
-        if (std::isalpha(peek()) || peek() == '_') {
-            accept();
-            while (std::isalnum(peek()) || peek() == '_') accept();
-
-            if (str_ == "true")  return Token(loc_, str_, true);
-            if (str_ == "false") return Token(loc_, str_, false);
-
-            auto key_it = keywords.find(str_);
-            if (key_it == keywords.end()) return Token(loc_, str_);
-            return Token(loc_, key_it->second);
+        // identifier
+        if (accept_if(sym)) {
+            while (accept_if(sym) || accept_if(dec)) {}
+            auto i = keywords_.find(str_);
+            return i == keywords_.end() ? Token{location(), str_.c_str()} : Token{location(), i->second};
         }
 
         // TODO utf-8 stuff here
@@ -234,18 +233,6 @@ Token Lexer::lex() {
             auto lit = parse_literal();
             return {location(), lit};
         }
-
-#if 0
-        // identifier
-        if (accept_if(sym)) {
-            while (accept_if(sym) || accept_if(dec)) {}
-
-            // TODO make this mechanism better
-            if (str() == "cn")   return {location(), Token::Tag::Tag::Cn};
-            if (str() == "bool") return {location(), Token::Tag::Tag::Bool};
-            return {location(), str()};
-        }
-#endif
 
         error("invalid character '{}'", peek_bytes_);
         next();
