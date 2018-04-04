@@ -24,8 +24,8 @@ public:
     }
 
 private:
-    int num_warnings_;
-    int num_errors_;
+    int num_warnings_ = 0;
+    int num_errors_ = 0;
 };
 
 }
