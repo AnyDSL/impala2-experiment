@@ -15,7 +15,7 @@ inline bool eE(uint32_t c)  { return c == 'e' || c == 'E'; }
 inline bool sgn(uint32_t c) { return c == '+' || c == '-'; }
 
 Lexer::Lexer(Compiler& compiler, std::istream& is, const char* filename)
-    : compiler_(compiler)
+    : compiler(compiler)
     , stream_(is)
     , filename_(filename)
 {
@@ -108,14 +108,14 @@ Token Lexer::lex() {
         front_col_ = peek_col_;
 
         if (stream_.eof())
-            return {location(), Token::Tag::Eof};
+            return {location(), Token::Tag::M_eof};
 
-        if (accept('{')) return {location(), Token::Tag::L_Brace};
-        if (accept('}')) return {location(), Token::Tag::R_Brace};
-        if (accept('(')) return {location(), Token::Tag::L_Paren};
-        if (accept(')')) return {location(), Token::Tag::R_Paren};
-        if (accept('[')) return {location(), Token::Tag::L_Bracket};
-        if (accept(']')) return {location(), Token::Tag::R_Bracket};
+        if (accept('{')) return {location(), Token::Tag::D_l_brace};
+        if (accept('}')) return {location(), Token::Tag::D_r_brace};
+        if (accept('(')) return {location(), Token::Tag::D_l_paren};
+        if (accept(')')) return {location(), Token::Tag::D_r_paren};
+        if (accept('[')) return {location(), Token::Tag::D_l_bracket};
+        if (accept(']')) return {location(), Token::Tag::D_r_bracket};
         if (accept('<')) {
             if (accept('-')) return {location(), Token::Tag::Arrow};
             return {location(), Token::Tag::L_Angle};
@@ -143,16 +143,7 @@ Token Lexer::lex() {
 
         if (accept('#')) return {location(), Token::Tag::Sharp};
 
-        // greek letters
-        if (accept(0x0003bb)) return {location(), Token::Tag::Lambda};
-        if (accept(0x0003a0)) return {location(), Token::Tag::Pi};
-        if (accept(0x01D538)) return {location(), Token::Tag::Arity_Kind};
-        if (accept(0x01D544)) return {location(), Token::Tag::Multi_Arity_Kind};
-        if (accept(0x00211A)) return {location(), Token::Tag::Qualifier_Type};
-        if (accept(0x001D41)) return {location(), Token::Tag::QualifierU};
-        if (accept(0x001D3F)) return {location(), Token::Tag::QualifierR};
-        if (accept(0x001D2C)) return {location(), Token::Tag::QualifierA};
-        if (accept(0x001D38)) return {location(), Token::Tag::QualifierL};
+        // TODO utf-8 stuff here
 
         if (dec(peek()) || sgn(peek())) {
             auto lit = parse_literal();

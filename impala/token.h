@@ -34,13 +34,14 @@ using namespace thorin::literals;
     f(K_self,         "Self") \
     f(K_struct,       "struct") \
     f(K_trait,        "trait") \
+    /* delimiters */ \
+    f(D_l_paren,      "(") \
+    f(D_r_paren,      ")") \
+    f(D_l_brace,      "{") \
+    f(D_r_brace,      "}") \
+    f(D_l_bracket,    "[") \
+    f(D_r_bracket,    "]") \
     /* punctation */ \
-    f(P_l_paren,      "(") \
-    f(P_r_paren,      ")") \
-    f(P_l_brace,      "{") \
-    f(P_r_brace,      "}") \
-    f(P_l_bracket,    "[") \
-    f(P_r_bracket,    "]") \
     f(P_dot,          ".") \
     f(P_dots,         "...") \
     f(P_comma,        ",") \

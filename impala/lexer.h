@@ -13,8 +13,13 @@ class Lexer {
 public:
     Lexer(Compiler& compiler, std::istream&, const char* filename);
 
-    Token lex(); ///< Get next \p Token in stream.
+    //@{ getters
     const char* filename() const { return filename_; }
+    //@}
+
+    Token lex(); ///< Get next \p Token in stream.
+
+    Compiler& compiler;
 
 private:
     Token parse_literal();
@@ -51,8 +56,9 @@ private:
     uint32_t peek() const { return peek_; }
     const std::string& str() const { return str_; }
     Location location() const { return {filename_, front_line_, front_col_, back_line_, back_col_}; }
+    template<typename... Args>
+    std::ostream& error(const char* fmt, Args... args) { return compiler.error(location(), fmt, std::forward<Args>(args)...); }
 
-    Compiler& compiler_;
     std::istream& stream_;
     uint32_t peek_ = 0;
     char peek_bytes_[5] = {0, 0, 0, 0, 0};
