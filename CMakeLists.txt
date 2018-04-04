@@ -11,6 +11,8 @@ add_subdirectory(thorin2)
 add_library(impala
     impala/lexer.h
     impala/lexer.cpp
+    impala/token.h
+    impala/token.cpp
 )
 set_target_properties(impala PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
 set_target_properties(impala PROPERTIES VERSION ${PROJECT_VERSION})
