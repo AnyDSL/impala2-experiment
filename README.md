@@ -22,6 +22,12 @@ cmake ..
 make
 ```
 
+If you are a developer, you might want to use this:
+```
+git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+```
+This will use SSH instead of HTTPS and will grant you push access of the submodules if applicable.
+
 ## Syntax
 
 ```
