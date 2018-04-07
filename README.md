@@ -40,6 +40,7 @@ p ::=   b
     |   (p; p)
 
 e ::=
+    |   ID
     |   [e, ..., e] |   (e, ..., e)     | . i
     |   [e; e]      |   (e; e)
     |   e -> e      |   <p> e           | e <e>
@@ -50,5 +51,12 @@ e ::=
     |   while e B
     |   for p in e
     |   with p in e
-    |   { e; ... e; [ e ] }
+    |   B
+    |   NUM
+    |   NUM ID
+
+B ::=  { s ... s [ e ] }
+
+s ::= e;
+    | let p = e;
 ```

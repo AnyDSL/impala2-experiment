@@ -24,7 +24,7 @@ public:
 private:
     bool eof() const { return stream_.eof(); }
     void eat_comments();
-    Box parse_literal();
+    Token parse_literal();
 
     template <typename Pred>
     std::optional<uint32_t> accept_opt(Pred pred) {

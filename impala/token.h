@@ -28,12 +28,15 @@ using namespace thorin::literals;
     f(K_struct,       "struct") \
     f(K_trait,        "trait")
 
+#define IMPALA_LIT(f) \
+    f(L_s,        "<signed integer literal>") \
+    f(L_u,        "<integer literal>") \
+    f(L_f,        "<floating-point literal>") \
+
 #define IMPALA_TOKENS(f) \
     /* misc */ \
     f(M_eof,          "<eof>") \
-    f(M_error,        "<unknown token>") \
     f(M_id,           "<identifier>") \
-    f(M_lit,          "<literal>") \
     /* delimiters */ \
     f(D_l_brace,      "{") \
     f(D_r_brace,      "}") \
@@ -88,23 +91,33 @@ public:
     enum class Tag {
 #define CODE(t, str) t,
         IMPALA_KEYWORDS(CODE)
+        IMPALA_LIT(CODE)
         IMPALA_TOKENS(CODE)
 #undef CODE
     };
 
-    Token(Location location)
-        : Token(location, Tag::M_error)
-    {}
+    //Token(Location location)
+        //: Token(location, Tag::M_error)
+    //{}
     Token(Location location, Tag tag)
         : location_(location)
         , tag_(tag)
         , symbol_(tag_to_string(tag))
     {}
-    Token(Location location, const char* str, Box box)
+    Token(Location location, thorin::s64 s)
         : location_(location)
-        , tag_(Tag::M_lit)
-        , symbol_(str)
-        , box_(box)
+        , tag_(Tag::L_s)
+        , s64_(s)
+    {}
+    Token(Location location, thorin::u64 u)
+        : location_(location)
+        , tag_(Tag::L_u)
+        , u64_(u)
+    {}
+    Token(Location location, thorin::f64 f)
+        : location_(location)
+        , tag_(Tag::L_f)
+        , f64_(f)
     {}
     Token(Location location, const char* str)
         : location_(location)
@@ -114,13 +127,19 @@ public:
 
     Tag tag() const { return tag_; }
     Location location() const { return location_; }
-    Box box() const { return box_; }
     //const std::string& identifier() const { assert(is_identifier()); return symbol_; }
-    Symbol symbol() const { return symbol_; }
-
-    //bool is_identifier() const { return tag_ == M_id; }
-    //bool is_literal() const { return tag_ == Lit; }
-
+    Symbol symbol() const { assert(tag() == Tag::M_id); return symbol_; }
+    thorin::f64 f64() const { assert(tag() == Tag::L_f); return f64_; }
+    thorin::s64 s64() const { assert(tag() == Tag::L_s); return s64_; }
+    thorin::u64 u64() const { assert(tag() == Tag::L_u); return u64_; }
+    bool is_literal() const {
+        switch (tag()) {
+#define CODE(t, str) case Tag::t: return true;
+            IMPALA_LIT(CODE)
+#undef CODE
+            default: return false;
+        }
+    }
 
     //bool operator == (const Token& token) const { return token.location_ == location_ && token.symbol_ == symbol_; }
     //bool operator != (const Token& token) const { return token.location_ != location_ || token.symbol_ != symbol_; }
@@ -130,6 +149,7 @@ public:
         switch (tag) {
 #define CODE(t, str) case Tag::t: return str;
             IMPALA_KEYWORDS(CODE)
+            IMPALA_LIT(CODE)
             IMPALA_TOKENS(CODE)
 #undef CODE
             default: THORIN_UNREACHABLE;
@@ -139,8 +159,12 @@ public:
 private:
     Location location_;
     Tag tag_;
-    Symbol symbol_;
-    Box box_;
+    union {
+        Symbol symbol_;
+        thorin::f64 f64_;
+        thorin::s64 s64_;
+        thorin::u64 u64_;
+    };
 };
 
 std::ostream& operator<<(std::ostream& os, const Token& t);

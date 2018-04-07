@@ -136,7 +136,8 @@ Token Lexer::lex() {
             if (accept('.')) {
                 if (accept('.')) return {location(), Token::Tag::P_dots};
                 error("unknown token '..'");
-                return {location()};
+                str_.clear();
+                continue;
             }
             return {location(), Token::Tag::P_dot};
         }
@@ -214,11 +215,8 @@ Token Lexer::lex() {
             if (accept('=')) return {location(), Token::Tag::O_cmp_ne};
             return {location(), Token::Tag::O_not};
         }
-
-        if (std::isdigit(peek()) || peek() == '.') {
-            auto lit = parse_literal();
-            return {location(), str_.c_str(), lit};
-        }
+        if (dec(peek()) || sgn(peek()))
+            return parse_literal();
 
         // identifier
         if (accept_if(sym)) {
@@ -229,17 +227,12 @@ Token Lexer::lex() {
 
         // TODO utf-8 stuff here
 
-        if (dec(peek()) || sgn(peek())) {
-            auto lit = parse_literal();
-            return {location(), lit};
-        }
-
         error("invalid character '{}'", peek_bytes_);
         next();
     }
 }
 
-Literal Lexer::parse_literal() {
+Token Lexer::parse_literal() {
     int base = 10;
 
     auto parse_digits = [&] () {
@@ -265,60 +258,27 @@ Literal Lexer::parse_literal() {
 
     parse_digits();
 
-    bool exp = false, fract = false;
+    bool is_float = false;
     if (base == 10) {
         // parse fractional part
         if (accept('.')) {
-            fract = true;
+            is_float = true;
             parse_digits();
         }
 
         // parse exponent
         if (accept_if(eE)) {
-            exp = true;
+            is_float = true;
             if (accept_if(sgn)) {}
             parse_digits();
         }
     }
 
-    // suffix
-    if (!exp && !fract) {
-        if (accept('s', false)) {
-            if (accept("8",  false)) return {Literal::Tag::Lit_s8,   s8( strtol(str().c_str(), nullptr, base))};
-            if (accept("16", false)) return {Literal::Tag::Lit_s16, s16( strtol(str().c_str(), nullptr, base))};
-            if (accept("32", false)) return {Literal::Tag::Lit_s32, s32( strtol(str().c_str(), nullptr, base))};
-            if (accept("64", false)) return {Literal::Tag::Lit_s64, s64(strtoll(str().c_str(), nullptr, base))};
-        }
-
-        if (!sign) {
-            if (accept('u', false)) {
-                if (accept("8", false))  return {Literal::Tag::Lit_u8,   u8( strtoul(str().c_str(), nullptr, base))};
-                if (accept("16", false)) return {Literal::Tag::Lit_u16, u16( strtoul(str().c_str(), nullptr, base))};
-                if (accept("32", false)) return {Literal::Tag::Lit_u32, u32( strtoul(str().c_str(), nullptr, base))};
-                if (accept("64", false)) return {Literal::Tag::Lit_u64, u64(strtoull(str().c_str(), nullptr, base))};
-            }
-
-            if (accept(0x002090))
-                return {Literal::Tag::Lit_arity, u64(strtoull(str().c_str(), nullptr, base))};
-
-            if (peek() > 0x002080 && peek() < 0x002090) {
-                return {Literal::Tag::Lit_index, u64(strtoull(str().c_str(), nullptr, base))};
-            }
-        }
-    }
-
-    if (base == 10 && accept('r', false)) {
-        if (accept("16", false)) return {Literal::Tag::Lit_r16, r16(strtof(str().c_str(), nullptr))};
-        if (accept("32", false)) return {Literal::Tag::Lit_r32, r32(strtof(str().c_str(), nullptr))};
-        if (accept("64", false)) return {Literal::Tag::Lit_r64, r64(strtod(str().c_str(), nullptr))};
-    }
-
-    // untyped literals
-    if (base == 10 && !fract && !exp) {
-        return Literal(Literal::Tag::Lit_untyped, u64(strtoull(str().c_str(), nullptr, 10)));
-    }
-
-    error("invalid literal");
+    if (is_float)
+        return {location(), thorin::s64(strtoll(str().c_str(), nullptr, base))};
+    if (sign)
+        return {location(), thorin::u64(strtoll(str().c_str(), nullptr, base))};
+    return {location(), thorin::u64(strtoull(str().c_str(), nullptr, base))};
 }
 
 }
