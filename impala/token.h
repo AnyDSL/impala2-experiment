@@ -141,6 +141,7 @@ public:
         }
     }
 
+    bool isa(Tag tag) const { return tag_ == tag; }
     //bool operator == (const Token& token) const { return token.location_ == location_ && token.symbol_ == symbol_; }
     //bool operator != (const Token& token) const { return token.location_ != location_ || token.symbol_ != symbol_; }
     //uint32_t hash() const { return hash_combine(location_.hash(), hash_string(symbol_)); }
