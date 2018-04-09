@@ -7,7 +7,7 @@
 namespace impala {
 
 template<class T> using Ptr = std::unique_ptr<T>;
-template <typename T> using PtrDeque = std::deque<std::unique_ptr<T>>;
+template<class T> using PtrDeque = std::deque<std::unique_ptr<T>>;
 
 struct Node {
 };
@@ -20,7 +20,6 @@ struct TupleExpr : public Expr {
 
 struct IfExpr : public Expr {
 };
-
 
 }
 

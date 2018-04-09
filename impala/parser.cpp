@@ -6,8 +6,8 @@ Parser::Parser(Compiler& compiler, std::istream& stream, const char* filename)
     : lexer_(compiler, stream, filename)
 {
     for (int i = 0; i != max_ahead; ++i)
-        next();
-    prev_location_ = Location(filename, 1, 1, 1, 1);
+        lex();
+    prev_ = Location(filename, 1, 1, 1, 1);
 }
 
 Token Parser::lex() {

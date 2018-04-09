@@ -60,7 +60,7 @@ private:
 
     Lexer lexer_;                       ///< invoked in order to get next token
     static constexpr int max_ahead = 3; ///< maximum lookahead
-    std::array<Token, max_ahead>;       ///< SLL look ahead
+    std::array<Token, max_ahead> ahead_;///< SLL look ahead
     Location prev_;
 };
 
