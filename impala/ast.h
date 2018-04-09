@@ -8,6 +8,8 @@
 
 namespace impala {
 
+class Stmnt;
+
 template<class T> using Ptr = std::unique_ptr<T>;
 template<class T> using PtrDeque = std::deque<std::unique_ptr<T>>;
 
@@ -15,15 +17,58 @@ struct Node {
     Node(Location location)
         : location(location)
     {}
+    virtual ~Node() {}
 
     Location location;
 };
 
-struct Stmnt : public Node {
-    Stmnt(Location location)
+struct Id : public Node {
+    Id(Location location, Symbol symbol)
+        : Node(location)
+        , symbol(symbol)
+    {}
+    Id(Token token)
+        : Node(token.location())
+        , symbol(token.symbol())
+    {}
+
+    //std::ostream& stream(std::ostream&) const override;
+
+    Symbol symbol;
+};
+
+/*
+ * Ptrn
+ */
+
+struct Ptrn : public Node {
+    Ptrn(Location location)
         : Node(location)
     {}
 };
+
+struct IdPtrn : public Ptrn {
+    IdPtrn(Location location, Ptr<Id>&& id)
+        : Ptrn(location)
+        , id(std::move(id))
+
+    {}
+
+    Ptr<Id> id;
+};
+
+struct TuplePtrn : public Ptrn {
+    TuplePtrn(Location location, PtrDeque<Ptrn>&& ptrns)
+        : Ptrn(location)
+        , ptrns(std::move(ptrns))
+    {}
+
+    PtrDeque<Ptrn> ptrns;
+};
+
+/*
+ * Expr
+ */
 
 struct Expr : public Node {
     Expr(Location location)
@@ -43,15 +88,15 @@ struct BlockExpr : public Expr {
 };
 
 struct TupleExpr : public Expr {
-    TupleExpr(Location location, PtrDeque<Expr>&& args)
+    TupleExpr(Location location, PtrDeque<Expr>&& exprs)
         : Expr(location)
-        , args(std::move(args))
+        , exprs(std::move(exprs))
     {}
     TupleExpr(Location location)
         : TupleExpr(location, {})
     {}
 
-    PtrDeque<Expr> args;
+    PtrDeque<Expr> exprs;
 };
 
 struct IfExpr : public Expr {
@@ -65,6 +110,16 @@ struct IfExpr : public Expr {
     Ptr<Expr> cond;
     Ptr<Expr> then_expr;
     Ptr<Expr> else_expr;
+};
+
+/*
+ * Stmnt
+ */
+
+struct Stmnt : public Node {
+    Stmnt(Location location)
+        : Node(location)
+    {}
 };
 
 }
