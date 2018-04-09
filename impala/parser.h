@@ -14,6 +14,14 @@ class Parser {
 public:
     Parser(Compiler&, std::istream&, const char* filename);
 
+    //@{ Expr%s
+    Ptr<TupleExpr> empty_expr() { return std::make_unique<TupleExpr>(prev_); }
+    Ptr<Expr> try_block_expr();
+    Ptr<Expr> parse_expr();
+    Ptr<BlockExpr> parse_block_expr();
+    Ptr<IfExpr> parse_if_expr();
+    //@}
+
 private:
     const Token& ahead(size_t i = 0) const { assert(i < max_ahead); return ahead_[i]; }
 
