@@ -9,10 +9,13 @@ add_subdirectory(thorin2)
 # target: library impala
 
 add_library(impala
+    impala/ast.h
     impala/compiler.h
     impala/lexer.cpp
-    impala/token.h
+    impala/parser.cpp
+    impala/parser.h
     impala/token.cpp
+    impala/token.h
 )
 set_target_properties(impala PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
 set_target_properties(impala PROPERTIES VERSION ${PROJECT_VERSION})

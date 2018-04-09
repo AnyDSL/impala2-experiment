@@ -99,6 +99,7 @@ public:
 #undef CODE
     };
 
+    Token() {}
     Token(Location location, Tag tag)
         : location_(location)
         , tag_(tag)
