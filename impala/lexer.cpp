@@ -23,15 +23,12 @@ Lexer::Lexer(Compiler& compiler, std::istream& is, const char* filename)
     IMPALA_KEYWORDS(CODE)
 #undef CODE
 
-    if (!stream_)
-        throw std::runtime_error("stream is bad");
+    if (!stream_) throw std::runtime_error("stream is bad");
     next();
+    accept(0xfeff, false); // eat utf-8 BOM if present
     front_line_ = front_col_  = 1;
     back_line_  = back_col_   = 1;
     peek_line_  = peek_col_   = 1;
-
-    // eat utf-8 BOM if present
-    accept(0xfeff, false);
 }
 
 inline bool is_bit_set(uint32_t val, uint32_t n) { return bool((val >> n) & 1_u32); }
