@@ -65,7 +65,7 @@ private:
     uint32_t front_line_, front_col_;
     uint32_t  back_line_,  back_col_;
     uint32_t  peek_line_,  peek_col_;
-    thorin::SymbolMap<Token::Tag> keywords_;
+    std::array<std::pair<Symbol, Token::Tag>, Num_Keywords> keywords_;
 };
 
 }

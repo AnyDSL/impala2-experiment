@@ -19,7 +19,8 @@ Lexer::Lexer(Compiler& compiler, std::istream& is, const char* filename)
     , stream_(is)
     , filename_(filename)
 {
-#define CODE(tag, str) keywords_[str] = Token::Tag::tag;
+    size_t i = 0;
+#define CODE(tag, str) keywords_[i++] = {Symbol(str), Token::Tag::tag};
     IMPALA_KEYWORDS(CODE)
 #undef CODE
 
@@ -215,8 +216,9 @@ Token Lexer::lex() {
         // identifier
         if (accept_if(sym)) {
             while (accept_if(sym) || accept_if(dec)) {}
-            auto i = keywords_.find(str_);
-            return i == keywords_.end() ? Token{location(), str_.c_str()} : Token{location(), i->second};
+            Symbol symbol(str_);
+            auto i = std::find_if(keywords_.begin(), keywords_.end(), [&](auto p) { return p.first == symbol; });
+            return i == keywords_.end() ? Token{location(), symbol} : Token{location(), i->second};
         }
 
         // TODO utf-8 stuff here

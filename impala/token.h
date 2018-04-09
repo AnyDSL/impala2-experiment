@@ -28,6 +28,10 @@ using namespace thorin::literals;
     f(K_struct,       "struct") \
     f(K_trait,        "trait")
 
+#define CODE(t, str) + 1_s
+constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
+#undef CODE
+
 #define IMPALA_LIT(f) \
     f(L_s,        "<signed integer literal>") \
     f(L_u,        "<integer literal>") \
@@ -95,9 +99,6 @@ public:
 #undef CODE
     };
 
-    //Token(Location location)
-        //: Token(location, Tag::M_error)
-    //{}
     Token(Location location, Tag tag)
         : location_(location)
         , tag_(tag)
@@ -118,10 +119,10 @@ public:
         , tag_(Tag::L_f)
         , f64_(f)
     {}
-    Token(Location location, const char* str)
+    Token(Location location, Symbol symbol)
         : location_(location)
         , tag_(Tag::M_id)
-        , symbol_(str)
+        , symbol_(symbol)
     {}
 
     Tag tag() const { return tag_; }
