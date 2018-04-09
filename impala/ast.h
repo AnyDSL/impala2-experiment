@@ -8,7 +8,7 @@
 
 namespace impala {
 
-class Stmnt;
+struct Stmnt;
 
 template<class T> using Ptr = std::unique_ptr<T>;
 template<class T> using PtrDeque = std::deque<std::unique_ptr<T>>;
@@ -76,6 +76,17 @@ struct Expr : public Node {
     {}
 };
 
+struct BinderExpr : public Expr {
+    BinderExpr(Location location, Ptr<Id>&& id, Ptr<Expr> type)
+        : Expr(location)
+        , id(std::move(id))
+        , type(std::move(type))
+    {}
+
+    Ptr<Id> id;
+    Ptr<Expr> type;
+};
+
 struct BlockExpr : public Expr {
     BlockExpr(Location location, PtrDeque<Stmnt>&& stmnts, Ptr<Expr>&& expr)
         : Expr(location)
@@ -99,6 +110,18 @@ struct TupleExpr : public Expr {
     PtrDeque<Expr> exprs;
 };
 
+struct SigmaExpr : public Expr {
+    SigmaExpr(Location location, PtrDeque<BinderExpr>&& binders)
+        : Expr(location)
+        , binders(std::move(binders))
+    {}
+    SigmaExpr(Location location)
+        : SigmaExpr(location, {})
+    {}
+
+    PtrDeque<BinderExpr> binders;
+};
+
 struct IfExpr : public Expr {
     IfExpr(Location location, Ptr<Expr>&& cond, Ptr<Expr>&& then_expr, Ptr<Expr>&& else_expr)
         : Expr(location)
@@ -120,6 +143,15 @@ struct Stmnt : public Node {
     Stmnt(Location location)
         : Node(location)
     {}
+};
+
+struct ExprStmt : public Stmnt {
+    ExprStmt(Location location, Ptr<Expr>&& expr)
+        : Stmnt(location)
+        , expr(std::move(expr))
+    {}
+
+    Ptr<Expr> expr;
 };
 
 }
