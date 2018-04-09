@@ -5,13 +5,13 @@
 namespace impala {
 
 // character classes
-inline bool sp(uint32_t c)  { return c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v'; }
+inline bool wsp(uint32_t c) { return c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v'; }
 inline bool dec(uint32_t c) { return c >= '0' && c <= '9'; }
 inline bool hex(uint32_t c) { return dec(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'); }
 inline bool sym(uint32_t c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'; }
 inline bool bin(uint32_t c) { return '0' <= c && c <= '1'; }
 inline bool oct(uint32_t c) { return '0' <= c && c <= '7'; }
-inline bool eE(uint32_t c)  { return c == 'e' || c == 'E'; }
+inline bool eE (uint32_t c) { return c == 'e' || c == 'E'; }
 inline bool sgn(uint32_t c) { return c == '+' || c == '-'; }
 
 Lexer::Lexer(Compiler& compiler, std::istream& is, const char* filename)
@@ -26,6 +26,9 @@ Lexer::Lexer(Compiler& compiler, std::istream& is, const char* filename)
     if (!stream_)
         throw std::runtime_error("stream is bad");
     next();
+    front_line_ = front_col_  = 1;
+    back_line_  = back_col_   = 1;
+    peek_line_  = peek_col_   = 1;
 
     // eat utf-8 BOM if present
     accept(0xfeff, false);
@@ -42,6 +45,8 @@ uint32_t Lexer::next() {
     peek_bytes_[0] = b1;
 
     if (b1 == (uint32_t) std::istream::traits_type::eof()) {
+        back_line_ = peek_line_;
+        back_col_  = peek_col_;
         peek_ = b1;
         return result;
     }
@@ -70,7 +75,7 @@ uint32_t Lexer::next() {
 
         if (b1 == '\n') {
             ++peek_line_;
-            peek_col_ = 1;
+            peek_col_ = 0;
         } else
             ++peek_col_;
         peek_ = b1;
@@ -113,17 +118,18 @@ void Lexer::eat_comments() {
 
 Token Lexer::lex() {
     while (true) {
-        // skip whitespace
-        if (accept_if(sp, false)) {
-            while (accept_if(sp, false)) {}
-            continue;
-        }
-
         str_ = "";
         front_line_ = peek_line_;
-        front_col_ = peek_col_;
+        front_col_  = peek_col_;
 
+        // end of file
         if (eof()) return {location(), Token::Tag::M_eof};
+
+        // skip whitespace
+        if (accept_if(wsp, false)) {
+            while (accept_if(wsp, false)) {}
+            continue;
+        }
 
         if (accept('(')) return {location(), Token::Tag::D_l_paren};
         if (accept(')')) return {location(), Token::Tag::D_r_paren};
@@ -132,15 +138,7 @@ Token Lexer::lex() {
         if (accept('[')) return {location(), Token::Tag::D_l_bracket};
         if (accept(']')) return {location(), Token::Tag::D_r_bracket};
 
-        if (accept('.')) {
-            if (accept('.')) {
-                if (accept('.')) return {location(), Token::Tag::P_dots};
-                error("unknown token '..'");
-                str_.clear();
-                continue;
-            }
-            return {location(), Token::Tag::P_dot};
-        }
+        if (accept('.')) return {location(), Token::Tag::P_dot};
         if (accept(',')) return {location(), Token::Tag::P_comma};
         if (accept(';')) return {location(), Token::Tag::P_semi};
         if (accept(':')) {
@@ -210,7 +208,6 @@ Token Lexer::lex() {
             if (accept('=')) return {location(), Token::Tag::O_xor_eq};
             return {location(), Token::Tag::O_xor};
         }
-
         if (accept('!')) {
             if (accept('=')) return {location(), Token::Tag::O_cmp_ne};
             return {location(), Token::Tag::O_not};

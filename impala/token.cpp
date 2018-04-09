@@ -3,7 +3,7 @@
 namespace impala {
 
 std::ostream& operator<<(std::ostream& os, const Token& token) {
-    os << token.location() << ": ";
+    //os << token.location() << ": ";
     switch (token.tag()) {
         case Token::Tag::M_id: return os << token.symbol();
         case Token::Tag::L_s:  return os << token.s64();

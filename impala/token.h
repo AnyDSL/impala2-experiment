@@ -46,7 +46,6 @@ using namespace thorin::literals;
     f(D_r_paren,      ")") \
     /* punctation */ \
     f(P_dot,          ".") \
-    f(P_dots,         "...") \
     f(P_comma,        ",") \
     f(P_semi,         ";") \
     f(P_colone_colon, "::") \
