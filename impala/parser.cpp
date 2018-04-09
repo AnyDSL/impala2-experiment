@@ -35,14 +35,15 @@ bool Parser::expect(Token::Tag tag, const std::string& context) {
     if (ahead().tag() == tag) {
         lex();
         return true;
+    }
     std::ostringstream oss;
-    oss << '\'' << tag << '\'';
+    thorin::streamf(oss, "'{}'", Token::tag_to_string(tag));
     error(oss.str(), context);
     return false;
 }
 
 void Parser::error(const std::string& what, const std::string& context, const Token& tok) {
-    impala::error(tok.location(), "expected {}, got '{}'{}", what, tok,
+    lexer_.compiler.error(tok.location(), "expected {}, got '{}'{}", what, tok,
             context.empty() ? "" : std::string(" while parsing ") + context.c_str());
 }
 
