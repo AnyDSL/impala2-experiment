@@ -31,26 +31,26 @@ This will use SSH instead of HTTPS and will grant you push access for the submod
 ## Syntax
 
 ```
-b ::=   x: e
+b ::=   ID: e
     |   e
 
-p ::=   b
-    |   mut p
-    |   (p, ..., p)
-    |   (p; p)
+pt ::=  p: t
+    |   p
 
-e ::=
-    |   ID
-    |   [e, ..., e] |   (e, ..., e)     | . i
-    |   [e; e]      |   (e; e)
+p ::=   ID
+    |   mut pt
+    |   (pt, ..., pt)
+
+e ::=   ID
+    |   [b, ..., b] |   (e, ..., e)     | . i
+    |   [b; e]      |   (b; e)
     |   e -> e      |   <p> e           | e <e>
     |   Fn e -> e   |   fn p [-> e] e   | e e
     |   Cn e        |   cn p e          | e e
     |   if e B [else B]
-    |   match p { p => e, ..., p => e }
+    |   match e { p => e, ..., p => e }
     |   while e B
     |   for p in e
-    |   with p in e
     |   B
     |   NUM
     |   NUM ID
