@@ -138,7 +138,7 @@ Token Lexer::lex() {
 
         if (accept('.')) return {location(), Token::Tag::P_dot};
         if (accept(',')) return {location(), Token::Tag::P_comma};
-        if (accept(';')) return {location(), Token::Tag::P_semi};
+        if (accept(';')) return {location(), Token::Tag::P_semicolon};
         if (accept(':')) {
             if (accept(':')) return {location(), Token::Tag::P_colone_colon};
             return {location(), Token::Tag::P_colon};

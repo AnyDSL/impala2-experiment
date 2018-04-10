@@ -2,6 +2,49 @@
 
 #include <sstream>
 
+#define ITEM \
+         Token::Tag::K_enum: \
+    case Token::Tag::K_extern: \
+    case Token::Tag::K_fn: \
+    case Token::Tag::K_impl: \
+    case Token::Tag::K_mod: \
+    case Token::Tag::K_static: \
+    case Token::Tag::K_struct: \
+    case Token::Tag::K_typedef: \
+    case Token::Tag::K_trait
+
+#define EXPR \
+         Token::Tag::D_l_brace: \
+    case Token::Tag::D_l_bracket: \
+    case Token::Tag::D_l_paren: \
+    case Token::Tag::K_Cn: \
+    case Token::Tag::K_Fn: \
+    case Token::Tag::K_cn: \
+    case Token::Tag::K_false: \
+    case Token::Tag::K_fn: \
+    case Token::Tag::K_for: \
+    case Token::Tag::K_if: \
+    case Token::Tag::K_match: \
+    case Token::Tag::K_true: \
+    case Token::Tag::K_while: \
+    case Token::Tag::L_f: \
+    case Token::Tag::L_s: \
+    case Token::Tag::L_u: \
+    case Token::Tag::M_id: \
+    case Token::Tag::O_add: \
+    case Token::Tag::O_and: \
+    case Token::Tag::O_dec: \
+    case Token::Tag::O_inc: \
+    case Token::Tag::O_mul: \
+    case Token::Tag::O_not: \
+    case Token::Tag::O_sub: \
+    case Token::Tag::O_tilde
+
+#define STMNT \
+         Token::Tag::K_let: \
+    case ITEM: \
+    case EXPR
+
 namespace impala {
 
 Parser::Parser(Compiler& compiler, std::istream& stream, const char* filename)
@@ -55,23 +98,93 @@ Ptr<Expr> Parser::parse_expr() {
     return nullptr;
 }
 
-Ptr<Expr> Parser::try_block_expr() {
-    if (ahead().isa(Token::Tag::D_l_brace))
-        return parse_block_expr();
-    return empty_expr();
+Ptr<BlockExpr> Parser::parse_block_expr() {
+    auto tracker = track();
+    eat(Token::Tag::D_l_brace);
+    PtrDeque<Stmnt> stmnts;
+    Ptr<Expr> final_expr;
+    while (true) {
+        switch (ahead().tag()) {
+            case Token::Tag::P_semicolon: lex(); continue; // ignore semicolon
+            //case ITEM:             stmnts.emplace_back(parse_item_stmnt()); continue;
+            //case Token::LET:       stmnts.emplace_back(parse_let_stmnt()); continue;
+            //case Token::ASM:       stmnts.emplace_back(parse_asm_stmnt()); continue;
+            case EXPR: {
+                auto tracker = track();
+                Ptr<Expr> expr;
+                bool stmnt_like = true;
+                switch (ahead().tag()) {
+                    case Token::Tag::K_if:      expr = parse_if_expr(); break;
+                    case Token::Tag::K_match:   expr = parse_match_expr(); break;
+                    case Token::Tag::K_for:     expr = parse_for_expr(); break;
+                    case Token::Tag::K_while:   expr = parse_while_expr(); break;
+                    case Token::Tag::D_l_brace: expr = parse_block_expr(); break;
+                    default:                    expr = parse_expr(); stmnt_like = false;
+                }
+
+                if (accept(Token::Tag::P_semicolon) || (stmnt_like && !ahead().isa(Token::Tag::D_r_brace))) {
+                    stmnts.emplace_back(std::make_unique<ExprStmnt>(tracker, std::move(expr)));
+                    continue;
+                }
+
+                swap(final_expr, expr);
+                [[fallthrough]];
+            }
+            default:
+                expect(Token::Tag::D_r_brace, "block expression");
+                if (!final_expr)
+                    final_expr = empty_expr();
+                return std::make_unique<BlockExpr>(tracker, std::move(stmnts), std::move(final_expr));
+        }
+    }
 }
 
-Ptr<BlockExpr> Parser::parse_block_expr() {
-    return nullptr;
+Ptr<BlockExpr> Parser::try_block_expr(const std::string& context) {
+    switch (ahead().tag()) {
+        case Token::Tag::D_l_brace:
+            return parse_block_expr();
+        default:
+            error("block expression", context);
+            return std::make_unique<BlockExpr>(prev_);
+    }
 }
 
 Ptr<IfExpr> Parser::parse_if_expr() {
     auto tracker = track();
     eat(Token::Tag::K_if);
     auto cond = parse_expr();
-    auto then_expr = try_block_expr();
-    auto else_expr = accept(Token::Tag::K_else) ? try_block_expr() : empty_expr();
+    auto then_expr = try_block_expr("consequence of an if expression");
+    Ptr<Expr> else_expr;
+    if (accept(Token::Tag::K_else)) {
+        switch (ahead().tag()) {
+            case Token::Tag::K_if:      else_expr = parse_if_expr(); break;
+            case Token::Tag::D_l_brace: else_expr = parse_block_expr(); break;
+            default: error("block or if-expression", "alternative of an if-expression");
+        }
+    }
+
+    if (!else_expr)
+        else_expr = std::make_unique<BlockExpr>(prev_);
     return std::make_unique<IfExpr>(tracker, std::move(cond), std::move(then_expr), std::move(else_expr));
+}
+
+Ptr<ForExpr> Parser::parse_for_expr() {
+    return nullptr;
+}
+
+Ptr<MatchExpr> Parser::parse_match_expr() {
+    return nullptr;
+}
+
+Ptr<TupleExpr> Parser::parse_tuple_expr() {
+    auto tracker = track();
+    eat(Token::Tag::D_l_paren);
+    auto exprs = parse_list("tuple elements", Token::Tag::D_r_paren, Token::Tag::P_semicolon, [&]{ return parse_expr(); });
+    return std::make_unique<TupleExpr>(tracker, std::move(exprs));
+}
+
+Ptr<WhileExpr> Parser::parse_while_expr() {
+    return nullptr;
 }
 
 }

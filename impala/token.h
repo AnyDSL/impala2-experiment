@@ -14,19 +14,23 @@ using thorin::Symbol;
 using namespace thorin::literals;
 
 #define IMPALA_KEYWORDS(f) \
-    f(K_cn,           "cn") \
-    f(K_Cn,           "Cn") \
-    f(K_else,         "else") \
-    f(K_fn,           "fn") \
-    f(K_Fn,           "Fn") \
-    f(K_for,          "for") \
-    f(K_if,           "if") \
-    f(K_impl,         "impl") \
-    f(K_let,          "let") \
-    f(K_mut,          "mut") \
-    f(K_self,         "Self") \
-    f(K_struct,       "struct") \
-    f(K_trait,        "trait")
+    f(K_Cn,     "Cn") \
+    f(K_cn,     "cn") \
+    f(K_else,   "else") \
+    f(K_false,  "false") \
+    f(K_fn,     "fn") \
+    f(K_Fn,     "Fn") \
+    f(K_for,    "for") \
+    f(K_if,     "if") \
+    f(K_impl,   "impl") \
+    f(K_let,    "let") \
+    f(K_match,  "match") \
+    f(K_mut,    "mut") \
+    f(K_self,   "Self") \
+    f(K_struct, "struct") \
+    f(K_true,   "true") \
+    f(K_trait,  "trait") \
+    f(K_while,  "while")
 
 #define CODE(t, str) + 1_s
 constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
@@ -51,7 +55,7 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     /* punctation */ \
     f(P_dot,          ".") \
     f(P_comma,        ",") \
-    f(P_semi,         ";") \
+    f(P_semicolon,    ";") \
     f(P_colone_colon, "::") \
     f(P_colon,        ":") \
     /* operators */ \
@@ -74,6 +78,7 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(O_mul,          "*") \
     f(O_div,          "/") \
     f(O_mod,          "%") \
+    f(O_tilde,        "~") \
     f(O_l_shift,      "<<") \
     f(O_r_shift,      ">>") \
     f(O_and,          "&") \

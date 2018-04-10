@@ -15,13 +15,20 @@ public:
     Parser(Compiler&, std::istream&, const char* filename);
 
     //@{ Expr%s
-    Ptr<TupleExpr> empty_expr() { return std::make_unique<TupleExpr>(prev_); }
-    Ptr<Expr> try_block_expr();
-    Ptr<Expr> parse_expr();
-    Ptr<BlockExpr> parse_block_expr();
-    Ptr<IfExpr> parse_if_expr();
+    Ptr<TupleExpr>  empty_expr() { return std::make_unique<TupleExpr>(prev_); }
+    Ptr<Expr>       parse_expr();
+    Ptr<BlockExpr>  parse_block_expr();
+    Ptr<BlockExpr>  try_block_expr(const std::string& context);
+    Ptr<IfExpr>     parse_if_expr();
+    Ptr<ForExpr>    parse_for_expr();
+    Ptr<MatchExpr>  parse_match_expr();
+    Ptr<TupleExpr>  parse_tuple_expr();
+    Ptr<WhileExpr>  parse_while_expr();
     //@}
 
+    //@{ Stmnt%s
+    Ptr<Stmnt> parse_stmnt();
+    //@}
 private:
     const Token& ahead(size_t i = 0) const { assert(i < max_ahead); return ahead_[i]; }
 
@@ -37,13 +44,16 @@ private:
     void error(const std::string& what, const std::string& context, const Token& tok);
 
     template<class F>
-    void parse_list(const char* context, Token::Tag delimiter, Token::Tag sep, F f) {
+    auto parse_list(const char* context, Token::Tag delimiter, Token::Tag sep, F f) -> std::deque<decltype(f())>  {
+        std::deque<decltype(f())> result;
         if (!ahead().isa(delimiter)) {
-            do { f(); }
-            while (accept(sep) && !ahead().isa(delimiter));
+            do {
+                result.emplace_back(f());
+            } while (accept(sep) && !ahead().isa(delimiter));
         }
 
         expect(delimiter, context);
+        return std::move(result);
     }
 
     class Tracker {
