@@ -13,6 +13,8 @@ struct Stmnt;
 
 template<class T> using Ptr = std::unique_ptr<T>;
 template<class T> using PtrDeque = std::deque<std::unique_ptr<T>>;
+template<class T, class... Args>
+std::unique_ptr<T> make_ptr(Args... args) { return std::make_unique<T>(std::forward<Args>(args)...); }
 
 struct Node {
     Node(Location location)

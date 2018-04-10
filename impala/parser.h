@@ -15,7 +15,7 @@ public:
     Parser(Compiler&, std::istream&, const char* filename);
 
     //@{ Expr%s
-    Ptr<TupleExpr>  empty_expr() { return std::make_unique<TupleExpr>(prev_); }
+    Ptr<TupleExpr>  empty_expr() { return make_ptr<TupleExpr>(prev_); }
     Ptr<Expr>       parse_expr();
     Ptr<BlockExpr>  parse_block_expr();
     Ptr<BlockExpr>  try_block_expr(const std::string& context);
@@ -31,13 +31,7 @@ public:
     //@}
 private:
     const Token& ahead(size_t i = 0) const { assert(i < max_ahead); return ahead_[i]; }
-
-#ifdef NDEBUG
-    Token eat(Token::Tag) { return lex(); }
-#else
-    Token eat(Token::Tag tag) { assert(tag == ahead().tag() && "internal parser error"); return lex(); }
-#endif
-
+    Token eat(Token::Tag tag) { assert_unused(tag == ahead().tag() && "internal parser error"); return lex(); }
     bool accept(Token::Tag tok);
     bool expect(Token::Tag tok, const std::string& context);
     void error(const std::string& what, const std::string& context) { error(what, context, ahead()); }

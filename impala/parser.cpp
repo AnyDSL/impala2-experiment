@@ -123,7 +123,7 @@ Ptr<BlockExpr> Parser::parse_block_expr() {
                 }
 
                 if (accept(Token::Tag::P_semicolon) || (stmnt_like && !ahead().isa(Token::Tag::D_r_brace))) {
-                    stmnts.emplace_back(std::make_unique<ExprStmnt>(tracker, std::move(expr)));
+                    stmnts.emplace_back(make_ptr<ExprStmnt>(tracker, std::move(expr)));
                     continue;
                 }
 
@@ -134,7 +134,7 @@ Ptr<BlockExpr> Parser::parse_block_expr() {
                 expect(Token::Tag::D_r_brace, "block expression");
                 if (!final_expr)
                     final_expr = empty_expr();
-                return std::make_unique<BlockExpr>(tracker, std::move(stmnts), std::move(final_expr));
+                return make_ptr<BlockExpr>(tracker, std::move(stmnts), std::move(final_expr));
         }
     }
 }
@@ -145,7 +145,7 @@ Ptr<BlockExpr> Parser::try_block_expr(const std::string& context) {
             return parse_block_expr();
         default:
             error("block expression", context);
-            return std::make_unique<BlockExpr>(prev_);
+            return make_ptr<BlockExpr>(prev_);
     }
 }
 
@@ -164,8 +164,8 @@ Ptr<IfExpr> Parser::parse_if_expr() {
     }
 
     if (!else_expr)
-        else_expr = std::make_unique<BlockExpr>(prev_);
-    return std::make_unique<IfExpr>(tracker, std::move(cond), std::move(then_expr), std::move(else_expr));
+        else_expr = make_ptr<BlockExpr>(prev_);
+    return make_ptr<IfExpr>(tracker, std::move(cond), std::move(then_expr), std::move(else_expr));
 }
 
 Ptr<ForExpr> Parser::parse_for_expr() {
@@ -180,7 +180,7 @@ Ptr<TupleExpr> Parser::parse_tuple_expr() {
     auto tracker = track();
     auto exprs = parse_list("tuple elements", Token::Tag::D_l_paren, Token::Tag::D_r_paren, Token::Tag::P_semicolon,
             [&]{ return parse_expr(); });
-    return std::make_unique<TupleExpr>(tracker, std::move(exprs));
+    return make_ptr<TupleExpr>(tracker, std::move(exprs));
 }
 
 Ptr<WhileExpr> Parser::parse_while_expr() {
