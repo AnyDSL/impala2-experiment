@@ -44,15 +44,16 @@ private:
     void error(const std::string& what, const std::string& context, const Token& tok);
 
     template<class F>
-    auto parse_list(const char* context, Token::Tag delimiter, Token::Tag sep, F f) -> std::deque<decltype(f())>  {
+    auto parse_list(const char* context, Token::Tag l_delim, Token::Tag r_delim, Token::Tag sep, F f) -> std::deque<decltype(f())>  {
         std::deque<decltype(f())> result;
-        if (!ahead().isa(delimiter)) {
+        expect(l_delim, context);
+        if (!ahead().isa(r_delim)) {
             do {
                 result.emplace_back(f());
-            } while (accept(sep) && !ahead().isa(delimiter));
+            } while (accept(sep) && !ahead().isa(r_delim));
         }
 
-        expect(delimiter, context);
+        expect(r_delim, context);
         return std::move(result);
     }
 

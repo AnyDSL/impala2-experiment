@@ -178,8 +178,8 @@ Ptr<MatchExpr> Parser::parse_match_expr() {
 
 Ptr<TupleExpr> Parser::parse_tuple_expr() {
     auto tracker = track();
-    eat(Token::Tag::D_l_paren);
-    auto exprs = parse_list("tuple elements", Token::Tag::D_r_paren, Token::Tag::P_semicolon, [&]{ return parse_expr(); });
+    auto exprs = parse_list("tuple elements", Token::Tag::D_l_paren, Token::Tag::D_r_paren, Token::Tag::P_semicolon,
+            [&]{ return parse_expr(); });
     return std::make_unique<TupleExpr>(tracker, std::move(exprs));
 }
 
