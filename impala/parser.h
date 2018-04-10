@@ -14,6 +14,12 @@ class Parser {
 public:
     Parser(Compiler&, std::istream&, const char* filename);
 
+    //@{ Ptrn%s
+    Ptr<Ptrn>       parse_ptrn();
+    Ptr<IdPtrn>     parse_id_ptrn();
+    Ptr<TuplePtrn>  parse_tuple_ptrn();
+    //@}
+
     //@{ Expr%s
     Ptr<TupleExpr>  empty_expr() { return make_ptr<TupleExpr>(prev_); }
     Ptr<Expr>       parse_expr();

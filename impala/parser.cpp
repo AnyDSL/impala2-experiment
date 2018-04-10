@@ -2,6 +2,10 @@
 
 #include <sstream>
 
+#define PTRN \
+         Token::Tag::M_id: \
+    case Token::Tag::D_l_paren
+
 #define ITEM \
          Token::Tag::K_enum: \
     case Token::Tag::K_extern: \
@@ -88,6 +92,34 @@ bool Parser::expect(Token::Tag tag, const std::string& context) {
 void Parser::error(const std::string& what, const std::string& context, const Token& tok) {
     lexer_.compiler.error(tok.location(), "expected {}, got '{}'{}", what, tok,
             context.empty() ? "" : std::string(" while parsing ") + context.c_str());
+}
+
+/*
+ * Ptrn
+ */
+
+Ptr<Ptrn> Parser::parse_ptrn() {
+    Ptr<Ptrn> ptrn;
+    switch (ahead().tag()) {
+        case Token::Tag::M_id:      ptrn = parse_id_ptrn(); break;
+        case Token::Tag::D_l_paren: ptrn = parse_tuple_ptrn(); break;
+        default: THORIN_UNREACHABLE;
+    }
+
+    if (accept(Token::Tag::P_colon)) {
+        ptrn->type = parse_expr();
+        ptrn->location += prev_;
+    }
+
+    return ptrn;
+}
+
+Ptr<IdPtrn> Parser::parse_id_ptrn() {
+    return nullptr;
+}
+
+Ptr<TuplePtrn> Parser::parse_tuple_ptrn() {
+    return nullptr;
 }
 
 /*
