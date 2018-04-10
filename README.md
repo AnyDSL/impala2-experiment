@@ -45,12 +45,12 @@ e ::=   ID
     |   [b, ..., b] |   (e, ..., e)     | . i
     |   [b; e]      |   (b; e)
     |   e -> e      |   <p> e           | e <e>
-    |   Fn e -> e   |   fn p [-> e] e   | e e
-    |   Cn e        |   cn p e          | e e
+    |   Fn e -> e   |   fn pt [-> e] e  | e e
+    |   Cn e        |   cn pt e         | e e
     |   if e B [else B]
     |   match e { p => e, ..., p => e }
     |   while e B
-    |   for p in e
+    |   for pt in e
     |   B
     |   NUM
     |   NUM ID
@@ -58,5 +58,5 @@ e ::=   ID
 B ::=  { s ... s [ e ] }
 
 s ::= e;
-    | let p = e;
+    | let pt = e;
 ```
