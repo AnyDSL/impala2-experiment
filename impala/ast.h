@@ -12,7 +12,7 @@ struct Expr;
 struct Stmnt;
 
 template<class T> using Ptr = std::unique_ptr<T>;
-template<class T> using PtrDeque = std::deque<std::unique_ptr<T>>;
+template<class T> using Ptrs = std::deque<std::unique_ptr<T>>;
 template<class T, class... Args>
 std::unique_ptr<T> make_ptr(Args... args) { return std::make_unique<T>(std::forward<Args>(args)...); }
 
@@ -63,12 +63,12 @@ struct IdPtrn : public Ptrn {
 };
 
 struct TuplePtrn : public Ptrn {
-    TuplePtrn(Location location, PtrDeque<Ptrn>&& ptrns)
+    TuplePtrn(Location location, Ptrs<Ptrn>&& ptrns)
         : Ptrn(location)
         , ptrns(std::move(ptrns))
     {}
 
-    PtrDeque<Ptrn> ptrns;
+    Ptrs<Ptrn> ptrns;
 };
 
 /*
@@ -93,16 +93,16 @@ struct BinderExpr : public Expr {
 };
 
 struct TupleExpr : public Expr {
-    TupleExpr(Location location, PtrDeque<Expr>&& exprs = {})
+    TupleExpr(Location location, Ptrs<Expr>&& exprs = {})
         : Expr(location)
         , exprs(std::move(exprs))
     {}
 
-    PtrDeque<Expr> exprs;
+    Ptrs<Expr> exprs;
 };
 
 struct SigmaExpr : public Expr {
-    SigmaExpr(Location location, PtrDeque<BinderExpr>&& binders)
+    SigmaExpr(Location location, Ptrs<BinderExpr>&& binders)
         : Expr(location)
         , binders(std::move(binders))
     {}
@@ -110,11 +110,11 @@ struct SigmaExpr : public Expr {
         : SigmaExpr(location, {})
     {}
 
-    PtrDeque<BinderExpr> binders;
+    Ptrs<BinderExpr> binders;
 };
 
 struct BlockExpr : public Expr {
-    BlockExpr(Location location, PtrDeque<Stmnt>&& stmnts, Ptr<Expr>&& expr)
+    BlockExpr(Location location, Ptrs<Stmnt>&& stmnts, Ptr<Expr>&& expr)
         : Expr(location)
         , stmnts(std::move(stmnts))
         , expr(std::move(expr))
@@ -124,7 +124,7 @@ struct BlockExpr : public Expr {
         : BlockExpr(location, {}, std::make_unique<TupleExpr>(location))
     {}
 
-    PtrDeque<Stmnt> stmnts;
+    Ptrs<Stmnt> stmnts;
     Ptr<Expr> expr;
 };
 

@@ -133,7 +133,7 @@ Ptr<Expr> Parser::parse_expr() {
 Ptr<BlockExpr> Parser::parse_block_expr() {
     auto tracker = track();
     eat(Token::Tag::D_l_brace);
-    PtrDeque<Stmnt> stmnts;
+    Ptrs<Stmnt> stmnts;
     Ptr<Expr> final_expr;
     while (true) {
         switch (ahead().tag()) {
