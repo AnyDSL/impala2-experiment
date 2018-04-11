@@ -23,14 +23,6 @@ using thorin::errln;
 #define LOG_LEVELS "{error|warn|info}"
 #endif
 
-std::ostream* open(std::ofstream& stream, const std::string& name) {
-    if (name == "-")
-        return &std::cout;
-
-    stream.open(name);
-    return &stream;
-}
-
 int main(int argc, char** argv) {
     try {
         if (argc < 1) throw std::logic_error("bad number of arguments");
@@ -99,16 +91,23 @@ int main(int argc, char** argv) {
         }
 
         std::ofstream log_stream;
+        auto open = [&]() -> std::ostream* {
+            if (log_name == "-")
+                return &std::cout;
+            log_stream.open(log_name);
+            return &log_stream;
+        };
+
         if (log_level == "error") {
-            thorin::Log::set(thorin::Log::Error, open(log_stream, log_name));
+            thorin::Log::set(thorin::Log::Error, open());
         } else if (log_level == "warn") {
-            thorin::Log::set(thorin::Log::Warn, open(log_stream, log_name));
+            thorin::Log::set(thorin::Log::Warn, open());
         } else if (log_level == "info") {
-            thorin::Log::set(thorin::Log::Info, open(log_stream, log_name));
+            thorin::Log::set(thorin::Log::Info, open());
         } else if (log_level == "verbose") {
-            thorin::Log::set(thorin::Log::Verbose, open(log_stream, log_name));
+            thorin::Log::set(thorin::Log::Verbose, open());
         } else if (log_level == "debug") {
-            thorin::Log::set(thorin::Log::Debug, open(log_stream, log_name));
+            thorin::Log::set(thorin::Log::Debug, open());
         } else {
             throw std::invalid_argument("log level must be one of " LOG_LEVELS);
         }
