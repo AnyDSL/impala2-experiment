@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
             auto get_arg = [&] {
                 if (i+1 == argc)
-                    throw std::invalid_argument(std::string("missing argument for option '") + cur_option + ("'"));
+                    throw std::invalid_argument("missing argument for option '" + cur_option + ("'"));
                 return argv[++i];
             };
 
