@@ -42,19 +42,18 @@ int main(int argc, char** argv) {
 
             if (cmp("-h") || cmp("--help")) {
                 outln("Usage: {} [options] file...", prgname);
-                outln("\noptions:");
-                outln("    <infiles>                  input files");
-                outln("-h, --help                     produce this help message");
+                outln("Options:");
+                outln("-h, --help                 produce this help message");
                 outln("    --log-level {{" LOG_LEVELS "}}");
-                outln("                               set log level");
-                outln("    --log <arg>                specifies log file; use '-' for stdout (default)");
-                outln("-o, --output                   specifies the output module name");
-                outln("    --emit-ast                 emit AST of Impala program");
-                outln("    --fancy                    use fancy output: Impala's AST dump uses only parentheses where necessary");
+                outln("                           set log level");
+                outln("    --log <arg>            specifies log file; use '-' for stdout (default)");
+                outln("-o, --output               specifies the output module name");
+                outln("    --emit-ast             emit AST of Impala program");
+                outln("    --fancy                use fancy output: Impala's AST dump uses only parentheses where necessary");
 #ifndef NDEBUG
                 outln("Developer options:");
-                outln("-b, ---break <args>            breakpoint at definition generation with global id <arg>; may be used multiple times separated by space or '_'");
-                outln("    ---track-history           track history of names - useful for debugging");
+                outln("-b, ---break <args>        breakpoint at definition generation with global id <arg>; may be used multiple times separated by space or '_'");
+                outln("    ---track-history       track history of names - useful for debugging");
 #endif
                 return EXIT_SUCCESS;
             } else if (cmp("--emit-ast")) {
