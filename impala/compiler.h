@@ -1,8 +1,7 @@
 #ifndef IMPALA_COMPILER_H
 #define IMPALA_COMPILER_H
 
-#include "thorin/util/location.h"
-#include "thorin/util/stream.h"
+#include "impala/sema/world.h"
 
 namespace impala {
 
@@ -22,6 +21,8 @@ public:
         thorin::streamf(std::cerr, "{}: error: ", location);
         return thorin::streamf(std::cerr, fmt, args...) << std::endl;;
     }
+
+    World world;
 
 private:
     int num_warnings_ = 0;

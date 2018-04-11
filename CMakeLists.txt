@@ -14,8 +14,12 @@ add_library(impala
     impala/lexer.cpp
     impala/parser.cpp
     impala/parser.h
+    impala/print.cpp
+    impala/print.h
     impala/token.cpp
     impala/token.h
+    impala/sema/world.cpp
+    impala/sema/world.h
 )
 set_target_properties(impala PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
 set_target_properties(impala PROPERTIES VERSION ${PROJECT_VERSION})

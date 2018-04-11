@@ -219,4 +219,11 @@ Ptr<WhileExpr> Parser::parse_while_expr() {
     return nullptr;
 }
 
+//------------------------------------------------------------------------------
+
+Ptr<Expr> parse(Compiler& compiler, std::istream& is, const char* filename) {
+    Parser parser(compiler, is, filename);
+    return parser.parse_expr();
+}
+
 }

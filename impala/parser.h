@@ -83,6 +83,9 @@ private:
     Location prev_;
 };
 
+
+Ptr<Expr> parse(Compiler& compiler, std::istream& is, const char* filename);
+
 }
 
 #endif

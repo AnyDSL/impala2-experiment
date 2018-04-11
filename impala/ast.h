@@ -4,6 +4,9 @@
 #include <deque>
 #include <memory>
 
+#include "thorin/util/cast.h"
+#include "thorin/util/stream.h"
+
 #include "impala/token.h"
 
 namespace impala {
@@ -11,16 +14,22 @@ namespace impala {
 struct Expr;
 struct Stmnt;
 
+class Printer;
+
 template<class T> using Ptr = std::unique_ptr<T>;
 template<class T> using Ptrs = std::deque<std::unique_ptr<T>>;
 template<class T, class... Args>
 std::unique_ptr<T> make_ptr(Args... args) { return std::make_unique<T>(std::forward<Args>(args)...); }
 
-struct Node {
+struct Node : public thorin::RuntimeCast<Node>, public thorin::Streamable {
     Node(Location location)
         : location(location)
     {}
     virtual ~Node() {}
+
+    virtual void print(Printer&) const;
+    void print(std::ostream&, bool fancy) const;
+    std::ostream& stream(std::ostream&) const override;
 
     Location location;
 };
