@@ -11,10 +11,9 @@
 
 //------------------------------------------------------------------------------
 
-using namespace thorin;
-using namespace std;
-
-typedef vector<string> Names;
+typedef std::vector<std::string> Names;
+using thorin::outln;
+using thorin::errln;
 
 //------------------------------------------------------------------------------
 
@@ -24,9 +23,9 @@ typedef vector<string> Names;
 #define LOG_LEVELS "{error|warn|info}"
 #endif
 
-ostream* open(ofstream& stream, const string& name) {
+std::ostream* open(std::ofstream& stream, const std::string& name) {
     if (name == "-")
-        return &cout;
+        return &std::cout;
 
     stream.open(name);
     return &stream;
@@ -34,18 +33,18 @@ ostream* open(ofstream& stream, const string& name) {
 
 int main(int argc, char** argv) {
     try {
-        if (argc < 1) throw logic_error("bad number of arguments");
+        if (argc < 1) throw std::logic_error("bad number of arguments");
 
         impala::Compiler compiler;
-        string prgname = argv[0];
+        std::string prgname = argv[0];
         Names infiles;
-        string out_name, log_name("-"), log_level("error");
+        std::string out_name, log_name("-"), log_level("error");
         bool emit_ast = false, fancy = false;
 
         for (int i = 1; i != argc; ++i) {
             auto cmp = [&](const char* s) { return strcmp(argv[i], s) == 0; };
             auto get_arg = [&] {
-                if (i+1 == argc) throw invalid_argument("log level must be one of " LOG_LEVELS);
+                if (i+1 == argc) throw std::invalid_argument("log level must be one of " LOG_LEVELS);
                 return argv[++i];
             };
 
@@ -99,19 +98,20 @@ int main(int argc, char** argv) {
             }
         }
 
-        ofstream log_stream;
+        std::ofstream log_stream;
         if (log_level == "error") {
-            Log::set(Log::Error, open(log_stream, log_name));
+            thorin::Log::set(thorin::Log::Error, open(log_stream, log_name));
         } else if (log_level == "warn") {
-            Log::set(Log::Warn, open(log_stream, log_name));
+            thorin::Log::set(thorin::Log::Warn, open(log_stream, log_name));
         } else if (log_level == "info") {
-            Log::set(Log::Info, open(log_stream, log_name));
+            thorin::Log::set(thorin::Log::Info, open(log_stream, log_name));
         } else if (log_level == "verbose") {
-            Log::set(Log::Verbose, open(log_stream, log_name));
+            thorin::Log::set(thorin::Log::Verbose, open(log_stream, log_name));
         } else if (log_level == "debug") {
-            Log::set(Log::Debug, open(log_stream, log_name));
-        } else
-            throw invalid_argument("log level must be one of " LOG_LEVELS);
+            thorin::Log::set(thorin::Log::Debug, open(log_stream, log_name));
+        } else {
+            throw std::invalid_argument("log level must be one of " LOG_LEVELS);
+        }
 
         if (infiles.empty()) {
             errln("no input files");
@@ -127,14 +127,14 @@ int main(int argc, char** argv) {
             for (const auto& infile : infiles) {
                 auto i = infile.find_last_of('.');
                 if (infile.substr(i + 1) != "impala")
-                    throw invalid_argument("input file '" + infile + "' does not have '.impala' extension");
+                    throw std::invalid_argument("input file '" + infile + "' does not have '.impala' extension");
                 auto rest = infile.substr(0, i);
                 auto f = rest.find_last_of('/');
-                if (f != string::npos) {
+                if (f != std::string::npos) {
                     rest = rest.substr(f+1);
                 }
                 if (rest.empty())
-                    throw invalid_argument("input file '" + infile + "' has empty module name");
+                    throw std::invalid_argument("input file '" + infile + "' has empty module name");
                 module_name = rest;
             }
         }
@@ -147,11 +147,11 @@ int main(int argc, char** argv) {
             expr->print(std::cout, fancy);
 
         return EXIT_SUCCESS;
-    } catch (exception const& e) {
-        cerr << e.what() << std::endl;
+    } catch (std::exception const& e) {
+        errln("{}'",  e.what());
         return EXIT_FAILURE;
     } catch (...) {
-        cerr << "unknown exception" << std::endl;
+        errln("unknown exception");
         return EXIT_FAILURE;
     }
 }
