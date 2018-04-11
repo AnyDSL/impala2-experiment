@@ -11,7 +11,6 @@
 
 //------------------------------------------------------------------------------
 
-typedef std::vector<std::string> Names;
 using thorin::outln;
 using thorin::errln;
 
@@ -28,9 +27,8 @@ int main(int argc, char** argv) {
         if (argc < 1) throw std::logic_error("bad number of arguments");
 
         impala::Compiler compiler;
-        std::string prgname = argv[0];
-        Names infiles;
-        std::string out_name, log_name("-"), log_level("error");
+        std::vector<std::string> infiles;
+        std::string prgname = argv[0], log_name("-"), module_name;
         bool emit_ast = false, fancy = false;
 
         for (int i = 1; i != argc; ++i) {
@@ -47,19 +45,19 @@ int main(int argc, char** argv) {
             auto get_arg = [&] {
                 if (i+1 == argc)
                     throw std::invalid_argument("missing argument for option '" + cur_option + ("'"));
-                return argv[++i];
+                return std::string(argv[++i]);
             };
 
             if (cmp("-h") || cmp("--help")) {
                 outln("Usage: {} [options] file...", prgname);
                 outln("Options:");
                 outln("-h, --help                 produce this help message");
-                outln("    --log-level {{" LOG_LEVELS "}}");
-                outln("                           set log level");
-                outln("    --log <arg>            specifies log file; use '-' for stdout (default)");
-                outln("-o, --output               specifies the output module name");
                 outln("    --emit-ast             emit AST of Impala program");
                 outln("    --fancy                use fancy output: Impala's AST dump uses only parentheses where necessary");
+                outln("    --log <arg>            specifies log file; use '-' for stdout (default)");
+                outln("    --log-level {{" LOG_LEVELS "}}");
+                outln("                           set log level");
+                outln("-o, --output               specifies the output module name");
 #ifndef NDEBUG
                 outln("Developer options:");
                 outln("-b, ---break <args>        breakpoint at definition generation with global id <arg>; may be used multiple times separated by space or '_'");
@@ -73,9 +71,16 @@ int main(int argc, char** argv) {
             } else if (cmp("--log")) {
                 log_name = get_arg();
             } else if (cmp("--log-level")) {
-                log_level = get_arg();
+                auto log_level = get_arg();
+                if (false) {}
+                else if (log_level == "error"  ) thorin::Log::set_min_level(thorin::Log::Error  );
+                else if (log_level == "warn"   ) thorin::Log::set_min_level(thorin::Log::Warn   );
+                else if (log_level == "info"   ) thorin::Log::set_min_level(thorin::Log::Info   );
+                else if (log_level == "verbose") thorin::Log::set_min_level(thorin::Log::Verbose);
+                else if (log_level == "debug"  ) thorin::Log::set_min_level(thorin::Log::Debug  );
+                else throw std::invalid_argument("log level must be one of {" LOG_LEVELS "}");
             } else if (cmp("-o") || cmp("--output")) {
-                out_name = get_arg();
+                module_name = get_arg();
 #ifndef NDEBUG
             } else if (cmp("-b") || cmp("--break")) {
                 std::string b = get_arg();
@@ -101,48 +106,32 @@ int main(int argc, char** argv) {
                 compiler.world.enable_history();
 #endif
             } else {
-                infiles.emplace_back(argv[i]);
-            }
-        }
-
-        std::ofstream log_file;
-        auto& log_stream = log_name == "-" ? std::cout : (log_file.open(log_name), log_file);
-
-        if (false) {
-        } else if (log_level == "error"  ) { thorin::Log::set(thorin::Log::Error,   log_stream);
-        } else if (log_level == "warn"   ) { thorin::Log::set(thorin::Log::Warn,    log_stream);
-        } else if (log_level == "info"   ) { thorin::Log::set(thorin::Log::Info,    log_stream);
-        } else if (log_level == "verbose") { thorin::Log::set(thorin::Log::Verbose, log_stream);
-        } else if (log_level == "debug"  ) { thorin::Log::set(thorin::Log::Debug,   log_stream);
-        } else {
-            throw std::invalid_argument("log level must be one of {" LOG_LEVELS "}");
-        }
-
-        if (infiles.empty()) {
-            errln("no input files");
-            return EXIT_FAILURE;
-        }
-        if (infiles.size() != 1)
-            errln("at the moment there is only one input file supported");
-
-        std::string module_name;
-        if (out_name.length()) {
-            module_name = out_name;
-        } else {
-            for (const auto& infile : infiles) {
+                auto infile = get_arg();
                 auto i = infile.find_last_of('.');
                 if (infile.substr(i + 1) != "impala")
                     throw std::invalid_argument("input file '" + infile + "' does not have '.impala' extension");
                 auto rest = infile.substr(0, i);
                 auto f = rest.find_last_of('/');
-                if (f != std::string::npos) {
+                if (f != std::string::npos)
                     rest = rest.substr(f+1);
-                }
                 if (rest.empty())
                     throw std::invalid_argument("input file '" + infile + "' has empty module name");
-                module_name = rest;
+                if (module_name.empty())
+                    module_name = rest;
+                infiles.emplace_back(infile);
             }
         }
+
+        std::ofstream log_file;
+        thorin::Log::set_stream(log_name == "-" ? std::cout : (log_file.open(log_name), log_file));
+
+        if (infiles.empty()) {
+            errln("no input files");
+            return EXIT_FAILURE;
+        }
+
+        if (infiles.size() != 1)
+            errln("at the moment there is only one input file supported");
 
         auto filename = infiles.front().c_str();
         std::ifstream file(filename);
