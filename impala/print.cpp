@@ -17,7 +17,9 @@ void Node::print(std::ostream& os, bool fancy) const {
 
 //------------------------------------------------------------------------------
 
-void Node::print(Printer&) const {
+void Node::print(Printer& p) const {
+    if (p.fancy())
+        thorin::outln("fancy");
     // TODO
 }
 

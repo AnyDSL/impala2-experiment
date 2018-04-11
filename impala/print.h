@@ -13,6 +13,7 @@ public:
     {}
 
     std::ostream& ostream() { return ostream_; };
+    bool fancy() const { return fancy_; }
 
 private:
     std::ostream& ostream_;
