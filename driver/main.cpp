@@ -18,9 +18,9 @@ using thorin::errln;
 //------------------------------------------------------------------------------
 
 #ifndef NDEBUG
-#define LOG_LEVELS "{error|warn|info|verbose|debug}"
+#define LOG_LEVELS "error|warn|info|verbose|debug"
 #else
-#define LOG_LEVELS "{error|warn|info}"
+#define LOG_LEVELS "error|warn|info|verbose"
 #endif
 
 int main(int argc, char** argv) {
@@ -36,33 +36,39 @@ int main(int argc, char** argv) {
         for (int i = 1; i != argc; ++i) {
             auto cmp = [&](const char* s) { return strcmp(argv[i], s) == 0; };
             auto get_arg = [&] {
-                if (i+1 == argc) throw std::invalid_argument("log level must be one of " LOG_LEVELS);
+                if (i+1 == argc) throw std::invalid_argument("log level must be one of {" LOG_LEVELS "}");
                 return argv[++i];
             };
 
             if (cmp("-h") || cmp("--help")) {
                 outln("Usage: {} [options] file...", prgname);
-                outln("<infiles>      input files");
-                outln("-help          produce this help message");
-                outln("-log-level " LOG_LEVELS);
-                outln("               set log level");
-                outln("-log <arg>     specifies log file; use '-' for stdout (default)");
-                outln("-o             specifies the output module name");
-                outln("-emit-ast      emit AST of Impala program");
-                outln("-fancy         use fancy output: Impala's AST dump uses only parentheses where necessary");
+                outln("\noptions:");
+                outln("    <infiles>                  input files");
+                outln("-h, --help                     produce this help message");
+                outln("    --log-level {{" LOG_LEVELS "}}");
+                outln("                               set log level");
+                outln("    --log <arg>                specifies log file; use '-' for stdout (default)");
+                outln("-o, --output                   specifies the output module name");
+                outln("    --emit-ast                 emit AST of Impala program");
+                outln("    --fancy                    use fancy output: Impala's AST dump uses only parentheses where necessary");
 #ifndef NDEBUG
-                outln("-break <args>  breakpoint at definition generation with global id <arg>; may be used multiple times separated by space or '_'");
-                outln("-track-history track history of names - useful for debugging");
+                outln("Developer options:");
+                outln("-b, ---break <args>            breakpoint at definition generation with global id <arg>; may be used multiple times separated by space or '_'");
+                outln("    ---track-history           track history of names - useful for debugging");
 #endif
                 return EXIT_SUCCESS;
-            } else if (cmp("-fancy")) {
+            } else if (cmp("--emit-ast")) {
+                emit_ast = true;
+            } else if (cmp("--fancy")) {
                 fancy = true;
-            } else if (cmp("-log")) {
+            } else if (cmp("--log")) {
                 log_name = get_arg();
-            } else if (cmp("-log-level")) {
+            } else if (cmp("--log-level")) {
                 log_level = get_arg();
+            } else if (cmp("-o") || cmp("--output")) {
+                out_name = get_arg();
 #ifndef NDEBUG
-            } else if (cmp("-break")) {
+            } else if (cmp("-b") || cmp("--break")) {
                 std::string b = get_arg();
                 size_t num = 0;
                 for (size_t i = 0, e = b.size(); i != e; ++i) {
@@ -82,7 +88,7 @@ int main(int argc, char** argv) {
 
                 if (num != 0)
                     compiler.world.breakpoint(num);
-            } else if (cmp("-track-history")) {
+            } else if (cmp("--track-history")) {
                 compiler.world.enable_history();
 #endif
             } else {
@@ -109,7 +115,7 @@ int main(int argc, char** argv) {
         } else if (log_level == "debug") {
             thorin::Log::set(thorin::Log::Debug, open());
         } else {
-            throw std::invalid_argument("log level must be one of " LOG_LEVELS);
+            throw std::invalid_argument("log level must be one of {" LOG_LEVELS "}");
         }
 
         if (infiles.empty()) {
