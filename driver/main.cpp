@@ -50,18 +50,25 @@ int main(int argc, char** argv) {
 
             if (cmp("-h") || cmp("--help")) {
                 outln("Usage: {} [options] file...", prgname);
+                outln("");
                 outln("Options:");
                 outln("-h, --help                 produce this help message");
                 outln("    --emit-ast             emit AST of Impala program");
-                outln("    --fancy                use fancy output: Impala's AST dump uses only parentheses where necessary");
+                outln("    --fancy                use fancy output: Impala's AST dump uses only");
+                outln("                           parentheses where necessary");
                 outln("    --log <arg>            specifies log file; use '-' for stdout (default)");
                 outln("    --log-level {{" LOG_LEVELS "}}");
                 outln("                           set log level");
                 outln("-o, --output               specifies the output module name");
 #ifndef NDEBUG
+                outln("");
                 outln("Developer options:");
-                outln("-b, ---break <args>        breakpoint at definition generation with global id <arg>; may be used multiple times separated by space or '_'");
+                outln("-b, ---break <args>        trigger a breakpoint when creating a definition of");
+                outln("                           global id <arg>; may be used multiple times separated");
+                outln("                           by space or '_'");
                 outln("    ---track-history       track history of names - useful for debugging");
+                outln("");
+                outln("Mandatory arguments to long options are mandatory for short options too.");
 #endif
                 return EXIT_SUCCESS;
             } else if (cmp("--emit-ast")) {
