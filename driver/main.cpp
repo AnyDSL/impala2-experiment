@@ -34,9 +34,19 @@ int main(int argc, char** argv) {
         bool emit_ast = false, fancy = false;
 
         for (int i = 1; i != argc; ++i) {
-            auto cmp = [&](const char* s) { return strcmp(argv[i], s) == 0; };
+            std::string cur_option;
+
+            auto cmp = [&](const char* opt) {
+                if (strcmp(argv[i], opt) == 0) {
+                    cur_option = opt;
+                    return true;
+                }
+                return false;
+            };
+
             auto get_arg = [&] {
-                if (i+1 == argc) throw std::invalid_argument("log level must be one of {" LOG_LEVELS "}");
+                if (i+1 == argc)
+                    throw std::invalid_argument(std::string("missing argument for option '") + cur_option + ("'"));
                 return argv[++i];
             };
 
@@ -143,7 +153,7 @@ int main(int argc, char** argv) {
 
         return EXIT_SUCCESS;
     } catch (std::exception const& e) {
-        errln("{}'",  e.what());
+        errln("{}",  e.what());
         return EXIT_FAILURE;
     } catch (...) {
         errln("unknown exception");
