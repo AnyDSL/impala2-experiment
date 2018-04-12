@@ -33,14 +33,13 @@ public:
     Ptr<Expr>       parse_sigma_or_variadic_expr();
     Ptr<Expr>       parse_tuple_or_pack_expr();
     Ptr<WhileExpr>  parse_while_expr();
-    template<class T> Ptr<Expr> parse_enclosing_expr();
     //@}
 
     //@{ Stmnt%s
     Ptr<Stmnt> parse_stmnt();
     //@}
 private:
-    ///@{ try to parse a Node
+    //@{ try to parse a Node
     Ptr<BlockExpr>  try_block_expr(const std::string& context);
     Ptr<Id>         try_id(const std::string& context);
     //@}
@@ -75,6 +74,7 @@ private:
         parse_list(result, context, r_delim, f, sep);
         return result;
     }
+    template<class T> Ptr<Expr> parse_enclosing_expr();
 
     class Tracker {
     public:
