@@ -70,12 +70,11 @@ private:
     template<class F>
     auto parse_list(const char* context, Token::Tag l_delim, Token::Tag r_delim,
                     F f, Token::Tag sep = Token::Tag::P_comma) -> std::deque<decltype(f())>  {
-        eat(l_delim);
         std::deque<decltype(f())> result;
+        eat(l_delim);
         parse_list(result, context, r_delim, f, sep);
-        return std::move(result);
+        return result;
     }
-
 
     class Tracker {
     public:
