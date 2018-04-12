@@ -67,9 +67,9 @@ int main(int argc, char** argv) {
                 outln("                           global id <arg>; may be used multiple times separated");
                 outln("                           by space or '_'");
                 outln("    ---track-history       track history of names - useful for debugging");
+#endif
                 outln("");
                 outln("Mandatory arguments to long options are mandatory for short options too.");
-#endif
                 return EXIT_SUCCESS;
             } else if (cmp("--emit-ast")) {
                 emit_ast = true;
