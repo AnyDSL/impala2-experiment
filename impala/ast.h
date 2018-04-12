@@ -57,6 +57,12 @@ struct Ptrn : public Node {
     Ptr<Expr> type;
 };
 
+struct ErrorPtrn : public Ptrn {
+    ErrorPtrn(Location location)
+        : Ptrn(location)
+    {}
+};
+
 struct IdPtrn : public Ptrn {
     IdPtrn(Ptr<Id>&& id)
         : Ptrn(id->location)
@@ -106,6 +112,12 @@ struct BlockExpr : public Expr {
 
     Ptrs<Stmnt> stmnts;
     Ptr<Expr> expr;
+};
+
+struct ErrorExpr : public Expr {
+    ErrorExpr(Location location)
+        : Expr(location)
+    {}
 };
 
 struct IdExpr : public Expr {
@@ -209,6 +221,17 @@ struct ExprStmnt : public Stmnt {
     {}
 
     Ptr<Expr> expr;
+};
+
+struct LetStmnt : public Stmnt {
+    LetStmnt(Location location, Ptr<Ptrn> ptrn, Ptr<Expr>&& init)
+        : Stmnt(location)
+        , ptrn(std::move(ptrn))
+        , init(std::move(init))
+    {}
+
+    Ptr<Ptrn> ptrn;
+    Ptr<Expr> init;
 };
 
 }

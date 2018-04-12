@@ -36,12 +36,15 @@ public:
     //@}
 
     //@{ Stmnt%s
-    Ptr<Stmnt> parse_stmnt();
+    Ptr<Stmnt>      parse_stmnt();
+    Ptr<LetStmnt>   parse_let_stmnt();
     //@}
 private:
     //@{ try to parse a Node
     Ptr<BlockExpr>  try_block_expr(const std::string& context);
+    Ptr<Expr>       try_expr(const std::string& context);
     Ptr<Id>         try_id(const std::string& context);
+    Ptr<Ptrn>       try_ptrn(const std::string& context);
     //@}
 
     //@{ make empty Node

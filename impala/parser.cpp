@@ -101,10 +101,28 @@ Ptr<Id> Parser::parse_id() { return make_ptr<Id>(eat(Token::Tag::M_id)); }
  * try
  */
 
+Ptr<Expr> Parser::try_expr(const std::string& context) {
+    switch (ahead().tag()) {
+        case EXPR: return parse_expr();
+        default:;
+    }
+    error("expression", context);
+    return make_ptr<ErrorExpr>(prev_);
+}
+
 Ptr<Id> Parser::try_id(const std::string& context) {
     if (accept(Token::Tag::M_id)) return parse_id();
     error("identifier", context);
     return make_ptr<Id>(Token(prev_, "<error>"));
+}
+
+Ptr<Ptrn> Parser::try_ptrn(const std::string& context) {
+    switch (ahead().tag()) {
+        case PTRN: return parse_ptrn();
+        default:;
+    }
+    error("pattern", context);
+    return make_ptr<ErrorPtrn>(prev_);
 }
 
 Ptr<BlockExpr> Parser::try_block_expr(const std::string& context) {
@@ -139,7 +157,7 @@ Ptr<IdPtrn> Parser::parse_id_ptrn() {
 
 Ptr<TuplePtrn> Parser::parse_tuple_ptrn() {
     auto tracker = track();
-    auto ptrns = parse_list("tuple pattern", Token::Tag::D_l_paren, Token::Tag::D_r_paren, [&]{ return parse_ptrn(); });
+    auto ptrns = parse_list("tuple pattern", Token::Tag::D_l_paren, Token::Tag::D_r_paren, [&]{ return try_ptrn("sub-pattern of a tuple pattern"); });
     return make_ptr<TuplePtrn>(tracker, std::move(ptrns));
 }
 
@@ -149,6 +167,7 @@ Ptr<TuplePtrn> Parser::parse_tuple_ptrn() {
 
 Ptr<Expr> Parser::parse_expr() {
     switch (ahead().tag()) {
+        case Token::Tag::D_l_brace:   return parse_block_expr();
         case Token::Tag::D_l_bracket: return parse_sigma_or_variadic_expr();
         case Token::Tag::D_l_paren:   return parse_tuple_or_pack_expr();
         case Token::Tag::M_id:        return parse_id_expr();
@@ -180,7 +199,7 @@ Ptr<BlockExpr> Parser::parse_block_expr() {
         switch (ahead().tag()) {
             case Token::Tag::P_semicolon: lex(); continue; // ignore semicolon
             //case ITEM:             stmnts.emplace_back(parse_item_stmnt()); continue;
-            //case Token::LET:       stmnts.emplace_back(parse_let_stmnt()); continue;
+            case Token::Tag::K_let:       stmnts.emplace_back(parse_let_stmnt()); continue;
             //case Token::ASM:       stmnts.emplace_back(parse_asm_stmnt()); continue;
             case EXPR: {
                 auto tracker = track();
@@ -273,6 +292,20 @@ Ptr<Expr> Parser::parse_tuple_or_pack_expr()     {
         tuple->location += prev_;
     }
     return result;
+}
+
+/*
+ * Stmnt
+ */
+
+Ptr<LetStmnt> Parser::parse_let_stmnt() {
+    auto tracker = track();
+    eat(Token::Tag::K_let);
+    auto ptrn = try_ptrn("let statement");
+    Ptr<Expr> init;
+    if (accept(Token::Tag::O_eq))
+        init = try_expr("initialization expression of a let statement");
+    return make_ptr<LetStmnt>(tracker, std::move(ptrn), std::move(init));
 }
 
 //------------------------------------------------------------------------------
