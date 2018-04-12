@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
             errln("at the moment there is only one input file supported");
 
         auto filename = infiles.front().c_str();
-        std::ifstream file(filename);
+        std::ifstream file(filename, std::ios::binary);
         auto expr = impala::parse(compiler, file, filename);
 
         if (emit_ast)
