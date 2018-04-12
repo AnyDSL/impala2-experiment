@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(impala VERSION 2.0 DESCRIPTION "the higher-order intermediate representation")
 
+include(CTest)
 option(BUILD_SHARED_LIBS "Build shared libraries (so/dll)" ON)
-option(BUILD_TESTS "Build gtest-based test program" ON)
 
 add_subdirectory(thorin2)
 
@@ -39,10 +39,8 @@ target_link_libraries(impala-bin impala thorin)
 
 # target: executable impala-gtest
 
-if(BUILD_TESTS)
-    include(CTest)
+if(BUILD_TESTING)
     include(GoogleTest)
-
     add_executable(impala-gtest
         test/lexer.cpp
         test/parser.cpp
