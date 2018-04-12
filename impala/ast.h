@@ -97,36 +97,11 @@ struct BinderExpr : public Expr {
     Ptr<Expr> type;
 };
 
-struct TupleExpr : public Expr {
-    TupleExpr(Location location, Ptrs<Expr>&& exprs = {})
-        : Expr(location)
-        , exprs(std::move(exprs))
-    {}
-
-    Ptrs<Expr> exprs;
-};
-
-struct SigmaExpr : public Expr {
-    SigmaExpr(Location location, Ptrs<BinderExpr>&& binders)
-        : Expr(location)
-        , binders(std::move(binders))
-    {}
-    SigmaExpr(Location location)
-        : SigmaExpr(location, {})
-    {}
-
-    Ptrs<BinderExpr> binders;
-};
-
 struct BlockExpr : public Expr {
     BlockExpr(Location location, Ptrs<Stmnt>&& stmnts, Ptr<Expr>&& expr)
         : Expr(location)
         , stmnts(std::move(stmnts))
         , expr(std::move(expr))
-    {}
-    /// An empty BlockExpr with no @p stmnts and an empty @p TupleExpr as @p expr.
-    BlockExpr(Location location)
-        : BlockExpr(location, {}, std::make_unique<TupleExpr>(location))
     {}
 
     Ptrs<Stmnt> stmnts;
@@ -146,10 +121,31 @@ struct IfExpr : public Expr {
     Ptr<Expr> else_expr;
 };
 
+struct ForExpr : public Expr {
+};
+
 struct MatchExpr : public Expr {
 };
 
-struct ForExpr : public Expr {
+struct SigmaExpr : public Expr {
+    SigmaExpr(Location location, Ptrs<BinderExpr>&& binders)
+        : Expr(location)
+        , binders(std::move(binders))
+    {}
+    SigmaExpr(Location location)
+        : SigmaExpr(location, {})
+    {}
+
+    Ptrs<BinderExpr> binders;
+};
+
+struct TupleExpr : public Expr {
+    TupleExpr(Location location, Ptrs<Expr>&& exprs = {})
+        : Expr(location)
+        , exprs(std::move(exprs))
+    {}
+
+    Ptrs<Expr> exprs;
 };
 
 struct WhileExpr : public Expr {

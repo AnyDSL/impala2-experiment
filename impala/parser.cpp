@@ -96,9 +96,20 @@ void Parser::error(const std::string& what, const std::string& context, const To
 
 Ptr<Id> Parser::parse_id() { return make_ptr<Id>(eat(Token::Tag::M_id)); }
 
-Ptr<Id> Parser::try_id() {
+/*
+ * try
+ */
+
+Ptr<Id> Parser::try_id(const std::string& context) {
     if (accept(Token::Tag::M_id)) return parse_id();
+    error("identifier", context);
     return make_ptr<Id>(Token(prev_, "<error>"));
+}
+
+Ptr<BlockExpr> Parser::try_block_expr(const std::string& context) {
+    if (accept(Token::Tag::D_l_brace)) return parse_block_expr();
+    error("block expression", context);
+    return make_empty_block_expr();
 }
 
 /*
@@ -139,7 +150,7 @@ Ptr<Expr> Parser::parse_expr() {
 
 Ptr<BinderExpr> Parser::parse_binder_expr() {
     auto tracker = track();
-    auto id = (ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::P_colon)) ? parse_id() : anonymous_id();
+    auto id = (ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::P_colon)) ? parse_id() : make_anonymous_id();
     auto expr = parse_expr();
     return make_ptr<BinderExpr>(tracker, std::move(id), std::move(expr));
 }
@@ -179,19 +190,9 @@ Ptr<BlockExpr> Parser::parse_block_expr() {
             default:
                 expect(Token::Tag::D_r_brace, "block expression");
                 if (!final_expr)
-                    final_expr = empty_expr();
+                    final_expr = make_unit_expr();
                 return make_ptr<BlockExpr>(tracker, std::move(stmnts), std::move(final_expr));
         }
-    }
-}
-
-Ptr<BlockExpr> Parser::try_block_expr(const std::string& context) {
-    switch (ahead().tag()) {
-        case Token::Tag::D_l_brace:
-            return parse_block_expr();
-        default:
-            error("block expression", context);
-            return make_ptr<BlockExpr>(prev_);
     }
 }
 
@@ -210,7 +211,7 @@ Ptr<IfExpr> Parser::parse_if_expr() {
     }
 
     if (!else_expr)
-        else_expr = make_ptr<BlockExpr>(prev_);
+        else_expr = make_empty_block_expr();
     return make_ptr<IfExpr>(tracker, std::move(cond), std::move(then_expr), std::move(else_expr));
 }
 
@@ -221,6 +222,13 @@ Ptr<ForExpr> Parser::parse_for_expr() {
 Ptr<MatchExpr> Parser::parse_match_expr() {
     return nullptr;
 }
+
+//Ptr<SigmaExpr> Parser::parse_sigma_expr() {
+    //auto tracker = track();
+    //auto binders = parse_list("tuple elements", Token::Tag::D_l_paren, Token::Tag::D_r_paren, Token::Tag::P_semicolon,
+            //[&]{ return parse_expr(); });
+    //return make_ptr<TupleExpr>(tracker, std::move(exprs));
+//}
 
 Ptr<TupleExpr> Parser::parse_tuple_expr() {
     auto tracker = track();

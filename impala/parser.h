@@ -15,7 +15,6 @@ public:
     Parser(Compiler&, std::istream&, const char* filename);
 
     Ptr<Id>         parse_id();
-    Ptr<Id>         try_id();
 
     //@{ Ptrn%s
     Ptr<Ptrn>       parse_ptrn();
@@ -27,10 +26,10 @@ public:
     Ptr<Expr>       parse_expr();
     Ptr<BinderExpr> parse_binder_expr();
     Ptr<BlockExpr>  parse_block_expr();
-    Ptr<BlockExpr>  try_block_expr(const std::string& context);
     Ptr<IfExpr>     parse_if_expr();
     Ptr<ForExpr>    parse_for_expr();
     Ptr<MatchExpr>  parse_match_expr();
+    Ptr<SigmaExpr>  parse_sigma_expr();
     Ptr<TupleExpr>  parse_tuple_expr();
     Ptr<WhileExpr>  parse_while_expr();
     //@}
@@ -39,9 +38,16 @@ public:
     Ptr<Stmnt> parse_stmnt();
     //@}
 private:
-    //
-    Ptr<TupleExpr> empty_expr() { return make_ptr<TupleExpr>(prev_); }
-    Ptr<Id> anonymous_id() { return make_ptr<Id>(Token(prev_, "_")); }
+    ///@{ try to parse a Node
+    Ptr<BlockExpr>  try_block_expr(const std::string& context);
+    Ptr<Id>         try_id(const std::string& context);
+    //@}
+
+    //@{ make empty Node
+    Ptr<BlockExpr>  make_empty_block_expr() { return make_ptr<BlockExpr>(prev_, Ptrs<Stmnt>{}, make_unit_expr()); }
+    Ptr<Id>         make_anonymous_id() { return make_ptr<Id>(Token(prev_, "_")); }
+    Ptr<TupleExpr>  make_unit_expr() { return make_ptr<TupleExpr>(prev_); }
+    //@}
 
     const Token& ahead(size_t i = 0) const { assert(i < max_ahead); return ahead_[i]; }
     Token eat(Token::Tag tag) { assert_unused(tag == ahead().tag() && "internal parser error"); return lex(); }
