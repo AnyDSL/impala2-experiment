@@ -17,6 +17,31 @@ using thorin::outln;
 #define LOG_LEVELS "error|warn|info|verbose"
 #endif
 
+static const auto usage =
+"Usage: impala [options] file...\n"
+"\n"
+"Options:\n"
+"-h, --help                 produce this help message\n"
+"    --emit-ast             emit AST of Impala program\n"
+"    --fancy                use fancy output: Impala's AST dump uses only\n"
+"                           parentheses where necessary\n"
+"-o, --output               specifies the output module name\n"
+"\n"
+"Developer options:\n"
+"    --log <arg>            specifies log file; use '-' for stdout (default)\n"
+"    --log-level {{" LOG_LEVELS "}}\n"
+"                           set log level\n"
+#ifndef NDEBUG
+"Debugging options:\n"
+"-b, --break <args>         trigger a breakpoint when creating a definition of\n"
+"                           global id <arg>; may be used multiple times separated\n"
+"                           by space or '_'\n"
+"    --track-history        track history of names\n"
+#endif
+"\n"
+"Mandatory arguments to long options are mandatory for short options too.\n"
+;
+
 template<class... Args> [[noreturn]] void errln(const char* fmt, Args... args) {
     thorin::errf("impala: error: ");
     thorin::streamln(std::cerr, fmt, std::forward<Args>(args)...);
@@ -50,28 +75,7 @@ int main(int argc, char** argv) {
             };
 
             if (cmp("-h") || cmp("--help")) {
-                outln("Usage: impala [options] file...");
-                outln("");
-                outln("Options:");
-                outln("-h, --help                 produce this help message");
-                outln("    --emit-ast             emit AST of Impala program");
-                outln("    --fancy                use fancy output: Impala's AST dump uses only");
-                outln("                           parentheses where necessary");
-                outln("-o, --output               specifies the output module name");
-                outln("");
-                outln("Developer options:");
-                outln("    --log <arg>            specifies log file; use '-' for stdout (default)");
-                outln("    --log-level {{" LOG_LEVELS "}}");
-                outln("                           set log level");
-#ifndef NDEBUG
-                outln("Debugging options:");
-                outln("-b, --break <args>         trigger a breakpoint when creating a definition of");
-                outln("                           global id <arg>; may be used multiple times separated");
-                outln("                           by space or '_'");
-                outln("    --track-history        track history of names");
-#endif
-                outln("");
-                outln("Mandatory arguments to long options are mandatory for short options too.");
+                std::cout << usage;
                 return EXIT_SUCCESS;
             } else if (cmp("--emit-ast")) {
                 emit_ast = true;
