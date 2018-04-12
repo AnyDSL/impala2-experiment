@@ -272,7 +272,7 @@ Ptr<Expr> Parser::parse_tuple_or_pack_expr()     {
         tuple->type = parse_expr();
         tuple->location += prev_;
     }
-    return std::move(result);
+    return result;
 }
 
 //------------------------------------------------------------------------------
