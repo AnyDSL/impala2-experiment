@@ -57,19 +57,24 @@ private:
     void error(const std::string& what, const std::string& context) { error(what, context, ahead()); }
     void error(const std::string& what, const std::string& context, const Token& tok);
 
-    template<class F>
-    auto parse_list(const char* context, Token::Tag l_delim, Token::Tag r_delim, Token::Tag sep, F f) -> std::deque<decltype(f())>  {
-        std::deque<decltype(f())> result;
-        expect(l_delim, context);
+    template<class T, class F>
+    void parse_list(T& ts, const char* context, Token::Tag r_delim, F f, Token::Tag sep = Token::Tag::P_comma) {
         if (!ahead().isa(r_delim)) {
             do {
-                result.emplace_back(f());
+                ts.emplace_back(f());
             } while (accept(sep) && !ahead().isa(r_delim));
         }
-
         expect(r_delim, context);
+    }
+    template<class F>
+    auto parse_list(const char* context, Token::Tag l_delim, Token::Tag r_delim,
+                    F f, Token::Tag sep = Token::Tag::P_comma) -> std::deque<decltype(f())>  {
+        eat(l_delim);
+        std::deque<decltype(f())> result;
+        parse_list(result, context, r_delim, f, sep);
         return std::move(result);
     }
+
 
     class Tracker {
     public:

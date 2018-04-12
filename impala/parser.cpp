@@ -138,7 +138,9 @@ Ptr<IdPtrn> Parser::parse_id_ptrn() {
 }
 
 Ptr<TuplePtrn> Parser::parse_tuple_ptrn() {
-    return nullptr;
+    auto tracker = track();
+    auto ptrns = parse_list("tuple pattern", Token::Tag::D_l_paren, Token::Tag::D_r_paren, [&]{ return parse_ptrn(); });
+    return make_ptr<TuplePtrn>(tracker, std::move(ptrns));
 }
 
 /*
@@ -254,14 +256,7 @@ Ptr<Expr> Parser::parse_sigma_or_variadic_expr() {
     }
 
     binders.emplace_back(std::move(binder));
-
-    if (!ahead().isa(Token::Tag::D_r_bracket)) {
-        do {
-            binders.emplace_back(parse_binder_expr());
-        } while (accept(Token::Tag::P_comma) && !ahead().isa(Token::Tag::D_r_bracket));
-    }
-
-    expect(Token::Tag::D_r_bracket, "sigma expression");
+    parse_list(binders, "sigma expression", Token::Tag::D_r_bracket, [&]{ return parse_binder_expr(); });
     return make_ptr<SigmaExpr>(tracker, std::move(binders));
 }
 
@@ -280,13 +275,7 @@ Ptr<Expr> Parser::parse_tuple_or_pack_expr() {
         exprs.emplace_back(std::move(binder));
     }
 
-    if (!ahead().isa(Token::Tag::D_r_paren)) {
-        do {
-            exprs.emplace_back(parse_expr());
-        } while (accept(Token::Tag::P_comma) && !ahead().isa(Token::Tag::D_r_paren));
-    }
-
-    expect(Token::Tag::D_r_paren, "tuple expression");
+    parse_list(exprs, "tuple expression", Token::Tag::D_r_paren, [&]{ return parse_binder_expr(); });
     return make_ptr<TupleExpr>(tracker, std::move(exprs));
 }
 
