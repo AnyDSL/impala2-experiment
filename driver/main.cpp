@@ -17,7 +17,7 @@ using thorin::outln;
 #define LOG_LEVELS "error|warn|info|verbose"
 #endif
 
-template<class... Args> [[noreturn]] std::ostream& errln(const char* fmt, Args... args) {
+template<class... Args> [[noreturn]] void errln(const char* fmt, Args... args) {
     thorin::errf("impala: error: ");
     thorin::streamln(std::cerr, fmt, std::forward<Args>(args)...);
     exit(EXIT_FAILURE);
@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
 
             auto get_arg = [&] {
                 if (i+1 == argc)
-                    throw std::invalid_argument("missing argument for option '" + cur_option + ("'"));
+                    errln("missing argument for option '{}'", cur_option);
                 return std::string(argv[++i]);
             };
 
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
                 else if (log_level == "info"   ) thorin::Log::set_min_level(thorin::Log::Info   );
                 else if (log_level == "verbose") thorin::Log::set_min_level(thorin::Log::Verbose);
                 else if (log_level == "debug"  ) thorin::Log::set_min_level(thorin::Log::Debug  );
-                else throw std::invalid_argument("log level must be one of {" LOG_LEVELS "}");
+                else errln("log level must be one of {{" LOG_LEVELS "}}");
             } else if (cmp("-o") || cmp("--output")) {
                 module_name = get_arg();
 #ifndef NDEBUG
@@ -118,16 +118,14 @@ int main(int argc, char** argv) {
             } else {
                 std::string infile = argv[i];
                 auto i = infile.find_last_of('.');
-                if (infile.substr(i + 1) != "impala") {
+                if (infile.substr(i + 1) != "impala")
                     errln("input file '{}' does not have '.impala' extension", infile);
-                }
                 auto rest = infile.substr(0, i);
                 auto f = rest.find_last_of('/');
                 if (f != std::string::npos)
                     rest = rest.substr(f+1);
-                if (rest.empty()) {
+                if (rest.empty())
                     errln("input file '{}' has empty module name", infile);
-                }
                 if (module_name.empty())
                     module_name = rest;
                 infiles.emplace_back(infile);
@@ -137,9 +135,8 @@ int main(int argc, char** argv) {
         std::ofstream log_file;
         thorin::Log::set_stream(log_name == "-" ? std::cout : (log_file.open(log_name), log_file));
 
-        if (infiles.empty()) {
+        if (infiles.empty())
             errln("no input files");
-        }
 
         if (infiles.size() != 1)
             outln("at the moment there is only one input file supported");
