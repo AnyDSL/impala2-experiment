@@ -45,6 +45,7 @@ if(BUILD_TESTS)
 
     add_executable(impala-gtest
         test/lexer.cpp
+        test/parser.cpp
         test/main.cpp
     )
     set_target_properties(impala-gtest PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)

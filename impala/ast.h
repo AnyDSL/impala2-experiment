@@ -127,6 +127,17 @@ struct ForExpr : public Expr {
 struct MatchExpr : public Expr {
 };
 
+struct PackExpr : public Expr {
+    PackExpr(Location location, Ptr<BinderExpr>&& binder, Ptr<Expr> body)
+        : Expr(location)
+        , binder(std::move(binder))
+        , body(std::move(body))
+    {}
+
+    Ptr<BinderExpr> binder;
+    Ptr<Expr> body;
+};
+
 struct SigmaExpr : public Expr {
     SigmaExpr(Location location, Ptrs<BinderExpr>&& binders)
         : Expr(location)

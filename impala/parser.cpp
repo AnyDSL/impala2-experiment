@@ -64,11 +64,12 @@ Parser::Parser(Compiler& compiler, std::istream& stream, const char* filename)
  */
 
 Token Parser::lex() {
+    auto result = ahead();
     prev_ = ahead_[0].location();
     for (int i = 0; i < max_ahead - 1; i++)
         ahead_[i] = ahead_[i + 1];
     ahead_[max_ahead - 1] = lexer_.lex();
-    return ahead();
+    return result;
 }
 
 bool Parser::accept(Token::Tag tag) {
@@ -145,12 +146,17 @@ Ptr<TuplePtrn> Parser::parse_tuple_ptrn() {
  */
 
 Ptr<Expr> Parser::parse_expr() {
+    switch (ahead().tag()) {
+        case Token::Tag::D_l_bracket: return parse_sigma_or_variadic_expr();
+        case Token::Tag::D_l_paren:   return parse_tuple_or_pack_expr();
+        default: return nullptr;
+    }
     return nullptr;
 }
 
 Ptr<BinderExpr> Parser::parse_binder_expr() {
     auto tracker = track();
-    auto id = (ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::P_colon)) ? parse_id() : make_anonymous_id();
+    auto id = binder_ahead() ? parse_id() : make_anonymous_id();
     auto expr = parse_expr();
     return make_ptr<BinderExpr>(tracker, std::move(id), std::move(expr));
 }
@@ -223,6 +229,10 @@ Ptr<MatchExpr> Parser::parse_match_expr() {
     return nullptr;
 }
 
+Ptr<Expr> Parser::parse_sigma_or_variadic_expr() {
+    return nullptr;
+}
+
 //Ptr<SigmaExpr> Parser::parse_sigma_expr() {
     //auto tracker = track();
     //auto binders = parse_list("tuple elements", Token::Tag::D_l_paren, Token::Tag::D_r_paren, Token::Tag::P_semicolon,
@@ -230,10 +240,28 @@ Ptr<MatchExpr> Parser::parse_match_expr() {
     //return make_ptr<TupleExpr>(tracker, std::move(exprs));
 //}
 
-Ptr<TupleExpr> Parser::parse_tuple_expr() {
+Ptr<Expr> Parser::parse_tuple_or_pack_expr() {
     auto tracker = track();
-    auto exprs = parse_list("tuple elements", Token::Tag::D_l_paren, Token::Tag::D_r_paren, Token::Tag::P_semicolon,
-            [&]{ return parse_expr(); });
+    eat(Token::Tag::D_l_paren);
+
+    Ptrs<Expr> exprs;
+    if (binder_ahead()) {
+        auto binder = parse_binder_expr();
+        if (accept(Token::Tag::P_colon)) {
+            auto body = parse_expr();
+            eat(Token::Tag::D_r_paren);
+            return make_ptr<PackExpr>(tracker, std::move(binder), std::move(body));
+        }
+        exprs.emplace_back(std::move(binder));
+    }
+
+    if (!ahead().isa(Token::Tag::D_r_paren)) {
+        do {
+            exprs.emplace_back(parse_expr());
+        } while (accept(Token::Tag::P_comma) && !ahead().isa(Token::Tag::D_r_paren));
+    }
+
+    expect(Token::Tag::D_r_paren, "tuple expression");
     return make_ptr<TupleExpr>(tracker, std::move(exprs));
 }
 
@@ -246,6 +274,12 @@ Ptr<WhileExpr> Parser::parse_while_expr() {
 Ptr<Expr> parse(Compiler& compiler, std::istream& is, const char* filename) {
     Parser parser(compiler, is, filename);
     return parser.parse_expr();
+}
+
+Ptr<Expr> parse(const char* str) {
+    Compiler compiler;
+    std::istringstream in(str);
+    return parse(compiler, in, "<inline>");
 }
 
 }

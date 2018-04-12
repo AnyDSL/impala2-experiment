@@ -5,7 +5,6 @@
 
 #include "thorin/util/stream.h"
 #include "impala/lexer.h"
-#include "impala/lexer.h"
 
 using namespace impala;
 
