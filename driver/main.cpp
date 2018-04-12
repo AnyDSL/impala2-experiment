@@ -12,7 +12,6 @@
 //------------------------------------------------------------------------------
 
 using thorin::outln;
-using thorin::errln;
 
 //------------------------------------------------------------------------------
 
@@ -22,13 +21,19 @@ using thorin::errln;
 #define LOG_LEVELS "error|warn|info|verbose"
 #endif
 
+template<class... Args> [[noreturn]] std::ostream& errln(const char* fmt, Args... args) {
+    thorin::errf("impala: error: ");
+    thorin::streamln(std::cerr, fmt, std::forward<Args>(args)...);
+    exit(EXIT_FAILURE);
+}
+
 int main(int argc, char** argv) {
     try {
-        if (argc < 1) throw std::logic_error("bad number of arguments");
+        if (argc < 1) errln("no input files");
 
         impala::Compiler compiler;
         std::vector<std::string> infiles;
-        std::string prgname = argv[0], log_name("-"), module_name;
+        std::string log_name("-"), module_name;
         bool emit_ast = false, fancy = false;
 
         for (int i = 1; i != argc; ++i) {
@@ -49,24 +54,25 @@ int main(int argc, char** argv) {
             };
 
             if (cmp("-h") || cmp("--help")) {
-                outln("Usage: {} [options] file...", prgname);
+                outln("Usage: impala [options] file...");
                 outln("");
                 outln("Options:");
                 outln("-h, --help                 produce this help message");
                 outln("    --emit-ast             emit AST of Impala program");
                 outln("    --fancy                use fancy output: Impala's AST dump uses only");
                 outln("                           parentheses where necessary");
+                outln("-o, --output               specifies the output module name");
+                outln("");
+                outln("Developer options:");
                 outln("    --log <arg>            specifies log file; use '-' for stdout (default)");
                 outln("    --log-level {{" LOG_LEVELS "}}");
                 outln("                           set log level");
-                outln("-o, --output               specifies the output module name");
 #ifndef NDEBUG
-                outln("");
-                outln("Developer options:");
+                outln("Debugging options:");
                 outln("-b, ---break <args>        trigger a breakpoint when creating a definition of");
                 outln("                           global id <arg>; may be used multiple times separated");
                 outln("                           by space or '_'");
-                outln("    ---track-history       track history of names - useful for debugging");
+                outln("    ---track-history       track history of names");
 #endif
                 outln("");
                 outln("Mandatory arguments to long options are mandatory for short options too.");
@@ -103,7 +109,6 @@ int main(int argc, char** argv) {
                         num = num*10 + c - '0';
                     } else {
                         errln("invalid breakpoint '{}'", b);
-                        return EXIT_FAILURE;
                     }
                 }
 
@@ -112,17 +117,21 @@ int main(int argc, char** argv) {
             } else if (cmp("--track-history")) {
                 compiler.world.enable_history();
 #endif
+            } else if (argv[i][0] == '-') {
+                errln("unrecognized command line option '{}'", argv[i]);
             } else {
-                auto infile = get_arg();
+                std::string infile = argv[i];
                 auto i = infile.find_last_of('.');
-                if (infile.substr(i + 1) != "impala")
-                    throw std::invalid_argument("input file '" + infile + "' does not have '.impala' extension");
+                if (infile.substr(i + 1) != "impala") {
+                    errln("input file '{}' does not have '.impala' extension", infile);
+                }
                 auto rest = infile.substr(0, i);
                 auto f = rest.find_last_of('/');
                 if (f != std::string::npos)
                     rest = rest.substr(f+1);
-                if (rest.empty())
-                    throw std::invalid_argument("input file '" + infile + "' has empty module name");
+                if (rest.empty()) {
+                    errln("input file '{}' has empty module name", infile);
+                }
                 if (module_name.empty())
                     module_name = rest;
                 infiles.emplace_back(infile);
@@ -134,11 +143,10 @@ int main(int argc, char** argv) {
 
         if (infiles.empty()) {
             errln("no input files");
-            return EXIT_FAILURE;
         }
 
         if (infiles.size() != 1)
-            errln("at the moment there is only one input file supported");
+            outln("at the moment there is only one input file supported");
 
         auto filename = infiles.front().c_str();
         std::ifstream file(filename, std::ios::binary);
@@ -150,9 +158,7 @@ int main(int argc, char** argv) {
         return EXIT_SUCCESS;
     } catch (std::exception const& e) {
         errln("{}",  e.what());
-        return EXIT_FAILURE;
     } catch (...) {
         errln("unknown exception");
-        return EXIT_FAILURE;
     }
 }
