@@ -9,11 +9,7 @@
 #include "impala/compiler.h"
 #include "impala/parser.h"
 
-//------------------------------------------------------------------------------
-
 using thorin::outln;
-
-//------------------------------------------------------------------------------
 
 #ifndef NDEBUG
 #define LOG_LEVELS "error|warn|info|verbose|debug"
@@ -69,10 +65,10 @@ int main(int argc, char** argv) {
                 outln("                           set log level");
 #ifndef NDEBUG
                 outln("Debugging options:");
-                outln("-b, ---break <args>        trigger a breakpoint when creating a definition of");
+                outln("-b, --break <args>         trigger a breakpoint when creating a definition of");
                 outln("                           global id <arg>; may be used multiple times separated");
                 outln("                           by space or '_'");
-                outln("    ---track-history       track history of names");
+                outln("    --track-history        track history of names");
 #endif
                 outln("");
                 outln("Mandatory arguments to long options are mandatory for short options too.");
