@@ -15,8 +15,25 @@ TEST(Parser, PackOrTuple) {
     parse(compiler, "(x: int; y)");
     parse(compiler, "(int; y)");
 
-    parse(compiler, "(x, y)");
-    parse(compiler, "(x, y,)");
+    parse(compiler, "(x,      y)");
+    parse(compiler, "(x: int, y)");
+    parse(compiler, "(x: int, y: int)");
+    parse(compiler, "(x,      y: int)");
+
+    parse(compiler, "(x,      y,)");
+    parse(compiler, "(x: int, y,)");
+    parse(compiler, "(x: int, y: int,)");
+    parse(compiler, "(x,      y: int,)");
+
+    parse(compiler, "(x,      y): T");
+    parse(compiler, "(x: int, y): T");
+    parse(compiler, "(x: int, y: int): T");
+    parse(compiler, "(x,      y: int): T");
+
+    parse(compiler, "(x,      y,): T");
+    parse(compiler, "(x: int, y,): T");
+    parse(compiler, "(x: int, y: int,): T");
+    parse(compiler, "(x,      y: int,): T");
     EXPECT_EQ(compiler.num_errors(), 0);
 }
 

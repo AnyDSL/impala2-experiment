@@ -148,25 +148,18 @@ struct PackExpr : public Expr {
     Ptr<Expr> body;
 };
 
-struct SigmaExpr : public Expr {
-    SigmaExpr(Location location, Ptrs<BinderExpr>&& binders)
+struct TupleExpr : public Expr {
+    TupleExpr(Location location, Ptrs<BinderExpr>&& binders = {})
         : Expr(location)
         , binders(std::move(binders))
     {}
-    SigmaExpr(Location location)
-        : SigmaExpr(location, {})
-    {}
 
     Ptrs<BinderExpr> binders;
-};
-
-struct TupleExpr : public Expr {
-    TupleExpr(Location location, Ptrs<Expr>&& exprs = {})
-        : Expr(location)
-        , exprs(std::move(exprs))
-    {}
-
-    Ptrs<Expr> exprs;
+    Ptr<Expr> type;
+    static constexpr auto l_delim = Token::Tag::D_l_paren;
+    static constexpr auto r_delim = Token::Tag::D_r_paren;
+    static constexpr auto name = "tuple expression";
+    typedef PackExpr SisterExpr;
 };
 
 struct VariadicExpr : public Expr {
@@ -178,6 +171,22 @@ struct VariadicExpr : public Expr {
 
     Ptr<BinderExpr> binder;
     Ptr<Expr> body;
+};
+
+struct SigmaExpr : public Expr {
+    SigmaExpr(Location location, Ptrs<BinderExpr>&& binders)
+        : Expr(location)
+        , binders(std::move(binders))
+    {}
+    SigmaExpr(Location location)
+        : SigmaExpr(location, {})
+    {}
+
+    Ptrs<BinderExpr> binders;
+    static constexpr auto l_delim = Token::Tag::D_l_bracket;
+    static constexpr auto r_delim = Token::Tag::D_r_bracket;
+    static constexpr auto name = "sigma expression";
+    typedef VariadicExpr SisterExpr;
 };
 
 struct WhileExpr : public Expr {

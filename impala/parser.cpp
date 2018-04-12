@@ -243,40 +243,22 @@ Ptr<MatchExpr> Parser::parse_match_expr() {
     return nullptr;
 }
 
-Ptr<Expr> Parser::parse_sigma_or_variadic_expr() {
+template<class T>
+Ptr<Expr> Parser::parse_enclosing_expr() {
     auto tracker = track();
-    eat(Token::Tag::D_l_bracket);
+    eat(T::l_delim);
 
     Ptrs<BinderExpr> binders;
     auto binder = parse_binder_expr();
     if (accept(Token::Tag::P_semicolon)) {
         auto body = parse_expr();
-        eat(Token::Tag::D_r_bracket);
-        return make_ptr<VariadicExpr>(tracker, std::move(binder), std::move(body));
+        eat(T::r_delim);
+        return make_ptr<typename T::SisterExpr>(tracker, std::move(binder), std::move(body));
     }
 
     binders.emplace_back(std::move(binder));
-    parse_list(binders, "sigma expression", Token::Tag::D_r_bracket, [&]{ return parse_binder_expr(); });
-    return make_ptr<SigmaExpr>(tracker, std::move(binders));
-}
-
-Ptr<Expr> Parser::parse_tuple_or_pack_expr() {
-    auto tracker = track();
-    eat(Token::Tag::D_l_paren);
-
-    Ptrs<Expr> exprs;
-    if (ahead().isa(Token::Tag::M_id)) {
-        auto binder = parse_binder_expr();
-        if (accept(Token::Tag::P_semicolon)) {
-            auto body = parse_expr();
-            eat(Token::Tag::D_r_paren);
-            return make_ptr<PackExpr>(tracker, std::move(binder), std::move(body));
-        }
-        exprs.emplace_back(std::move(binder));
-    }
-
-    parse_list(exprs, "tuple expression", Token::Tag::D_r_paren, [&]{ return parse_binder_expr(); });
-    return make_ptr<TupleExpr>(tracker, std::move(exprs));
+    parse_list(binders, T::name, T::r_delim, [&]{ return parse_binder_expr(); });
+    return make_ptr<T>(tracker, std::move(binders));
 }
 
 Ptr<WhileExpr> Parser::parse_while_expr() {
