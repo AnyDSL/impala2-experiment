@@ -10,9 +10,30 @@ using namespace impala;
 
 TEST(Parser, PackOrTuple) {
     Compiler compiler;
-    auto a = parse("()");
-    auto b = parse("(x: int; y)");
-    auto c = parse("(int; y)");
-    auto d = parse("(x: int, y)");
-    auto e = parse("(int, y)");
+    parse(compiler, "()");
+
+    parse(compiler, "(x: int; y)");
+    parse(compiler, "(int; y)");
+
+    parse(compiler, "(x, y)");
+    parse(compiler, "(x, y,)");
+    EXPECT_EQ(compiler.num_errors(), 0);
+}
+
+TEST(Parser, SigmaOrVariadic) {
+    Compiler compiler;
+    parse(compiler, "[]");
+
+    parse(compiler, "[x: int; y]");
+    parse(compiler, "[int; y]");
+
+    parse(compiler, "[x,      y]");
+    parse(compiler, "[x: int, y]");
+    parse(compiler, "[x: int, y: int]");
+    parse(compiler, "[x,      y: int]");
+    parse(compiler, "[x,      y,]");
+    parse(compiler, "[x: int, y,]");
+    parse(compiler, "[x: int, y: int,]");
+    parse(compiler, "[x,      y: int,]");
+    EXPECT_EQ(compiler.num_errors(), 0);
 }

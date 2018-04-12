@@ -9,6 +9,14 @@ using thorin::Location;
 
 class Compiler {
 public:
+    Compiler(const Compiler&) = delete;
+    Compiler(Compiler&&) = delete;
+    Compiler& operator=(Compiler) = delete;
+    Compiler() = default;
+
+    int num_warnings() const { return num_warnings_; }
+    int num_errors() const { return num_errors_; }
+
     template<typename... Args>
     std::ostream& warning(Location location, const char* fmt, Args... args) {
         ++num_warnings_;

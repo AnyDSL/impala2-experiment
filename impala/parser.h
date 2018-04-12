@@ -26,6 +26,7 @@ public:
     Ptr<Expr>       parse_expr();
     Ptr<BinderExpr> parse_binder_expr();
     Ptr<BlockExpr>  parse_block_expr();
+    Ptr<IdExpr>     parse_id_expr();
     Ptr<IfExpr>     parse_if_expr();
     Ptr<ForExpr>    parse_for_expr();
     Ptr<MatchExpr>  parse_match_expr();
@@ -49,7 +50,6 @@ private:
     Ptr<TupleExpr>  make_unit_expr() { return make_ptr<TupleExpr>(prev_); }
     //@}
 
-    bool binder_ahead() const { return ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::P_colon); }
     const Token& ahead(size_t i = 0) const { assert(i < max_ahead); return ahead_[i]; }
     Token eat(Token::Tag tag) { assert_unused(tag == ahead().tag() && "internal parser error"); return lex(); }
     bool accept(Token::Tag tok);
@@ -97,9 +97,8 @@ private:
     Location prev_;
 };
 
-
 Ptr<Expr> parse(Compiler& compiler, std::istream& is, const char* filename);
-Ptr<Expr> parse(const char*);
+Ptr<Expr> parse(Compiler& compiler, const char*);
 
 }
 

@@ -53,11 +53,11 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(D_l_paren,      "(") \
     f(D_r_paren,      ")") \
     /* punctation */ \
-    f(P_dot,          ".") \
-    f(P_comma,        ",") \
-    f(P_semicolon,    ";") \
-    f(P_colone_colon, "::") \
     f(P_colon,        ":") \
+    f(P_colon_colon,  "::") \
+    f(P_comma,        ",") \
+    f(P_dot,          ".") \
+    f(P_semicolon,    ";") \
     /* operators */ \
     f(O_arrow,        "->") \
     f(O_inc,          "++") \

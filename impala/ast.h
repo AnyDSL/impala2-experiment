@@ -58,8 +58,8 @@ struct Ptrn : public Node {
 };
 
 struct IdPtrn : public Ptrn {
-    IdPtrn(Location location, Ptr<Id>&& id)
-        : Ptrn(location)
+    IdPtrn(Ptr<Id>&& id)
+        : Ptrn(id->location)
         , id(std::move(id))
 
     {}
@@ -106,6 +106,16 @@ struct BlockExpr : public Expr {
 
     Ptrs<Stmnt> stmnts;
     Ptr<Expr> expr;
+};
+
+struct IdExpr : public Expr {
+    IdExpr(Ptr<Id>&& id)
+        : Expr(id->location)
+        , id(std::move(id))
+
+    {}
+
+    Ptr<Id> id;
 };
 
 struct IfExpr : public Expr {
@@ -157,6 +167,17 @@ struct TupleExpr : public Expr {
     {}
 
     Ptrs<Expr> exprs;
+};
+
+struct VariadicExpr : public Expr {
+    VariadicExpr(Location location, Ptr<BinderExpr>&& binder, Ptr<Expr> body)
+        : Expr(location)
+        , binder(std::move(binder))
+        , body(std::move(body))
+    {}
+
+    Ptr<BinderExpr> binder;
+    Ptr<Expr> body;
 };
 
 struct WhileExpr : public Expr {
