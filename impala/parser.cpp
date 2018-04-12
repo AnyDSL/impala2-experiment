@@ -245,7 +245,7 @@ Ptr<IfExpr> Parser::parse_if_expr() {
         switch (ahead().tag()) {
             case Token::Tag::K_if:      else_expr = parse_if_expr(); break;
             case Token::Tag::D_l_brace: else_expr = parse_block_expr(); break;
-            default: error("block or if-expression", "alternative of an if-expression");
+            default: error("block or if expression", "alternative of an if expression");
         }
     }
 
