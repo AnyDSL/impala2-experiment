@@ -94,6 +94,13 @@ void Parser::error(const std::string& what, const std::string& context, const To
             context.empty() ? "" : std::string(" while parsing ") + context.c_str());
 }
 
+Ptr<Id> Parser::parse_id() { return make_ptr<Id>(eat(Token::Tag::M_id)); }
+
+Ptr<Id> Parser::try_id() {
+    if (accept(Token::Tag::M_id)) return parse_id();
+    return make_ptr<Id>(Token(prev_, "<error>"));
+}
+
 /*
  * Ptrn
  */
@@ -128,6 +135,13 @@ Ptr<TuplePtrn> Parser::parse_tuple_ptrn() {
 
 Ptr<Expr> Parser::parse_expr() {
     return nullptr;
+}
+
+Ptr<BinderExpr> Parser::parse_binder_expr() {
+    auto tracker = track();
+    auto id = (ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::P_colon)) ? parse_id() : anonymous_id();
+    auto expr = parse_expr();
+    return make_ptr<BinderExpr>(tracker, std::move(id), std::move(expr));
 }
 
 Ptr<BlockExpr> Parser::parse_block_expr() {

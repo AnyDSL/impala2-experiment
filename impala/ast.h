@@ -35,10 +35,6 @@ struct Node : public thorin::RuntimeCast<Node>, public thorin::Streamable {
 };
 
 struct Id : public Node {
-    Id(Location location, Symbol symbol)
-        : Node(location)
-        , symbol(symbol)
-    {}
     Id(Token token)
         : Node(token.location())
         , symbol(token.symbol())

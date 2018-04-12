@@ -14,6 +14,9 @@ class Parser {
 public:
     Parser(Compiler&, std::istream&, const char* filename);
 
+    Ptr<Id>         parse_id();
+    Ptr<Id>         try_id();
+
     //@{ Ptrn%s
     Ptr<Ptrn>       parse_ptrn();
     Ptr<IdPtrn>     parse_id_ptrn();
@@ -21,8 +24,8 @@ public:
     //@}
 
     //@{ Expr%s
-    Ptr<TupleExpr>  empty_expr() { return make_ptr<TupleExpr>(prev_); }
     Ptr<Expr>       parse_expr();
+    Ptr<BinderExpr> parse_binder_expr();
     Ptr<BlockExpr>  parse_block_expr();
     Ptr<BlockExpr>  try_block_expr(const std::string& context);
     Ptr<IfExpr>     parse_if_expr();
@@ -36,6 +39,10 @@ public:
     Ptr<Stmnt> parse_stmnt();
     //@}
 private:
+    //
+    Ptr<TupleExpr> empty_expr() { return make_ptr<TupleExpr>(prev_); }
+    Ptr<Id> anonymous_id() { return make_ptr<Id>(Token(prev_, "_")); }
+
     const Token& ahead(size_t i = 0) const { assert(i < max_ahead); return ahead_[i]; }
     Token eat(Token::Tag tag) { assert_unused(tag == ahead().tag() && "internal parser error"); return lex(); }
     bool accept(Token::Tag tok);
