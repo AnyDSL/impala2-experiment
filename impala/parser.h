@@ -30,15 +30,8 @@ public:
     Ptr<IfExpr>     parse_if_expr();
     Ptr<ForExpr>    parse_for_expr();
     Ptr<MatchExpr>  parse_match_expr();
-    Ptr<Expr>       parse_sigma_or_variadic_expr() { return parse_enclosing_expr<SigmaExpr>(); }
-    Ptr<Expr>       parse_tuple_or_pack_expr()     {
-        auto result = parse_enclosing_expr<TupleExpr>();
-        if (auto tuple = result->isa<TupleExpr>(); tuple != nullptr && accept(Token::Tag::P_colon)) {
-            tuple->type = parse_expr();
-            tuple->location += prev_;
-        }
-        return std::move(result);
-    }
+    Ptr<Expr>       parse_sigma_or_variadic_expr();
+    Ptr<Expr>       parse_tuple_or_pack_expr();
     Ptr<WhileExpr>  parse_while_expr();
     template<class T> Ptr<Expr> parse_enclosing_expr();
     //@}

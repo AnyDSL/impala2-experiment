@@ -243,6 +243,10 @@ Ptr<MatchExpr> Parser::parse_match_expr() {
     return nullptr;
 }
 
+Ptr<WhileExpr> Parser::parse_while_expr() {
+    return nullptr;
+}
+
 template<class T>
 Ptr<Expr> Parser::parse_enclosing_expr() {
     auto tracker = track();
@@ -261,8 +265,14 @@ Ptr<Expr> Parser::parse_enclosing_expr() {
     return make_ptr<T>(tracker, std::move(binders));
 }
 
-Ptr<WhileExpr> Parser::parse_while_expr() {
-    return nullptr;
+Ptr<Expr> Parser::parse_sigma_or_variadic_expr() { return parse_enclosing_expr<SigmaExpr>(); }
+Ptr<Expr> Parser::parse_tuple_or_pack_expr()     {
+    auto result = parse_enclosing_expr<TupleExpr>();
+    if (auto tuple = result->isa<TupleExpr>(); tuple != nullptr && accept(Token::Tag::P_colon)) {
+        tuple->type = parse_expr();
+        tuple->location += prev_;
+    }
+    return std::move(result);
 }
 
 //------------------------------------------------------------------------------
