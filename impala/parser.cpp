@@ -250,7 +250,9 @@ Ptr<IfExpr> Parser::parse_if_expr() {
     }
 
     if (!else_expr) {
-        else_expr = make_empty_block_expr();
+        auto e = make_empty_block_expr();
+        else_expr = std::move(e);
+        delete e.release();
         assert(else_expr);
     }
     return make_ptr<IfExpr>(tracker, std::move(cond), std::move(then_expr), std::move(else_expr));
