@@ -29,7 +29,7 @@ static const auto usage =
 "\n"
 "Developer options:\n"
 "    --log <arg>            specifies log file; use '-' for stdout (default)\n"
-"    --log-level {{" LOG_LEVELS "}}\n"
+"    --log-level {" LOG_LEVELS "}\n"
 "                           set log level\n"
 #ifndef NDEBUG
 "Debugging options:\n"
