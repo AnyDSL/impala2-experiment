@@ -50,7 +50,7 @@ private:
     //@{ make empty Node
     Ptr<BlockExpr>  make_empty_block_expr() { return make_ptr<BlockExpr>(prev_, Ptrs<Stmnt>{}, make_unit_expr()); }
     Ptr<Id>         make_anonymous_id() { return make_ptr<Id>(Token(prev_, "_")); }
-    Ptr<TupleExpr>  make_unit_expr() { return make_ptr<TupleExpr>(prev_); }
+    Ptr<TupleExpr>  make_unit_expr() { return make_ptr<TupleExpr>(prev_, Ptrs<BinderExpr>{}); }
     //@}
 
     const Token& ahead(size_t i = 0) const { assert(i < max_ahead); return ahead_[i]; }

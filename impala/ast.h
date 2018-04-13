@@ -161,7 +161,7 @@ struct PackExpr : public Expr {
 };
 
 struct TupleExpr : public Expr {
-    TupleExpr(Location location, Ptrs<BinderExpr>&& binders = {})
+    TupleExpr(Location location, Ptrs<BinderExpr>&& binders)
         : Expr(location)
         , binders(std::move(binders))
     {}
