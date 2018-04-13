@@ -59,3 +59,10 @@ B ::=  { s ... s [ e ] }
 s ::= e;
     | let pt = e;
 ```
+
+## Tips using ```git``` Submodules
+
+This will automatically checkout the proper commit of all submodules when switching branches via ```git checkout my_branch```:
+```
+git config --global submodule.recurse true
+```
