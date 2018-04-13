@@ -54,3 +54,28 @@ TEST(Parser, SigmaOrVariadic) {
     parse(compiler, "[x,      y: int,]");
     EXPECT_EQ(compiler.num_errors(), 0);
 }
+
+TEST(Parser, Stmnts) {
+    Compiler compiler;
+    parse(compiler, "if cond { x }");
+    parse(compiler, "if cond { x } else { y }");
+    parse(compiler, "if cond { x } else if { y }");
+    parse(compiler, "if cond { x } else if { y } else { z }");
+
+    parse(compiler, "{ foo; if cond { x } }");
+    parse(compiler, "{ foo; if cond { x } else { y } }");
+    parse(compiler, "{ foo; if cond { x } else if cond { y } }");
+    parse(compiler, "{ foo; if cond { x } else if cond { y } else { z } }");
+
+    parse(compiler, "{ if cond { x } foo }");
+    parse(compiler, "{ if cond { x } else { y } foo }");
+    parse(compiler, "{ if cond { x } else if cond { y } foo }");
+    parse(compiler, "{ if cond { x } else if cond { y } else { z } foo }");
+
+    parse(compiler, "{ if cond { x }; foo }");
+    parse(compiler, "{ if cond { x } else { y }; foo }");
+    parse(compiler, "{ if cond { x } else if cond { y }; foo }");
+    parse(compiler, "{ if cond { x } else if cond { y } else { z }; foo }");
+
+    EXPECT_EQ(compiler.num_errors(), 0);
+}

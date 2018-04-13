@@ -126,7 +126,7 @@ Ptr<Ptrn> Parser::try_ptrn(const std::string& context) {
 }
 
 Ptr<BlockExpr> Parser::try_block_expr(const std::string& context) {
-    if (accept(Token::Tag::D_l_brace)) return parse_block_expr();
+    if (ahead().isa(Token::Tag::D_l_brace)) return parse_block_expr();
     error("block expression", context);
     return make_empty_block_expr();
 }
