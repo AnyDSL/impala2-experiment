@@ -34,6 +34,9 @@ This will use SSH instead of HTTPS and will grant you push access for the submod
 b ::=   ID: e
     |   e
 
+n ::=   ID= e
+    |   e
+
 pt ::=  p [: e]
 
 p ::=   ID
@@ -41,7 +44,7 @@ p ::=   ID
     |   (pt, ..., pt)
 
 e ::=   ID
-    |   [b, ..., b] |   (b, ..., b) [: e] | . i
+    |   [b, ..., b] |   (n, ..., n) [: e] | . i
     |   [b; e]      |   (b; e)
     |   e -> e      |   <p> e             | e <e>
     |   Fn e -> e   |   fn pt [-> e] e    | e e
