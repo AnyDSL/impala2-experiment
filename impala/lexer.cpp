@@ -129,12 +129,14 @@ Token Lexer::lex() {
             continue;
         }
 
-        if (accept('(')) return {location(), Token::Tag::D_l_paren};
-        if (accept(')')) return {location(), Token::Tag::D_r_paren};
-        if (accept('{')) return {location(), Token::Tag::D_l_brace};
-        if (accept('}')) return {location(), Token::Tag::D_r_brace};
-        if (accept('[')) return {location(), Token::Tag::D_l_bracket};
-        if (accept(']')) return {location(), Token::Tag::D_r_bracket};
+        if (accept('(')) return {location(), Token::Tag::D_paren_l};
+        if (accept(')')) return {location(), Token::Tag::D_paren_r};
+        if (accept('{')) return {location(), Token::Tag::D_brace_l};
+        if (accept('}')) return {location(), Token::Tag::D_brace_r};
+        if (accept('[')) return {location(), Token::Tag::D_bracket_l};
+        if (accept(']')) return {location(), Token::Tag::D_bracket_r};
+        if (accept(0xab_u32)) return {location(), Token::Tag::D_quote_l};
+        if (accept(0xbb_u32)) return {location(), Token::Tag::D_quote_r};
 
         if (accept('.')) return {location(), Token::Tag::P_dot};
         if (accept(',')) return {location(), Token::Tag::P_comma};
@@ -149,16 +151,16 @@ Token Lexer::lex() {
         }
         if (accept('<')) {
             if (accept('<')) {
-                if (accept('=')) return {location(), Token::Tag::O_l_shift_eq};
-                return {location(), Token::Tag::O_l_shift};
+                if (accept('=')) return {location(), Token::Tag::O_shift_l_eq};
+                return {location(), Token::Tag::O_shift_l};
             }
             if (accept('=')) return {location(), Token::Tag::O_cmp_le};
             return {location(), Token::Tag::O_cmp_lt};
         }
         if (accept('>')) {
             if (accept('>')) {
-                if (accept('=')) return {location(), Token::Tag::O_r_shift_eq};
-                return {location(), Token::Tag::O_r_shift};
+                if (accept('=')) return {location(), Token::Tag::O_shift_r_eq};
+                return {location(), Token::Tag::O_shift_r};
             }
             if (accept('=')) return {location(), Token::Tag::O_cmp_ge};
             return {location(), Token::Tag::O_cmp_gt};

@@ -10,15 +10,17 @@ using namespace impala;
 
 TEST(Lexer, Tokens) {
     Compiler compiler;
-    std::istringstream is("{ } ( ) [ ] : , .");
+    std::istringstream is("{ } ( ) [ ] « » : , .");
     Lexer lexer(compiler, is, "stdin");
 
-    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_l_brace));
-    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_r_brace));
-    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_l_paren));
-    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_r_paren));
-    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_l_bracket));
-    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_r_bracket));
+    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_brace_l));
+    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_brace_r));
+    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_paren_l));
+    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_paren_r));
+    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_bracket_l));
+    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_bracket_r));
+    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_quote_l));
+    EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_quote_r));
     EXPECT_TRUE(lexer.lex().isa(Token::Tag::P_colon));
     EXPECT_TRUE(lexer.lex().isa(Token::Tag::P_comma));
     EXPECT_TRUE(lexer.lex().isa(Token::Tag::P_dot));

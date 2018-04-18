@@ -4,7 +4,7 @@
 
 #define PTRN \
          Token::Tag::M_id: \
-    case Token::Tag::D_l_paren
+    case Token::Tag::D_paren_l
 
 #define ITEM \
          Token::Tag::K_enum: \
@@ -18,9 +18,9 @@
     case Token::Tag::K_trait
 
 #define EXPR \
-         Token::Tag::D_l_brace: \
-    case Token::Tag::D_l_bracket: \
-    case Token::Tag::D_l_paren: \
+         Token::Tag::D_brace_l: \
+    case Token::Tag::D_bracket_l: \
+    case Token::Tag::D_paren_l: \
     case Token::Tag::K_Cn: \
     case Token::Tag::K_Fn: \
     case Token::Tag::K_cn: \
@@ -126,7 +126,7 @@ Ptr<Ptrn> Parser::try_ptrn(const std::string& context) {
 }
 
 Ptr<BlockExpr> Parser::try_block_expr(const std::string& context) {
-    if (ahead().isa(Token::Tag::D_l_brace)) return parse_block_expr();
+    if (ahead().isa(Token::Tag::D_brace_l)) return parse_block_expr();
     error("block expression", context);
     return make_empty_block_expr();
 }
@@ -139,7 +139,7 @@ Ptr<Ptrn> Parser::parse_ptrn() {
     Ptr<Ptrn> ptrn;
     switch (ahead().tag()) {
         case Token::Tag::M_id:      ptrn = parse_id_ptrn(); break;
-        case Token::Tag::D_l_paren: ptrn = parse_tuple_ptrn(); break;
+        case Token::Tag::D_paren_l: ptrn = parse_tuple_ptrn(); break;
         default: THORIN_UNREACHABLE;
     }
 
@@ -157,7 +157,7 @@ Ptr<IdPtrn> Parser::parse_id_ptrn() {
 
 Ptr<TuplePtrn> Parser::parse_tuple_ptrn() {
     auto tracker = track();
-    auto ptrns = parse_list("tuple pattern", Token::Tag::D_l_paren, Token::Tag::D_r_paren, [&]{ return try_ptrn("sub-pattern of a tuple pattern"); });
+    auto ptrns = parse_list("tuple pattern", Token::Tag::D_paren_l, Token::Tag::D_paren_r, [&]{ return try_ptrn("sub-pattern of a tuple pattern"); });
     return make_ptr<TuplePtrn>(tracker, std::move(ptrns));
 }
 
@@ -167,9 +167,9 @@ Ptr<TuplePtrn> Parser::parse_tuple_ptrn() {
 
 Ptr<Expr> Parser::parse_expr() {
     switch (ahead().tag()) {
-        case Token::Tag::D_l_brace:   return parse_block_expr();
-        case Token::Tag::D_l_bracket: return parse_sigma_or_variadic_expr();
-        case Token::Tag::D_l_paren:   return parse_tuple_or_pack_expr();
+        case Token::Tag::D_brace_l:   return parse_block_expr();
+        case Token::Tag::D_bracket_l: return parse_sigma_or_variadic_expr();
+        case Token::Tag::D_paren_l:   return parse_tuple_or_pack_expr();
         case Token::Tag::M_id:        return parse_id_expr();
         default: return nullptr;
     }
@@ -192,7 +192,7 @@ Ptr<BinderExpr> Parser::parse_binder_expr() {
 
 Ptr<BlockExpr> Parser::parse_block_expr() {
     auto tracker = track();
-    eat(Token::Tag::D_l_brace);
+    eat(Token::Tag::D_brace_l);
     Ptrs<Stmnt> stmnts;
     Ptr<Expr> final_expr;
     while (true) {
@@ -210,11 +210,11 @@ Ptr<BlockExpr> Parser::parse_block_expr() {
                     case Token::Tag::K_match:   expr = parse_match_expr(); break;
                     case Token::Tag::K_for:     expr = parse_for_expr(); break;
                     case Token::Tag::K_while:   expr = parse_while_expr(); break;
-                    case Token::Tag::D_l_brace: expr = parse_block_expr(); break;
+                    case Token::Tag::D_brace_l: expr = parse_block_expr(); break;
                     default:                    expr = parse_expr(); stmnt_like = false;
                 }
 
-                if (accept(Token::Tag::P_semicolon) || (stmnt_like && !ahead().isa(Token::Tag::D_r_brace))) {
+                if (accept(Token::Tag::P_semicolon) || (stmnt_like && !ahead().isa(Token::Tag::D_brace_r))) {
                     stmnts.emplace_back(make_ptr<ExprStmnt>(tracker, std::move(expr)));
                     continue;
                 }
@@ -223,7 +223,7 @@ Ptr<BlockExpr> Parser::parse_block_expr() {
                 [[fallthrough]];
             }
             default:
-                expect(Token::Tag::D_r_brace, "block expression");
+                expect(Token::Tag::D_brace_r, "block expression");
                 if (!final_expr)
                     final_expr = make_unit_expr();
                 return make_ptr<BlockExpr>(tracker, std::move(stmnts), std::move(final_expr));
@@ -244,7 +244,7 @@ Ptr<IfExpr> Parser::parse_if_expr() {
     if (accept(Token::Tag::K_else)) {
         switch (ahead().tag()) {
             case Token::Tag::K_if:      else_expr = parse_if_expr(); break;
-            case Token::Tag::D_l_brace: else_expr = parse_block_expr(); break;
+            case Token::Tag::D_brace_l: else_expr = parse_block_expr(); break;
             default: error("block or if expression", "alternative of an if expression");
         }
     }

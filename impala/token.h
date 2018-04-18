@@ -46,12 +46,14 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(M_eof,          "<eof>") \
     f(M_id,           "<identifier>") \
     /* delimiters */ \
-    f(D_l_brace,      "{") \
-    f(D_r_brace,      "}") \
-    f(D_l_bracket,    "[") \
-    f(D_r_bracket,    "]") \
-    f(D_l_paren,      "(") \
-    f(D_r_paren,      ")") \
+    f(D_brace_l,      "{") \
+    f(D_brace_r,      "}") \
+    f(D_bracket_l,    "[") \
+    f(D_bracket_r,    "]") \
+    f(D_paren_l,      "(") \
+    f(D_paren_r,      ")") \
+    f(D_quote_l,      "«") \
+    f(D_quote_r,      "»") \
     /* punctation */ \
     f(P_colon,        ":") \
     f(P_colon_colon,  "::") \
@@ -68,8 +70,8 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(O_mul_eq,       "*=") \
     f(O_div_eq,       "/=") \
     f(O_mod_eq,       "%=") \
-    f(O_l_shift_eq,   "<<=") \
-    f(O_r_shift_eq,   ">>=") \
+    f(O_shift_l_eq,   "<<=") \
+    f(O_shift_r_eq,   ">>=") \
     f(O_and_eq,       "&=") \
     f(O_or_eq,        "|=") \
     f(O_xor_eq,       "^=") \
@@ -79,8 +81,8 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(O_div,          "/") \
     f(O_mod,          "%") \
     f(O_tilde,        "~") \
-    f(O_l_shift,      "<<") \
-    f(O_r_shift,      ">>") \
+    f(O_shift_l,      "<<") \
+    f(O_shift_r,      ">>") \
     f(O_and,          "&") \
     f(O_and_and,      "&&") \
     f(O_or,           "|") \

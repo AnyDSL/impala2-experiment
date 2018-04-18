@@ -168,8 +168,8 @@ struct TupleExpr : public Expr {
 
     Ptrs<BinderExpr> binders;
     Ptr<Expr> type;
-    static constexpr auto l_delim = Token::Tag::D_l_paren;
-    static constexpr auto r_delim = Token::Tag::D_r_paren;
+    static constexpr auto l_delim = Token::Tag::D_paren_l;
+    static constexpr auto r_delim = Token::Tag::D_paren_r;
     static constexpr auto name = "tuple expression";
     typedef PackExpr SisterExpr;
 };
@@ -195,8 +195,8 @@ struct SigmaExpr : public Expr {
     {}
 
     Ptrs<BinderExpr> binders;
-    static constexpr auto l_delim = Token::Tag::D_l_bracket;
-    static constexpr auto r_delim = Token::Tag::D_r_bracket;
+    static constexpr auto l_delim = Token::Tag::D_bracket_l;
+    static constexpr auto r_delim = Token::Tag::D_bracket_r;
     static constexpr auto name = "sigma expression";
     typedef VariadicExpr SisterExpr;
 };
