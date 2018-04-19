@@ -92,17 +92,6 @@ struct Expr : public Node {
     {}
 };
 
-struct BinderExpr : public Expr {
-    BinderExpr(Location location, Ptr<Id>&& id, Ptr<Expr> type)
-        : Expr(location)
-        , id(std::move(id))
-        , type(std::move(type))
-    {}
-
-    Ptr<Id> id;
-    Ptr<Expr> type;
-};
-
 struct BlockExpr : public Expr {
     BlockExpr(Location location, Ptrs<Stmnt>&& stmnts, Ptr<Expr>&& expr)
         : Expr(location)
@@ -150,55 +139,56 @@ struct MatchExpr : public Expr {
 };
 
 struct PackExpr : public Expr {
-    PackExpr(Location location, Ptr<BinderExpr>&& binder, Ptr<Expr> body)
+    PackExpr(Location location, Ptr<Ptrn>&& ptrn, Ptr<Expr>&& body)
         : Expr(location)
-        , binder(std::move(binder))
+        , ptrn(std::move(ptrn))
         , body(std::move(body))
     {}
 
-    Ptr<BinderExpr> binder;
+    Ptr<Ptrn> ptrn;
     Ptr<Expr> body;
 };
 
 struct TupleExpr : public Expr {
-    TupleExpr(Location location, Ptrs<BinderExpr>&& binders)
+    struct Elem : public Expr {
+        Elem(Location location, Ptr<Id>&& id, Ptr<Expr>&& type)
+            : Expr(location)
+            , id(std::move(id))
+            , type(std::move(type))
+        {}
+
+        Ptr<Id> id;
+        Ptr<Expr> type;
+    };
+
+    TupleExpr(Location location, Ptrs<Elem>&& elems, Ptr<Expr>&& type)
         : Expr(location)
-        , binders(std::move(binders))
+        , elems(std::move(elems))
+        , type(std::move(type))
     {}
 
-    Ptrs<BinderExpr> binders;
+    Ptrs<Elem> elems;
     Ptr<Expr> type;
-    static constexpr auto l_delim = Token::Tag::D_paren_l;
-    static constexpr auto r_delim = Token::Tag::D_paren_r;
-    static constexpr auto name = "tuple expression";
-    typedef PackExpr SisterExpr;
 };
 
 struct VariadicExpr : public Expr {
-    VariadicExpr(Location location, Ptr<BinderExpr>&& binder, Ptr<Expr> body)
+    VariadicExpr(Location location, Ptr<Ptrn>&& ptrn, Ptr<Expr>&& body)
         : Expr(location)
-        , binder(std::move(binder))
+        , ptrn(std::move(ptrn))
         , body(std::move(body))
     {}
 
-    Ptr<BinderExpr> binder;
+    Ptr<Ptrn> ptrn;
     Ptr<Expr> body;
 };
 
 struct SigmaExpr : public Expr {
-    SigmaExpr(Location location, Ptrs<BinderExpr>&& binders)
+    SigmaExpr(Location location, Ptrs<Ptrn>&& ptrns)
         : Expr(location)
-        , binders(std::move(binders))
-    {}
-    SigmaExpr(Location location)
-        : SigmaExpr(location, {})
+        , ptrns(std::move(ptrns))
     {}
 
-    Ptrs<BinderExpr> binders;
-    static constexpr auto l_delim = Token::Tag::D_bracket_l;
-    static constexpr auto r_delim = Token::Tag::D_bracket_r;
-    static constexpr auto name = "sigma expression";
-    typedef VariadicExpr SisterExpr;
+    Ptrs<Ptrn> ptrns;
 };
 
 struct WhileExpr : public Expr {
@@ -224,7 +214,7 @@ struct ExprStmnt : public Stmnt {
 };
 
 struct LetStmnt : public Stmnt {
-    LetStmnt(Location location, Ptr<Ptrn> ptrn, Ptr<Expr>&& init)
+    LetStmnt(Location location, Ptr<Ptrn>&& ptrn, Ptr<Expr>&& init)
         : Stmnt(location)
         , ptrn(std::move(ptrn))
         , init(std::move(init))

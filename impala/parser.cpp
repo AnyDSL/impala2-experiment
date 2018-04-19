@@ -176,20 +176,6 @@ Ptr<Expr> Parser::parse_expr() {
     return nullptr;
 }
 
-Ptr<BinderExpr> Parser::parse_binder_expr() {
-    auto tracker = track();
-    Ptr<Id> id;
-
-    if (ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::P_colon)) {
-        id = parse_id();
-        expect(Token::Tag::P_colon, "binder expression");
-    } else {
-        id = make_anonymous_id();
-    }
-    auto expr = parse_expr();
-    return make_ptr<BinderExpr>(tracker, std::move(id), std::move(expr));
-}
-
 Ptr<BlockExpr> Parser::parse_block_expr() {
     auto tracker = track();
     eat(Token::Tag::D_brace_l);
@@ -225,7 +211,7 @@ Ptr<BlockExpr> Parser::parse_block_expr() {
             default:
                 expect(Token::Tag::D_brace_r, "block expression");
                 if (!final_expr)
-                    final_expr = make_unit_expr();
+                    final_expr = make_unit_tuple();
                 return make_ptr<BlockExpr>(tracker, std::move(stmnts), std::move(final_expr));
         }
     }
@@ -263,10 +249,84 @@ Ptr<MatchExpr> Parser::parse_match_expr() {
     return nullptr;
 }
 
+Ptr<Expr> Parser::parse_tuple_or_pack_expr() {
+    auto tracker = track();
+    eat(Token::Tag::D_paren_l);
+
+    auto parse_type_ascription = [&] {
+        return accept(Token::Tag::P_colon) ? try_expr("type ascription of a tuple") : nullptr;
+    };
+
+    if (accept(Token::Tag::D_paren_r)) {
+        auto type = parse_type_ascription();
+        return make_ptr<TupleExpr>(tracker, Ptrs<TupleExpr::Elem>{}, std::move(type));
+    }
+
+    Ptrs<TupleExpr::Elem> elems;
+
+    auto is_named = [&]{ return ahead().isa(Token::Tag::M_id) && ahead().isa(Token::Tag::O_eq); };
+
+    auto try_tuple_elem = [&] {
+        auto tracker = track();
+        Ptr<Id> id;
+        if (is_named()) {
+            id = parse_id();
+            eat(Token::Tag::O_eq);
+        } else {
+            id = make_anonymous_id();
+        }
+        auto expr = try_expr("tuple element");
+        return make_ptr<TupleExpr::Elem>(tracker, std::move(id), std::move(expr));
+    };
+
+    auto parse_tuple_expr = [&] {
+        while (accept(Token::Tag::P_comma) && !ahead().isa(Token::Tag::D_paren_r))
+            elems.emplace_back(try_tuple_elem());
+        auto type = parse_type_ascription();
+        return make_ptr<TupleExpr>(tracker, std::move(elems), std::move(type));
+    };
+
+    if (is_named())
+        return parse_tuple_expr();
+
+    auto expr = try_expr("tuple or pack");
+    if (accept(Token::Tag::P_semicolon)) {
+        Ptr<Ptrn> ptrn; // expr->convert_to_ptr();
+        auto body = try_expr("body of a pack");
+        expect(Token::Tag::D_paren_r, "closing delimiter of a pack");
+        return make_ptr<PackExpr>(tracker, std::move(ptrn), std::move(body));
+    }
+
+    return parse_tuple_expr();
+}
+
+Ptr<Expr> Parser::parse_sigma_or_variadic_expr() {
+    auto tracker = track();
+    eat(Token::Tag::D_bracket_l);
+    if (accept(Token::Tag::D_bracket_r))
+        return make_ptr<SigmaExpr>(tracker, Ptrs<Ptrn>{});
+
+    auto ptrn = try_ptrn("sigma or variadic");
+    if (accept(Token::Tag::P_semicolon)) {
+        auto body = try_expr("body of a variadic");
+        expect(Token::Tag::D_bracket_r, "closing delimiter of a variadic");
+        return make_ptr<VariadicExpr>(tracker, std::move(ptrn), std::move(body));
+    }
+
+    Ptrs<Ptrn> ptrns;
+    ptrns.emplace_back(std::move(ptrn));
+    while (accept(Token::Tag::P_comma) && !ahead().isa(Token::Tag::D_bracket_r))
+        ptrns.emplace_back(try_ptrn("elements of a sigma"));
+
+    expect(Token::Tag::D_bracket_r, "closing delimiter of a sigma");
+    return make_ptr<SigmaExpr>(tracker, std::move(ptrns));
+}
+
 Ptr<WhileExpr> Parser::parse_while_expr() {
     return nullptr;
 }
 
+#if 0
 template<class T>
 Ptr<Expr> Parser::parse_enclosing_expr() {
     auto tracker = track();
@@ -285,7 +345,6 @@ Ptr<Expr> Parser::parse_enclosing_expr() {
     return make_ptr<T>(tracker, std::move(binders));
 }
 
-Ptr<Expr> Parser::parse_sigma_or_variadic_expr() { return parse_enclosing_expr<SigmaExpr>(); }
 Ptr<Expr> Parser::parse_tuple_or_pack_expr()     {
     auto result = parse_enclosing_expr<TupleExpr>();
     if (auto tuple = result->isa<TupleExpr>(); tuple != nullptr && accept(Token::Tag::P_colon)) {
@@ -294,6 +353,7 @@ Ptr<Expr> Parser::parse_tuple_or_pack_expr()     {
     }
     return result;
 }
+#endif
 
 /*
  * Stmnt
