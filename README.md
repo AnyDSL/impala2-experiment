@@ -30,37 +30,26 @@ This will use SSH instead of HTTPS and will grant you push access for the submod
 
 ## Syntax
 
-```
-b ::=   ID: e
-    |   e
+```ebnf
+p =   id [":" e]
+  |   "(" p, ..., p ")" [ ":" e]
 
-n ::=   ID= e
-    |   e
+e =   id
+  |   "[" p, ..., p "]" | "("[id"="] e, ..., [id"="] e")" [":" e] | "." id
+  |   "[" p ";" e "]"   | "("p";" e")"
+  |   e "->" e          | "[" p "]" ["->" e "] e | e"[" e "]"
+  |   "Fn" e "->" e     | "fn" p ["->" e "]" e   | e e
+  |   "Cn" e            | "cn" p e
+  |   "if" e B ["else" B]
+  |   "match" e "{" p "=>" e, ..., p "=>" e "}"
+  |   "while" e B
+  |   "for" p "in" e
+  |   B
 
-pt ::=  p [: e]
+B ::=  "{" s ... s [ e ] "}"
 
-p ::=   ID
-    |   mut pt
-    |   (pt, ..., pt)
-
-e ::=   ID
-    |   [b, ..., b] |   (n, ..., n) [: e] | . i
-    |   [b; e]      |   (b; e)
-    |   e -> e      |   <p> e             | e <e>
-    |   Fn e -> e   |   fn pt [-> e] e    | e e
-    |   Cn e        |   cn pt e           | e e
-    |   if e B [else B]
-    |   match e { p => e, ..., p => e }
-    |   while e B
-    |   for pt in e
-    |   B
-    |   NUM
-    |   NUM ID
-
-B ::=  { s ... s [ e ] }
-
-s ::= e;
-    | let pt = e;
+s ::= e ";"
+    | "let" p "=" e ";"
 ```
 
 ## Tips using ```git``` Submodules
