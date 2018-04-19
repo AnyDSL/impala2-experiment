@@ -45,7 +45,7 @@ e = id
   | "("p";" e")"                                     (*pack expression*)
   | e "->" e                                         (*pi expression*)
   | "[" p "]" ["->" e ] e                            (*abstraction expression*)
-  | e"[" e "]"                                       (*application expression*)
+  | e "[" e "]"                                      (*application expression*)
   | "Fn" e "->" e                                    (*Fn type expression*)
   | "fn" p ["->" e] e                                (*function expression*)
   | e e                                              (*cps call expression*)
