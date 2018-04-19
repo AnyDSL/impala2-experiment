@@ -31,26 +31,30 @@ This will use SSH instead of HTTPS and will grant you push access for the submod
 ## Syntax
 
 ```ebnf
+(* pattern *)
 p = id [":" e]
-  | "(" p, ..., p ")" [ ":" e]
+  | "(" p "," ... "," p ")" [":" e]
   ;
 
+(* expression *)
 e = id
-  | "[" p, ..., p "]" | "("[id"="] e, ..., [id"="] e")" [":" e] | "." id
+  | "[" p "," ... "," p "]" | "(" [id "="] e "," ... "," [id "="] e")" [":" e] | "." id
   | "[" p ";" e "]"   | "("p";" e")"
-  | e "->" e          | "[" p "]" ["->" e "] e | e"[" e "]"
+  | e "->" e          | "[" p "]" ["->" e ] e | e"[" e "]"
   | "Fn" e "->" e     | "fn" p ["->" e "]" e   | e e
   | "Cn" e            | "cn" p e
   | "if" e B ["else" B]
-  | "match" e "{" p "=>" e, ..., p "=>" e "}"
+  | "match" e "{" p "=>" e "," ... "," p "=>" e "}"
   | "while" e B
   | "for" p "in" e
   | B
   ;
 
+(* block expression *)
 B = "{" s ... s [ e ] "}"
   ;
 
+(* statement *)
 s = e ";"
   | "let" p "=" e ";"
   ;
