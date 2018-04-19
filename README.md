@@ -32,22 +32,30 @@ This will use SSH instead of HTTPS and will grant you push access for the submod
 
 ```ebnf
 (* pattern *)
-p = id [":" e]
-  | "(" p "," ... "," p ")" [":" e]
+p = id [":" e]                                       (*identifier pattern*)
+  | "(" p "," ... "," p ")" [":" e]                  (*tuple pattern*)
   ;
 
 (* expression *)
 e = id
-  | "[" p "," ... "," p "]" | "(" [id "="] e "," ... "," [id "="] e")" [":" e] | "." id
-  | "[" p ";" e "]"   | "("p";" e")"
-  | e "->" e          | "[" p "]" ["->" e ] e | e"[" e "]"
-  | "Fn" e "->" e     | "fn" p ["->" e "]" e   | e e
-  | "Cn" e            | "cn" p e
-  | "if" e B ["else" B]
-  | "match" e "{" p "=>" e "," ... "," p "=>" e "}"
-  | "while" e B
-  | "for" p "in" e
-  | B
+  | "[" p "," ... "," p "]"                          (*sigma expression*)
+  | "(" [id "="] e "," ... "," [id "="] e")" [":" e] (*tuple expression*)
+  | "." id                                           (*field expression*)
+  | "[" p ";" e "]"                                  (*variadic expression*)
+  | "("p";" e")"                                     (*pack expression*)
+  | e "->" e                                         (*pi expression*)
+  | "[" p "]" ["->" e ] e                            (*abstraction expression*)
+  | e"[" e "]"                                       (*application expression*)
+  | "Fn" e "->" e                                    (*Fn type expression*)
+  | "fn" p ["->" e] e                                (*function expression*)
+  | e e                                              (*cps call expression*)
+  | "Cn" e                                           (*Cn type expression*)
+  | "cn" p e                                         (*continuation expression*)
+  | "if" e B ["else" B]                              (*if expression*)
+  | "match" e "{" p "=>" e "," ... "," p "=>" e "}"  (*match expression*)
+  | "while" e B                                      (*while expression*)
+  | "for" p "in" e                                   (*for expression*)
+  | B                                                (*block expression*)
   ;
 
 (* block expression *)
@@ -55,8 +63,8 @@ B = "{" s ... s [ e ] "}"
   ;
 
 (* statement *)
-s = e ";"
-  | "let" p "=" e ";"
+s = e ";"               (*expression statement*)
+  | "let" p "=" e ";"   (*let statement*)
   ;
 ```
 
