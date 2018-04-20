@@ -36,19 +36,19 @@ _p = id [":" e]                                       (* identifier *)
    | "(" p "," ... "," p ")" [":" e]                  (* tuple *)
    ;
 
-(* pattern with mandatory type or expression*)
-pe = _p ":" e | e;
-
-(* pattern with optional type*)
+(* pattern with optional type *)
 p = _p [":" e];
+
+(* pattern with mandatory type *)
+pt = _p ":" e | e;
 
 (* expressions *)
 e = id
-  | "[" pe "," ... "," pe "]"                        (* sigma *)
+  | "[" pt "," ... "," pt "]"                        (* sigma *)
   | "(" [id "="] e "," ... "," [id "="] e")" [":" e] (* tuple *)
   | "." id                                           (* field  *)
-  | "ar" "[" pe ";" e "]"                            (* variadic *)
-  | "pk" "(" pe ";" e ")"                            (* pack *)
+  | "ar" "[" pt "," ... "," pt ";" e "]"             (* variadic *)
+  | "pk" "(" pt "," ... "," pt ";" e ")"             (* pack *)
   | "/\" pe "->" e                                   (* abstraction type *)
   | "Fn" pe "->" e                                   (* function type *)
   | "Cn" e                                           (* continuation type *)
