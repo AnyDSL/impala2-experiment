@@ -266,22 +266,19 @@ Ptr<Expr> Parser::parse_tuple_or_pack_expr() {
 
     auto is_named = [&]{ return ahead().isa(Token::Tag::M_id) && ahead().isa(Token::Tag::O_eq); };
 
-    auto try_tuple_elem = [&] {
-        auto tracker = track();
-        Ptr<Id> id;
-        if (is_named()) {
-            id = parse_id();
-            eat(Token::Tag::O_eq);
-        } else {
-            id = make_anonymous_id();
-        }
-        auto expr = try_expr("tuple element");
-        return make_ptr<TupleExpr::Elem>(tracker, std::move(id), std::move(expr));
-    };
-
     auto parse_tuple_expr = [&] {
-        while (accept(Token::Tag::P_comma) && !ahead().isa(Token::Tag::D_paren_r))
-            elems.emplace_back(try_tuple_elem());
+        while (accept(Token::Tag::P_comma) && !ahead().isa(Token::Tag::D_paren_r)) {
+            auto tracker = track();
+            Ptr<Id> id;
+            if (is_named()) {
+                id = parse_id();
+                eat(Token::Tag::O_eq);
+            } else {
+                id = make_anonymous_id();
+            }
+            auto expr = try_expr("tuple element");
+            elems.emplace_back(make_ptr<TupleExpr::Elem>(tracker, std::move(id), std::move(expr)));
+        }
         auto type = parse_type_ascription();
         return make_ptr<TupleExpr>(tracker, std::move(elems), std::move(type));
     };
