@@ -36,13 +36,13 @@ std::ostream& Id::stream(std::ostream& os) const {
  */
 
 std::ostream& Ptrn::stream_ascription(std::ostream& os) const {
-    return type ? streamf(os, ": {}", type.get()) : os;
+    return type ? streamf(os, ": {}", type) : os;
 }
 
 std::ostream& IdPtrn::stream(std::ostream& os) const {
     if (type_mandatory && id->symbol.is_anonymous())
-        return streamf(os, "{}", type.get());
-    streamf(os, "{}", id.get());
+        return streamf(os, "{}", type);
+    streamf(os, "{}", id);
     return stream_ascription(os);
 }
 
@@ -60,13 +60,13 @@ std::ostream& ErrorPtrn::stream(std::ostream& os) const {
  */
 
 std::ostream& IdExpr::stream(std::ostream& os) const {
-    return streamf(os, "{}", id.get());
+    return streamf(os, "{}", id);
 }
 
 std::ostream& TupleExpr::Elem::stream(std::ostream& os) const {
     if (id->symbol.is_anonymous())
-        return streamf(os, "{}", expr.get());
-    return streamf(os, "{}= {}", id.get(), expr.get());
+        return streamf(os, "{}", expr);
+    return streamf(os, "{}= {}", id, expr);
 }
 
 std::ostream& TupleExpr::stream(std::ostream& os) const {
@@ -75,7 +75,7 @@ std::ostream& TupleExpr::stream(std::ostream& os) const {
 
 std::ostream& PackExpr::stream(std::ostream& os) const {
     stream_list(os << "pk(", domains, [&](auto&& ptrn) { ptrn->stream(os); });
-    return streamf(os, "; {})", body.get());
+    return streamf(os, "; {})", body);
 }
 
 std::ostream& SigmaExpr::stream(std::ostream& os) const {
@@ -84,7 +84,7 @@ std::ostream& SigmaExpr::stream(std::ostream& os) const {
 
 std::ostream& VariadicExpr::stream(std::ostream& os) const {
     stream_list(os << "ar[", domains, [&](auto&& ptrn) { ptrn->stream(os); });
-    return streamf(os, "; {}]", body.get());
+    return streamf(os, "; {}]", body);
 }
 
 std::ostream& ErrorExpr::stream(std::ostream& os) const {
