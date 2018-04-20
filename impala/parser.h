@@ -17,12 +17,19 @@ public:
     Ptr<Id>         parse_id();
 
     //@{ Ptrn%s
-    Ptr<Ptrn>       parse_ptrn();
-    Ptr<IdPtrn>     parse_id_ptrn();
-    Ptr<TuplePtrn>  parse_tuple_ptrn();
+    /**
+     * @p ascription_context
+     * If @c nullptr the type ascription @c :e is optional.
+     * Otherwise, it is mandatory resulting in the given error message if not present.
+     */
+    ///other
+    Ptr<Ptrn>       parse_ptrn(const char* ascription_context = nullptr);
+    Ptr<IdPtrn>     parse_id_ptrn(const char* ascription_context = nullptr);
+    Ptr<TuplePtrn>  parse_tuple_ptrn(const char* ascription_context = nullptr);
     //@}
 
     //@{ Expr%s
+    Ptr<Expr>       parse_type_ascription(const char* ascription_context);
     Ptr<Expr>       parse_expr();
     Ptr<BlockExpr>  parse_block_expr();
     Ptr<IdExpr>     parse_id_expr();
@@ -38,6 +45,7 @@ public:
     Ptr<Stmnt>      parse_stmnt();
     Ptr<LetStmnt>   parse_let_stmnt();
     //@}
+
 private:
     //@{ try to parse a Node
     Ptr<BlockExpr>  try_block_expr(const std::string& context);

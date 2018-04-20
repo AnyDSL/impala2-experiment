@@ -40,7 +40,7 @@ struct Id : public Node {
         , symbol(token.symbol())
     {}
 
-    //std::ostream& stream(std::ostream&) const override;
+    std::ostream& stream(std::ostream&) const override;
 
     Symbol symbol;
 };
@@ -50,34 +50,44 @@ struct Id : public Node {
  */
 
 struct Ptrn : public Node {
-    Ptrn(Location location)
+    Ptrn(Location location, Ptr<Expr>&& type, bool type_mandatory)
         : Node(location)
+        , type(std::move(type))
+        , type_mandatory(type_mandatory)
     {}
 
+    std::ostream& stream_ascription(std::ostream&) const ;
+
     Ptr<Expr> type;
+    bool type_mandatory;
 };
 
 struct ErrorPtrn : public Ptrn {
     ErrorPtrn(Location location)
-        : Ptrn(location)
+        : Ptrn(location, nullptr, false)
     {}
+
+    std::ostream& stream(std::ostream&) const override;
 };
 
 struct IdPtrn : public Ptrn {
-    IdPtrn(Ptr<Id>&& id)
-        : Ptrn(id->location)
+    IdPtrn(Location location, Ptr<Id>&& id, Ptr<Expr>&& type, bool type_mandatory)
+        : Ptrn(location, std::move(type), type_mandatory)
         , id(std::move(id))
-
     {}
+
+    std::ostream& stream(std::ostream&) const override;
 
     Ptr<Id> id;
 };
 
 struct TuplePtrn : public Ptrn {
-    TuplePtrn(Location location, Ptrs<Ptrn>&& ptrns)
-        : Ptrn(location)
+    TuplePtrn(Location location, Ptrs<Ptrn>&& ptrns, Ptr<Expr>&& type, bool type_mandatory)
+        : Ptrn(location, std::move(type), type_mandatory)
         , ptrns(std::move(ptrns))
     {}
+
+    std::ostream& stream(std::ostream&) const override;
 
     Ptrs<Ptrn> ptrns;
 };
@@ -107,6 +117,8 @@ struct ErrorExpr : public Expr {
     ErrorExpr(Location location)
         : Expr(location)
     {}
+
+    std::ostream& stream(std::ostream&) const override;
 };
 
 struct IdExpr : public Expr {
@@ -115,6 +127,8 @@ struct IdExpr : public Expr {
         , id(std::move(id))
 
     {}
+
+    std::ostream& stream(std::ostream&) const override;
 
     Ptr<Id> id;
 };
@@ -139,26 +153,30 @@ struct MatchExpr : public Expr {
 };
 
 struct PackExpr : public Expr {
-    PackExpr(Location location, Ptr<Ptrn>&& ptrn, Ptr<Expr>&& body)
+    PackExpr(Location location, Ptr<Ptrn>&& domain, Ptr<Expr>&& body)
         : Expr(location)
-        , ptrn(std::move(ptrn))
+        , domain(std::move(domain))
         , body(std::move(body))
     {}
 
-    Ptr<Ptrn> ptrn;
+    std::ostream& stream(std::ostream&) const override;
+
+    Ptr<Ptrn> domain;
     Ptr<Expr> body;
 };
 
 struct TupleExpr : public Expr {
-    struct Elem : public Expr {
-        Elem(Location location, Ptr<Id>&& id, Ptr<Expr>&& type)
-            : Expr(location)
+    struct Elem : public Node {
+        Elem(Location location, Ptr<Id>&& id, Ptr<Expr>&& expr)
+            : Node(location)
             , id(std::move(id))
-            , type(std::move(type))
+            , expr(std::move(expr))
         {}
 
+        std::ostream& stream(std::ostream&) const override;
+
         Ptr<Id> id;
-        Ptr<Expr> type;
+        Ptr<Expr> expr;
     };
 
     TupleExpr(Location location, Ptrs<Elem>&& elems, Ptr<Expr>&& type)
@@ -167,28 +185,34 @@ struct TupleExpr : public Expr {
         , type(std::move(type))
     {}
 
+    std::ostream& stream(std::ostream&) const override;
+
     Ptrs<Elem> elems;
     Ptr<Expr> type;
 };
 
 struct VariadicExpr : public Expr {
-    VariadicExpr(Location location, Ptr<Ptrn>&& ptrn, Ptr<Expr>&& body)
+    VariadicExpr(Location location, Ptr<Ptrn>&& domain, Ptr<Expr>&& body)
         : Expr(location)
-        , ptrn(std::move(ptrn))
+        , domain(std::move(domain))
         , body(std::move(body))
     {}
 
-    Ptr<Ptrn> ptrn;
+    std::ostream& stream(std::ostream&) const override;
+
+    Ptr<Ptrn> domain;
     Ptr<Expr> body;
 };
 
 struct SigmaExpr : public Expr {
-    SigmaExpr(Location location, Ptrs<Ptrn>&& ptrns)
+    SigmaExpr(Location location, Ptrs<Ptrn>&& elems)
         : Expr(location)
-        , ptrns(std::move(ptrns))
+        , elems(std::move(elems))
     {}
 
-    Ptrs<Ptrn> ptrns;
+    std::ostream& stream(std::ostream&) const override;
+
+    Ptrs<Ptrn> elems;
 };
 
 struct WhileExpr : public Expr {
