@@ -36,23 +36,23 @@ _p = id [":" e]                                       (*identifier pattern*)
    | "(" p "," ... "," p ")" [":" e]                  (*tuple pattern*)
    ;
 
-(* pattern with mandatory type*)
-pt = _p ":" e;
+(* pattern with mandatory type or expression*)
+pe = _p ":" e | e;
 
 (* pattern with optional type*)
 p = _p [":" e];
 
 (* expression *)
 e = id
-  | "[" e | pt "," ... "," e | pt "]"                (*sigma expression*)
+  | "[" pe "," ... "," pe "]"                        (*sigma expression*)
   | "(" [id "="] e "," ... "," [id "="] e")" [":" e] (*tuple expression*)
   | "." id                                           (*field expression*)
-  | "[" e | pt ";" e "]"                             (*variadic expression*)
-  | "(" e | pt ";" e")"                              (*pack expression*)
-  | e "->" e                                         (*pi expression*)
+  | "[" pe ";" e "]"                                 (*variadic expression*)
+  | "(" pe ";" e")"                                  (*pack expression*)
+  | pe "->" e                                        (*pi expression*)
   | "[" p "]" ["->" e ] e                            (*abstraction expression*)
   | e "[" e "]"                                      (*application expression*)
-  | "Fn" e "->" e                                    (*Fn type expression*)
+  | "Fn" pe "->" e                                   (*Fn type expression*)
   | "fn" p ["->" e] e                                (*function expression*)
   | e e                                              (*cps call expression*)
   | "Cn" e                                           (*Cn type expression*)
