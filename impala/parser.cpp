@@ -92,11 +92,8 @@ bool Parser::expect(Token::Tag tag, const char* context) {
     return false;
 }
 
-void Parser::error(const char* what, const char* context, const Token& tok) {
-    if (context)
-        lexer_.compiler.error(tok.location(), "expected {}, got '{}' while parsing {}", what, tok, context);
-    else
-        lexer_.compiler.error(tok.location(), "expected {}, got '{}'", what, tok);
+void Parser::error(const char* what, const Token& tok, const char* context) {
+    lexer_.compiler.error(tok.location(), "expected {}, got '{}' while parsing {}", what, tok, context);
 }
 
 Ptr<Id> Parser::parse_id() { return make_ptr<Id>(eat(Token::Tag::M_id)); }

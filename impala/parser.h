@@ -67,8 +67,8 @@ private:
     Token eat(Token::Tag tag) { assert_unused(tag == ahead().tag() && "internal parser error"); return lex(); }
     bool accept(Token::Tag tok);
     bool expect(Token::Tag tok, const char* context);
-    void error(const char* what, const char* context) { error(what, context, ahead()); }
-    void error(const char* what, const char* context, const Token& tok);
+    void error(const char* what, const char* context) { error(what, ahead(), context); }
+    void error(const char* what, const Token& tok, const char* context);
 
     template<class F>
     auto parse_list(Token::Tag delim_r, F f, Token::Tag sep = Token::Tag::P_comma) -> std::deque<decltype(f())> {
