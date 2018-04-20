@@ -326,35 +326,6 @@ Ptr<WhileExpr> Parser::parse_while_expr() {
     return nullptr;
 }
 
-#if 0
-template<class T>
-Ptr<Expr> Parser::parse_enclosing_expr() {
-    auto tracker = track();
-    eat(T::l_delim);
-
-    Ptrs<BinderExpr> binders;
-    auto binder = parse_binder_expr();
-    if (accept(Token::Tag::P_semicolon)) {
-        auto body = parse_expr();
-        eat(T::r_delim);
-        return make_ptr<typename T::SisterExpr>(tracker, std::move(binder), std::move(body));
-    }
-
-    binders.emplace_back(std::move(binder));
-    parse_list(binders, T::name, T::r_delim, [&]{ return parse_binder_expr(); });
-    return make_ptr<T>(tracker, std::move(binders));
-}
-
-Ptr<Expr> Parser::parse_tuple_or_pack_expr()     {
-    auto result = parse_enclosing_expr<TupleExpr>();
-    if (auto tuple = result->isa<TupleExpr>(); tuple != nullptr && accept(Token::Tag::P_colon)) {
-        tuple->type = parse_expr();
-        tuple->location += prev_;
-    }
-    return result;
-}
-#endif
-
 /*
  * Stmnt
  */
