@@ -61,6 +61,8 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(P_dot,          ".") \
     f(P_semicolon,    ";") \
     /* operators */ \
+    f(O_lambda,       "\\") \
+    f(O_forall,       "/\\") \
     f(O_arrow,        "->") \
     f(O_inc,          "++") \
     f(O_dec,          "--") \

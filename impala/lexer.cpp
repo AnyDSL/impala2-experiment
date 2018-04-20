@@ -129,6 +129,7 @@ Token Lexer::lex() {
             continue;
         }
 
+        // delimiters
         if (accept('(')) return {location(), Token::Tag::D_paren_l};
         if (accept(')')) return {location(), Token::Tag::D_paren_r};
         if (accept('{')) return {location(), Token::Tag::D_brace_l};
@@ -138,6 +139,7 @@ Token Lexer::lex() {
         if (accept(0xab_u32)) return {location(), Token::Tag::D_quote_l};
         if (accept(0xbb_u32)) return {location(), Token::Tag::D_quote_r};
 
+        // punctation
         if (accept('.')) return {location(), Token::Tag::P_dot};
         if (accept(',')) return {location(), Token::Tag::P_comma};
         if (accept(';')) return {location(), Token::Tag::P_semicolon};
@@ -145,6 +147,9 @@ Token Lexer::lex() {
             if (accept(':')) return {location(), Token::Tag::P_colon_colon};
             return {location(), Token::Tag::P_colon};
         }
+
+        // operators
+        if (accept('\\')) return {location(), Token::Tag::O_lambda};
         if (accept('=')) {
             if (accept('=')) return {location(), Token::Tag::O_cmp_eq};
             return {location(), Token::Tag::O_eq};
@@ -187,7 +192,8 @@ Token Lexer::lex() {
                 while (!eof() && peek() != '\n') next();
                 continue;
             }
-            if (accept('=')) return {location(), Token::Tag::O_div_eq};
+            if (accept('='))  return {location(), Token::Tag::O_div_eq};
+            if (accept('\\')) return {location(), Token::Tag::O_forall};
             return {location(), Token::Tag::O_div};
         }
         if (accept('%')) {

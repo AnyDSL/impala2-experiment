@@ -10,7 +10,7 @@ using namespace impala;
 
 TEST(Lexer, Tokens) {
     Compiler compiler;
-    std::istringstream is("{ } ( ) [ ] « » : , .");
+    std::istringstream is("{ } ( ) [ ] « » : , . \\ /\\");
     Lexer lexer(compiler, is, "stdin");
 
     EXPECT_TRUE(lexer.lex().isa(Token::Tag::D_brace_l));
@@ -24,6 +24,8 @@ TEST(Lexer, Tokens) {
     EXPECT_TRUE(lexer.lex().isa(Token::Tag::P_colon));
     EXPECT_TRUE(lexer.lex().isa(Token::Tag::P_comma));
     EXPECT_TRUE(lexer.lex().isa(Token::Tag::P_dot));
+    EXPECT_TRUE(lexer.lex().isa(Token::Tag::O_lambda));
+    EXPECT_TRUE(lexer.lex().isa(Token::Tag::O_forall));
     EXPECT_TRUE(lexer.lex().isa(Token::Tag::M_eof));
 }
 
