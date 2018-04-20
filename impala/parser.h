@@ -84,7 +84,6 @@ private:
         parse_list(result, context, r_delim, f, sep);
         return result;
     }
-    template<class T> Ptr<Expr> parse_enclosing_expr();
 
     class Tracker {
     public:
