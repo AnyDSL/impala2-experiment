@@ -32,8 +32,8 @@ This will use SSH instead of HTTPS and will grant you push access for the submod
 
 ```ebnf
 (*pattern base*)
-_p = id [":" e]                                       (*identifier pattern*)
-   | "(" p "," ... "," p ")" [":" e]                  (*tuple pattern*)
+_p = id [":" e]                                       (* identifier *)
+   | "(" p "," ... "," p ")" [":" e]                  (* tuple *)
    ;
 
 (* pattern with mandatory type or expression*)
@@ -42,26 +42,26 @@ pe = _p ":" e | e;
 (* pattern with optional type*)
 p = _p [":" e];
 
-(* expression *)
+(* expressions *)
 e = id
-  | "[" pe "," ... "," pe "]"                        (*sigma expression*)
-  | "(" [id "="] e "," ... "," [id "="] e")" [":" e] (*tuple expression*)
-  | "." id                                           (*field expression*)
-  | "[" pe ";" e "]"                                 (*variadic expression*)
-  | "(" pe ";" e")"                                  (*pack expression*)
-  | pe "->" e                                        (*pi expression*)
-  | "[" p "]" ["->" e ] e                            (*abstraction expression*)
-  | e "[" e "]"                                      (*application expression*)
-  | "Fn" pe "->" e                                   (*Fn type expression*)
-  | "fn" p ["->" e] e                                (*function expression*)
-  | e e                                              (*cps call expression*)
-  | "Cn" e                                           (*Cn type expression*)
-  | "cn" p e                                         (*continuation expression*)
-  | "if" e B ["else" B]                              (*if expression*)
-  | "match" e "{" p "=>" e "," ... "," p "=>" e "}"  (*match expression*)
-  | "while" e B                                      (*while expression*)
-  | "for" p "in" e                                   (*for expression*)
-  | B                                                (*block expression*)
+  | "[" pe "," ... "," pe "]"                        (* sigma *)
+  | "(" [id "="] e "," ... "," [id "="] e")" [":" e] (* tuple *)
+  | "." id                                           (* field  *)
+  | "ar" "[" pe ";" e "]"                            (* variadic *)
+  | "pk" "(" pe ";" e ")"                            (* pack *)
+  | "/\" pe "->" e                                   (* abstraction type *)
+  | "Fn" pe "->" e                                   (* function type *)
+  | "Cn" e                                           (* continuation type *)
+  | "\"  p ["->" e] e                                (* abstraction *)
+  | "fn" p ["->" e] e                                (* function *)
+  | "cn" p e                                         (* continuation *)
+  | e e                                              (* cps call *)
+  | e "[" e "]"                                      (* application *)
+  | "if" e B ["else" B]                              (* if *)
+  | "match" e "{" p "=>" e "," ... "," p "=>" e "}"  (* match *)
+  | "while" e B                                      (* while *)
+  | "for" p "in" e                                   (* for *)
+  | B                                                (* block *)
   ;
 
 (* block expression *)
@@ -69,8 +69,8 @@ B = "{" s ... s [ e ] "}"
   ;
 
 (* statement *)
-s = e ";"               (*expression statement*)
-  | "let" p "=" e ";"   (*let statement*)
+s = e ";"               (*expression statement *)
+  | "let" p "=" e ";"   (*let statement *)
   ;
 ```
 
