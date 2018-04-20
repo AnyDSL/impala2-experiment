@@ -153,15 +153,15 @@ struct MatchExpr : public Expr {
 };
 
 struct PackExpr : public Expr {
-    PackExpr(Location location, Ptr<Ptrn>&& domain, Ptr<Expr>&& body)
+    PackExpr(Location location, Ptrs<Ptrn>&& domains, Ptr<Expr>&& body)
         : Expr(location)
-        , domain(std::move(domain))
+        , domains(std::move(domains))
         , body(std::move(body))
     {}
 
     std::ostream& stream(std::ostream&) const override;
 
-    Ptr<Ptrn> domain;
+    Ptrs<Ptrn> domains;
     Ptr<Expr> body;
 };
 
@@ -192,15 +192,15 @@ struct TupleExpr : public Expr {
 };
 
 struct VariadicExpr : public Expr {
-    VariadicExpr(Location location, Ptr<Ptrn>&& domain, Ptr<Expr>&& body)
+    VariadicExpr(Location location, Ptrs<Ptrn>&& domains, Ptr<Expr>&& body)
         : Expr(location)
-        , domain(std::move(domain))
+        , domains(std::move(domains))
         , body(std::move(body))
     {}
 
     std::ostream& stream(std::ostream&) const override;
 
-    Ptr<Ptrn> domain;
+    Ptrs<Ptrn> domains;
     Ptr<Expr> body;
 };
 

@@ -8,42 +8,42 @@
 
 using namespace impala;
 
-TEST(Parser, PackOrTuple) {
+TEST(Parser, Pack) {
     Compiler compiler;
-    parse(compiler, "()");
-
-    parse(compiler, "(x: int; y)");
-    parse(compiler, "(int; y)");
-
-    parse(compiler, "(x,      y)");
-    parse(compiler, "(x: int, y)");
-    parse(compiler, "(x: int, y: int)");
-    parse(compiler, "(x,      y: int)");
-
-    parse(compiler, "(x,      y,)");
-    parse(compiler, "(x: int, y,)");
-    parse(compiler, "(x: int, y: int,)");
-    parse(compiler, "(x,      y: int,)");
-
-    parse(compiler, "(x,      y): T");
-    parse(compiler, "(x: int, y): T");
-    parse(compiler, "(x: int, y: int): T");
-    parse(compiler, "(x,      y: int): T");
-
-    parse(compiler, "(x,      y,): T");
-    parse(compiler, "(x: int, y,): T");
-    parse(compiler, "(x: int, y: int,): T");
-    parse(compiler, "(x,      y: int,): T");
+    parse(compiler, "pk(x: int; y)");
+    parse(compiler, "pk(int; y)");
     EXPECT_EQ(compiler.num_errors(), 0);
 }
 
-TEST(Parser, SigmaOrVariadic) {
+TEST(Parser, Tuple) {
+    Compiler compiler;
+
+    parse(compiler, "()");
+    parse(compiler, "(x,   y)");
+    parse(compiler, "(x=a, y)");
+    parse(compiler, "(x=a, y=b)");
+    parse(compiler, "(x,   y=b)");
+
+    parse(compiler, "(x,   y,)");
+    parse(compiler, "(x=a, y,)");
+    parse(compiler, "(x=a, y=b,)");
+    parse(compiler, "(x,   y=b,)");
+
+    parse(compiler, "(x,   y): T");
+    parse(compiler, "(x=a, y): T");
+    parse(compiler, "(x=a, y=b): T");
+    parse(compiler, "(x,   y=b): T");
+
+    parse(compiler, "(x,   y,): T");
+    parse(compiler, "(x=a, y,): T");
+    parse(compiler, "(x=a, y=b,): T");
+    parse(compiler, "(x,   y=b,): T");
+    EXPECT_EQ(compiler.num_errors(), 0);
+}
+
+TEST(Parser, Sigma) {
     Compiler compiler;
     parse(compiler, "[]");
-
-    parse(compiler, "[x: int; y]");
-    parse(compiler, "[int; y]");
-
     parse(compiler, "[x,      y]");
     parse(compiler, "[x: int, y]");
     parse(compiler, "[x: int, y: int]");
@@ -52,6 +52,13 @@ TEST(Parser, SigmaOrVariadic) {
     parse(compiler, "[x: int, y,]");
     parse(compiler, "[x: int, y: int,]");
     parse(compiler, "[x,      y: int,]");
+    EXPECT_EQ(compiler.num_errors(), 0);
+}
+
+TEST(Parser, Variadic) {
+    Compiler compiler;
+    parse(compiler, "ar[x: int; y]");
+    parse(compiler, "ar[int; y]");
     EXPECT_EQ(compiler.num_errors(), 0);
 }
 

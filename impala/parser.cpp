@@ -21,6 +21,7 @@
          Token::Tag::D_brace_l: \
     case Token::Tag::D_bracket_l: \
     case Token::Tag::D_paren_l: \
+    case Token::Tag::K_ar: \
     case Token::Tag::K_Cn: \
     case Token::Tag::K_Fn: \
     case Token::Tag::K_cn: \
@@ -29,12 +30,15 @@
     case Token::Tag::K_for: \
     case Token::Tag::K_if: \
     case Token::Tag::K_match: \
+    case Token::Tag::K_pk: \
     case Token::Tag::K_true: \
     case Token::Tag::K_while: \
     case Token::Tag::L_f: \
     case Token::Tag::L_s: \
     case Token::Tag::L_u: \
     case Token::Tag::M_id: \
+    case Token::Tag::O_lambda: \
+    case Token::Tag::O_forall: \
     case Token::Tag::O_add: \
     case Token::Tag::O_and: \
     case Token::Tag::O_dec: \
@@ -79,20 +83,20 @@ bool Parser::accept(Token::Tag tag) {
     return true;
 }
 
-bool Parser::expect(Token::Tag tag, const std::string& context) {
+bool Parser::expect(Token::Tag tag, const char* context) {
     if (ahead().tag() == tag) {
         lex();
         return true;
     }
-    std::ostringstream oss;
-    thorin::streamf(oss, "'{}'", Token::tag_to_string(tag));
-    error(oss.str(), context);
+    error(Token::tag_to_string(tag), context);
     return false;
 }
 
-void Parser::error(const std::string& what, const std::string& context, const Token& tok) {
-    lexer_.compiler.error(tok.location(), "expected {}, got '{}'{}", what, tok,
-            context.empty() ? "" : std::string(" while parsing ") + context.c_str());
+void Parser::error(const char* what, const char* context, const Token& tok) {
+    if (context)
+        lexer_.compiler.error(tok.location(), "expected {}, got '{}' while parsing {}", what, tok, context);
+    else
+        lexer_.compiler.error(tok.location(), "expected {}, got '{}'", what, tok);
 }
 
 Ptr<Id> Parser::parse_id() { return make_ptr<Id>(eat(Token::Tag::M_id)); }
@@ -101,7 +105,7 @@ Ptr<Id> Parser::parse_id() { return make_ptr<Id>(eat(Token::Tag::M_id)); }
  * try
  */
 
-Ptr<Expr> Parser::try_expr(const std::string& context) {
+Ptr<Expr> Parser::try_expr(const char* context) {
     switch (ahead().tag()) {
         case EXPR: return parse_expr();
         default:;
@@ -110,13 +114,13 @@ Ptr<Expr> Parser::try_expr(const std::string& context) {
     return make_ptr<ErrorExpr>(prev_);
 }
 
-Ptr<Id> Parser::try_id(const std::string& context) {
+Ptr<Id> Parser::try_id(const char* context) {
     if (accept(Token::Tag::M_id)) return parse_id();
     error("identifier", context);
     return make_ptr<Id>(Token(prev_, "<error>"));
 }
 
-Ptr<Ptrn> Parser::try_ptrn(const std::string& context) {
+Ptr<Ptrn> Parser::try_ptrn(const char* context) {
     switch (ahead().tag()) {
         case PTRN: return parse_ptrn();
         default:;
@@ -125,7 +129,18 @@ Ptr<Ptrn> Parser::try_ptrn(const std::string& context) {
     return make_ptr<ErrorPtrn>(prev_);
 }
 
-Ptr<BlockExpr> Parser::try_block_expr(const std::string& context) {
+Ptr<Ptrn> Parser::try_ptrn_t(const char* ascription_context) {
+    if ((ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::P_colon)) // IdPtrn
+            || ahead().isa(Token::Tag::D_paren_l)) {                          // TuplePtrn
+        return parse_ptrn(ascription_context);
+    }
+    auto tracker = track();
+    auto type = try_expr(ascription_context);
+    auto id = make_anonymous_id();
+    return make_ptr<IdPtrn>(tracker, std::move(id), std::move(type), true);
+}
+
+Ptr<BlockExpr> Parser::try_block_expr(const char* context) {
     if (ahead().isa(Token::Tag::D_brace_l)) return parse_block_expr();
     error("block expression", context);
     return make_empty_block_expr();
@@ -174,8 +189,10 @@ Ptr<Expr> Parser::parse_type_ascription(const char* ascription_context) {
 Ptr<Expr> Parser::parse_expr() {
     switch (ahead().tag()) {
         case Token::Tag::D_brace_l:   return parse_block_expr();
-        case Token::Tag::D_bracket_l: return parse_sigma_or_variadic_expr();
-        case Token::Tag::D_paren_l:   return parse_tuple_or_pack_expr();
+        case Token::Tag::D_bracket_l: return parse_sigma_expr();
+        case Token::Tag::D_paren_l:   return parse_tuple_expr();
+        case Token::Tag::K_ar:        return parse_variadic_expr();
+        case Token::Tag::K_pk:        return parse_pack_expr();
         case Token::Tag::M_id:        return parse_id_expr();
         default: return nullptr;
     }
@@ -255,85 +272,54 @@ Ptr<MatchExpr> Parser::parse_match_expr() {
     return nullptr;
 }
 
-Ptr<Expr> Parser::parse_tuple_or_pack_expr() {
+Ptr<TupleExpr> Parser::parse_tuple_expr() {
     auto tracker = track();
-    eat(Token::Tag::D_paren_l);
 
-    auto parse_type_ascription = [&] {
-        return accept(Token::Tag::P_colon) ? try_expr("type ascription of a tuple") : nullptr;
-    };
-
-    if (accept(Token::Tag::D_paren_r)) {
-        auto type = parse_type_ascription();
-        return make_ptr<TupleExpr>(tracker, Ptrs<TupleExpr::Elem>{}, std::move(type));
-    }
-
-    Ptrs<TupleExpr::Elem> elems;
-
-    auto is_named = [&]{ return ahead().isa(Token::Tag::M_id) && ahead().isa(Token::Tag::O_eq); };
-
-    auto parse_tuple_expr = [&] {
-        while (accept(Token::Tag::P_comma) && !ahead().isa(Token::Tag::D_paren_r)) {
-            auto tracker = track();
-            Ptr<Id> id;
-            if (is_named()) {
-                id = parse_id();
-                eat(Token::Tag::O_eq);
-            } else {
-                id = make_anonymous_id();
-            }
-            auto expr = try_expr("tuple element");
-            elems.emplace_back(make_ptr<TupleExpr::Elem>(tracker, std::move(id), std::move(expr)));
+    auto elems = parse_list("tuple", Token::Tag::D_paren_l, Token::Tag::D_paren_r, [&]{
+        auto tracker = track();
+        Ptr<Id> id;
+        if (ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::O_eq)) {
+            id = parse_id();
+            eat(Token::Tag::O_eq);
+        } else {
+            id = make_anonymous_id();
         }
-        auto type = parse_type_ascription();
-        return make_ptr<TupleExpr>(tracker, std::move(elems), std::move(type));
-    };
+        auto expr = try_expr("tuple element");
+        return make_ptr<TupleExpr::Elem>(tracker, std::move(id), std::move(expr));
+    });
 
-    if (is_named())
-        return parse_tuple_expr();
-
-    auto expr = try_expr("tuple or pack");
-    if (accept(Token::Tag::P_semicolon)) {
-        Ptr<Ptrn> ptrn; // expr->convert_to_ptr();
-        auto body = try_expr("body of a pack");
-        expect(Token::Tag::D_paren_r, "closing delimiter of a pack");
-        return make_ptr<PackExpr>(tracker, std::move(ptrn), std::move(body));
-    }
-
-    return parse_tuple_expr();
+    auto type = parse_type_ascription();
+    return make_ptr<TupleExpr>(tracker, std::move(elems), std::move(type));
 }
 
-Ptr<Expr> Parser::parse_sigma_or_variadic_expr() {
+Ptr<SigmaExpr> Parser::parse_sigma_expr() {
     auto tracker = track();
-    eat(Token::Tag::D_bracket_l);
-    if (accept(Token::Tag::D_bracket_r))
-        return make_ptr<SigmaExpr>(tracker, Ptrs<Ptrn>{});
+    auto elems = parse_list("sigma", Token::Tag::D_bracket_l, Token::Tag::D_bracket_r, [&]{ return try_ptrn_t("type ascription of a sigma element"); });
+    return make_ptr<SigmaExpr>(tracker, std::move(elems));
+}
 
-    auto parse_elem = [&](const char* context) -> Ptr<Ptrn> {
-        if ((ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::P_colon)) /* IdPtrn */
-                || ahead().isa(Token::Tag::D_paren_l))                            /*TuplePtrn*/ {
-            return parse_ptrn(context);
-        }
-        auto tracker = track();
-        auto expr = try_expr(context);
-        auto id = make_anonymous_id();
-        return make_ptr<IdPtrn>(tracker, std::move(id), std::move(expr), true);
-    };
+Ptr<PackExpr> Parser::parse_pack_expr() {
+    auto tracker = track();
+    eat(Token::Tag::K_pk);
+    expect(Token::Tag::D_paren_l, "opening delimiter of a pack");
+    auto domains = parse_list(Token::Tag::P_semicolon, [&]{ return try_ptrn_t("type ascription of a pack's domain"); });
+    expect(Token::Tag::P_semicolon, "pack");
+    auto body = try_expr("body of a pack");
+    expect(Token::Tag::D_paren_r, "closing delimiter of a pack");
 
-    auto ptrn = parse_elem("the mandatory type ascription for the first element of a sigma or the domain of a variadic");
-    if (accept(Token::Tag::P_semicolon)) {
-        auto body = try_expr("body of a variadic");
-        expect(Token::Tag::D_bracket_r, "closing delimiter of a variadic");
-        return make_ptr<VariadicExpr>(tracker, std::move(ptrn), std::move(body));
-    }
+    return make_ptr<PackExpr>(tracker, std::move(domains), std::move(body));
+}
 
-    Ptrs<Ptrn> ptrns;
-    ptrns.emplace_back(std::move(ptrn));
-    while (accept(Token::Tag::P_comma) && !ahead().isa(Token::Tag::D_bracket_r))
-        ptrns.emplace_back(parse_elem("mandotry type ascription of a sigma element"));
+Ptr<VariadicExpr> Parser::parse_variadic_expr() {
+    auto tracker = track();
+    eat(Token::Tag::K_ar);
+    expect(Token::Tag::D_bracket_l, "opening delimiter of a variadic");
+    auto domains = parse_list(Token::Tag::P_semicolon, [&]{ return try_ptrn_t("type ascription of a variadic's domain"); });
+    expect(Token::Tag::P_semicolon, "variadic");
+    auto body = try_expr("body of a variadic");
+    expect(Token::Tag::D_bracket_r, "closing delimiter of a variadic");
 
-    expect(Token::Tag::D_bracket_r, "closing delimiter of a sigma");
-    return make_ptr<SigmaExpr>(tracker, std::move(ptrns));
+    return make_ptr<VariadicExpr>(tracker, std::move(domains), std::move(body));
 }
 
 Ptr<WhileExpr> Parser::parse_while_expr() {

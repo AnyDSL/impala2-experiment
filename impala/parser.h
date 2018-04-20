@@ -29,16 +29,18 @@ public:
     //@}
 
     //@{ Expr%s
-    Ptr<Expr>       parse_type_ascription(const char* ascription_context);
-    Ptr<Expr>       parse_expr();
-    Ptr<BlockExpr>  parse_block_expr();
-    Ptr<IdExpr>     parse_id_expr();
-    Ptr<IfExpr>     parse_if_expr();
-    Ptr<ForExpr>    parse_for_expr();
-    Ptr<MatchExpr>  parse_match_expr();
-    Ptr<Expr>       parse_sigma_or_variadic_expr();
-    Ptr<Expr>       parse_tuple_or_pack_expr();
-    Ptr<WhileExpr>  parse_while_expr();
+    Ptr<Expr>         parse_type_ascription(const char* ascription_context = nullptr);
+    Ptr<Expr>         parse_expr();
+    Ptr<BlockExpr>    parse_block_expr();
+    Ptr<IdExpr>       parse_id_expr();
+    Ptr<IfExpr>       parse_if_expr();
+    Ptr<ForExpr>      parse_for_expr();
+    Ptr<MatchExpr>    parse_match_expr();
+    Ptr<SigmaExpr>    parse_sigma_expr();
+    Ptr<TupleExpr>    parse_tuple_expr();
+    Ptr<VariadicExpr> parse_variadic_expr();
+    Ptr<PackExpr>     parse_pack_expr();
+    Ptr<WhileExpr>    parse_while_expr();
     //@}
 
     //@{ Stmnt%s
@@ -48,10 +50,11 @@ public:
 
 private:
     //@{ try to parse a Node
-    Ptr<BlockExpr>  try_block_expr(const std::string& context);
-    Ptr<Expr>       try_expr(const std::string& context);
-    Ptr<Id>         try_id(const std::string& context);
-    Ptr<Ptrn>       try_ptrn(const std::string& context);
+    Ptr<BlockExpr>  try_block_expr(const char* context);
+    Ptr<Expr>       try_expr(const char* context);
+    Ptr<Id>         try_id(const char* context);
+    Ptr<Ptrn>       try_ptrn(const char* context);
+    Ptr<Ptrn>       try_ptrn_t(const char* ascription_context = nullptr);
     //@}
 
     //@{ make empty Node
@@ -63,25 +66,26 @@ private:
     const Token& ahead(size_t i = 0) const { assert(i < max_ahead); return ahead_[i]; }
     Token eat(Token::Tag tag) { assert_unused(tag == ahead().tag() && "internal parser error"); return lex(); }
     bool accept(Token::Tag tok);
-    bool expect(Token::Tag tok, const std::string& context);
-    void error(const std::string& what, const std::string& context) { error(what, context, ahead()); }
-    void error(const std::string& what, const std::string& context, const Token& tok);
+    bool expect(Token::Tag tok, const char* context);
+    void error(const char* what, const char* context) { error(what, context, ahead()); }
+    void error(const char* what, const char* context, const Token& tok);
 
-    template<class T, class F>
-    void parse_list(T& ts, const char* context, Token::Tag r_delim, F f, Token::Tag sep = Token::Tag::P_comma) {
-        if (!ahead().isa(r_delim)) {
+    template<class F>
+    auto parse_list(Token::Tag delim_r, F f, Token::Tag sep = Token::Tag::P_comma) -> std::deque<decltype(f())> {
+        std::deque<decltype(f())> result;
+        if (!ahead().isa(delim_r)) {
             do {
-                ts.emplace_back(f());
-            } while (accept(sep) && !ahead().isa(r_delim));
+                result.emplace_back(f());
+            } while (accept(sep) && !ahead().isa(delim_r));
         }
-        expect(r_delim, context);
+        return result;
     }
     template<class F>
-    auto parse_list(const char* context, Token::Tag l_delim, Token::Tag r_delim,
+    auto parse_list(const char* context, Token::Tag delim_l, Token::Tag delim_r,
                     F f, Token::Tag sep = Token::Tag::P_comma) -> std::deque<decltype(f())>  {
-        std::deque<decltype(f())> result;
-        eat(l_delim);
-        parse_list(result, context, r_delim, f, sep);
+        eat(delim_l);
+        auto result = parse_list(delim_r, f, sep);
+        expect(delim_r, context);
         return result;
     }
 

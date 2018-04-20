@@ -74,7 +74,8 @@ std::ostream& TupleExpr::stream(std::ostream& os) const {
 }
 
 std::ostream& PackExpr::stream(std::ostream& os) const {
-    return streamf(os, "({}; {})", domain.get(), body.get());
+    stream_list(os << "pk(", domains, [&](auto&& ptrn) { ptrn->stream(os); });
+    return streamf(os, "; {})", body.get());
 }
 
 std::ostream& SigmaExpr::stream(std::ostream& os) const {
@@ -82,7 +83,8 @@ std::ostream& SigmaExpr::stream(std::ostream& os) const {
 }
 
 std::ostream& VariadicExpr::stream(std::ostream& os) const {
-    return streamf(os, "[{}; {}]", domain.get(), body.get());
+    stream_list(os << "ar[", domains, [&](auto&& ptrn) { ptrn->stream(os); });
+    return streamf(os, "; {}]", body.get());
 }
 
 std::ostream& ErrorExpr::stream(std::ostream& os) const {

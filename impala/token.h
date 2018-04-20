@@ -14,6 +14,7 @@ using thorin::Symbol;
 using namespace thorin::literals;
 
 #define IMPALA_KEYWORDS(f) \
+    f(K_ar,     "ar") \
     f(K_Cn,     "Cn") \
     f(K_cn,     "cn") \
     f(K_else,   "else") \
@@ -26,6 +27,7 @@ using namespace thorin::literals;
     f(K_let,    "let") \
     f(K_match,  "match") \
     f(K_mut,    "mut") \
+    f(K_pk,     "pk") \
     f(K_self,   "Self") \
     f(K_struct, "struct") \
     f(K_true,   "true") \

@@ -31,7 +31,7 @@ This will use SSH instead of HTTPS and will grant you push access for the submod
 ## Syntax
 
 ```ebnf
-(*pattern base*)
+(* pattern base *)
 _p = id [":" e]                                       (* identifier *)
    | "(" p "," ... "," p ")" [":" e]                  (* tuple *)
    ;
