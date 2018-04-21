@@ -88,7 +88,9 @@ bool Parser::expect(Token::Tag tag, const char* context) {
         lex();
         return true;
     }
-    error(Token::tag_to_string(tag), context);
+    std::ostringstream os;
+    thorin::streamf(os, "'{}'", Token::tag_to_string(tag));
+    error(os.str().c_str(), context);
     return false;
 }
 
