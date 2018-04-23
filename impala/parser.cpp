@@ -2,21 +2,6 @@
 
 #include <sstream>
 
-#define PTRN \
-         Token::Tag::M_id: \
-    case Token::Tag::D_paren_l
-
-#define ITEM \
-         Token::Tag::K_enum: \
-    case Token::Tag::K_extern: \
-    case Token::Tag::K_fn: \
-    case Token::Tag::K_impl: \
-    case Token::Tag::K_mod: \
-    case Token::Tag::K_static: \
-    case Token::Tag::K_struct: \
-    case Token::Tag::K_typedef: \
-    case Token::Tag::K_trait
-
 #define EXPR \
          Token::Tag::D_brace_l: \
     case Token::Tag::D_bracket_l: \
@@ -47,11 +32,6 @@
     case Token::Tag::O_not: \
     case Token::Tag::O_sub: \
     case Token::Tag::O_tilde
-
-#define STMNT \
-         Token::Tag::K_let: \
-    case ITEM: \
-    case EXPR
 
 namespace impala {
 
@@ -105,7 +85,7 @@ void Parser::error(const char* what, const Token& tok, const char* context) {
 Ptr<Expr> Parser::try_expr(const char* context) {
     switch (ahead().tag()) {
         case EXPR: return parse_expr();
-        default:;
+        default: [[fallthrough]];
     }
     error("expression", context);
     return make_ptr<ErrorExpr>(prev_);
@@ -119,9 +99,11 @@ Ptr<Id> Parser::try_id(const char* context) {
 
 Ptr<Ptrn> Parser::try_ptrn(const char* context) {
     switch (ahead().tag()) {
-        case PTRN: return parse_ptrn();
-        default:;
+        case Token::Tag::M_id:
+        case Token::Tag::D_paren_l: return parse_ptrn();
+        default: [[fallthrough]];
     }
+
     error("pattern", context);
     return make_ptr<ErrorPtrn>(prev_);
 }
