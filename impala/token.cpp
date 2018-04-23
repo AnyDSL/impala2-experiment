@@ -9,7 +9,7 @@ std::ostream& operator<<(std::ostream& os, const Token& token) {
         case Token::Tag::L_s:  return os << token.s64();
         case Token::Tag::L_u:  return os << token.u64();
         case Token::Tag::L_f:  return os << token.f64();
-        default: return os << Token::tag_to_string(token.tag());
+        default: return os << Token::tag2string(token.tag());
     }
     THORIN_UNREACHABLE;
 }

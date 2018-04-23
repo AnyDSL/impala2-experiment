@@ -89,7 +89,7 @@ bool Parser::expect(Token::Tag tag, const char* context) {
         return true;
     }
     std::ostringstream os;
-    thorin::streamf(os, "'{}'", Token::tag_to_string(tag));
+    thorin::streamf(os, "'{}'", Token::tag2string(tag));
     error(os.str().c_str(), context);
     return false;
 }
@@ -185,17 +185,45 @@ Ptr<Expr> Parser::parse_type_ascription(const char* ascription_context) {
     return accept(Token::Tag::P_colon) ? try_expr("type ascription") : nullptr;
 }
 
-Ptr<Expr> Parser::parse_expr() {
+Ptr<Expr> Parser::parse_expr(Token::Prec p) {
+    auto tracker = track();
+    auto lhs = parse_primary_expr();
+
+    while (true) {
+        switch (ahead().tag()) {
+            case Token::Tag::O_inc:
+            case Token::Tag::O_dec:
+            case Token::Tag::D_paren_l:
+            case Token::Tag::D_bracket_l:
+            case Token::Tag::P_dot: lhs = parse_postfix_expr(tracker, std::move(lhs)); continue;
+            default: [[fallthrough]];
+        }
+
+        if (auto q = Token::tag2prec(ahead().tag()); q != Token::Prec::Error && p < q)
+            lhs = parse_infix_expr(tracker, std::move(lhs));
+        else
+            break;
+    }
+
+    return lhs;
+}
+
+
+Ptr<Expr> Parser::parse_primary_expr() {
     switch (ahead().tag()) {
+        case Token::Tag::O_inc:
+        case Token::Tag::O_dec:
+        case Token::Tag::O_add:
+        case Token::Tag::O_sub:       return parse_prefix_expr();
         case Token::Tag::D_brace_l:   return parse_block_expr();
         case Token::Tag::D_bracket_l: return parse_sigma_expr();
         case Token::Tag::D_paren_l:   return parse_tuple_expr();
         case Token::Tag::K_ar:        return parse_variadic_expr();
+        case Token::Tag::K_if:        return parse_if_expr();
         case Token::Tag::K_pk:        return parse_pack_expr();
         case Token::Tag::M_id:        return parse_id_expr();
-        default: return nullptr;
+        default:                      return parse_error_expr();
     }
-    return nullptr;
 }
 
 Ptr<BlockExpr> Parser::parse_block_expr() {

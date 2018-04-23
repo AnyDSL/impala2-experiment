@@ -11,6 +11,21 @@ namespace impala {
 class Compiler;
 
 class Parser {
+private:
+    class Tracker {
+    public:
+        Tracker(Parser& parser, const Location& location)
+            : parser_(parser)
+            , location_(location)
+        {}
+
+        operator Location() const { return {location_.front(), parser_.prev_.back()}; }
+
+    private:
+        Parser& parser_;
+        Location location_;
+    };
+
 public:
     Parser(Compiler&, std::istream&, const char* filename);
 
@@ -30,7 +45,13 @@ public:
 
     //@{ Expr%s
     Ptr<Expr>         parse_type_ascription(const char* ascription_context = nullptr);
-    Ptr<Expr>         parse_expr();
+    Ptr<Expr>         parse_expr() { return parse_expr(Token::Prec::Bottom); }
+    Ptr<Expr>         parse_expr(Token::Prec);
+    Ptr<Expr>         parse_error_expr();
+    Ptr<Expr>         parse_primary_expr();
+    Ptr<Expr>         parse_prefix_expr();
+    Ptr<Expr>         parse_postfix_expr(Tracker, Ptr<Expr>&&);
+    Ptr<Expr>         parse_infix_expr(Tracker, Ptr<Expr>&&);
     Ptr<BlockExpr>    parse_block_expr();
     Ptr<IdExpr>       parse_id_expr();
     Ptr<IfExpr>       parse_if_expr();
@@ -88,20 +109,6 @@ private:
         expect(delim_r, context);
         return result;
     }
-
-    class Tracker {
-    public:
-        Tracker(Parser& parser, const Location& location)
-            : parser_(parser)
-            , location_(location)
-        {}
-
-        operator Location() const { return {location_.front(), parser_.prev_.back()}; }
-
-    private:
-        Parser& parser_;
-        Location location_;
-    };
 
     Tracker track() { return Tracker(*this, ahead().location().front()); }
     Tracker track(const Location& location) { return Tracker(*this, location); }

@@ -110,11 +110,24 @@ public:
 #undef CODE
     };
 
+    enum class Prec {
+        Bottom,
+        Assign = Bottom,
+        Hlt,
+        OrOr, AndAnd,
+        Rel,
+        Or, Xor, And,
+        Shift, Add, Mul,
+        Unary,
+        RunRun,
+        Error,
+    };
+
     Token() {}
     Token(Location location, Tag tag)
         : location_(location)
         , tag_(tag)
-        , symbol_(tag_to_string(tag))
+        , symbol_(tag2string(tag))
     {}
     Token(Location location, thorin::s64 s)
         : location_(location)
@@ -158,7 +171,7 @@ public:
     //bool operator != (const Token& token) const { return token.location_ != location_ || token.symbol_ != symbol_; }
     //uint32_t hash() const { return hash_combine(location_.hash(), hash_string(symbol_)); }
 
-    static const char* tag_to_string(Tag tag) {
+    static const char* tag2string(Tag tag) {
         switch (tag) {
 #define CODE(t, str) case Tag::t: return str;
             IMPALA_KEYWORDS(CODE)
@@ -166,6 +179,42 @@ public:
             IMPALA_TOKENS(CODE)
 #undef CODE
             default: THORIN_UNREACHABLE;
+        }
+    }
+
+    static Prec tag2prec(Tag tag) {
+        switch (tag) {
+            case Tag::O_eq:
+            case Tag::O_add_eq:
+            case Tag::O_sub_eq:
+            case Tag::O_mul_eq:
+            case Tag::O_div_eq:
+            case Tag::O_mod_eq:
+            case Tag::O_shift_l_eq:
+            case Tag::O_shift_r_eq:
+            case Tag::O_and_eq:
+            case Tag::O_or_eq:
+            case Tag::O_xor_eq:  return Prec::Assign;
+            case Tag::O_or_or:   return Prec::OrOr;
+            case Tag::O_and_and: return Prec::AndAnd;
+            case Tag::O_not:
+            case Tag::O_cmp_le:
+            case Tag::O_cmp_ge:
+            case Tag::O_cmp_lt:
+            case Tag::O_cmp_gt:
+            case Tag::O_cmp_eq:
+            case Tag::O_cmp_ne:  return Prec::Rel;
+            case Tag::O_or:      return Prec::Or;
+            case Tag::O_xor:     return Prec::Xor;
+            case Tag::O_and:     return Prec::And;
+            case Tag::O_shift_l:
+            case Tag::O_shift_r: return Prec::Shift;
+            case Tag::O_add:
+            case Tag::O_sub: return Prec::Add;
+            case Tag::O_mul:
+            case Tag::O_div:
+            case Tag::O_mod: return Prec::Mul;
+            default: return Prec::Error;
         }
     }
 
