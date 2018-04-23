@@ -109,6 +109,8 @@ struct BlockExpr : public Expr {
         , expr(std::move(expr))
     {}
 
+    std::ostream& stream(std::ostream&) const override;
+
     Ptrs<Stmnt> stmnts;
     Ptr<Expr> expr;
 };
@@ -146,7 +148,81 @@ struct IfExpr : public Expr {
     Ptr<Expr> else_expr;
 };
 
+struct InfixExpr : public Expr {
+    enum class Tag {
+        O_eq         = int(Token::Tag::O_eq),
+        O_add_eq     = int(Token::Tag::O_add_eq),
+        O_sub_eq     = int(Token::Tag::O_sub_eq),
+        O_mul_eq     = int(Token::Tag::O_mul_eq),
+        O_div_eq     = int(Token::Tag::O_div_eq),
+        O_mod_eq     = int(Token::Tag::O_mod_eq),
+        O_shift_l_eq = int(Token::Tag::O_shift_l_eq),
+        O_shift_r_eq = int(Token::Tag::O_shift_r_eq),
+        O_and_eq     = int(Token::Tag::O_and_eq),
+        O_or_eq      = int(Token::Tag::O_or_eq),
+        O_xor_eq     = int(Token::Tag::O_xor_eq),
+        O_add        = int(Token::Tag::O_add),
+        O_sub        = int(Token::Tag::O_sub),
+        O_mul        = int(Token::Tag::O_mul),
+        O_div        = int(Token::Tag::O_div),
+        O_mod        = int(Token::Tag::O_mod),
+        O_tilde      = int(Token::Tag::O_tilde),
+        O_shift_l    = int(Token::Tag::O_shift_l),
+        O_shift_r    = int(Token::Tag::O_shift_r),
+        O_and        = int(Token::Tag::O_and),
+        O_and_and    = int(Token::Tag::O_and_and),
+        O_or         = int(Token::Tag::O_or),
+        O_or_or      = int(Token::Tag::O_or_or),
+        O_xor        = int(Token::Tag::O_xor),
+        O_not        = int(Token::Tag::O_not),
+        O_cmp_le     = int(Token::Tag::O_cmp_le),
+        O_cmp_ge     = int(Token::Tag::O_cmp_ge),
+        O_cmp_lt     = int(Token::Tag::O_cmp_lt),
+        O_cmp_gt     = int(Token::Tag::O_cmp_gt),
+        O_cmp_eq     = int(Token::Tag::O_cmp_eq),
+        O_cmp_ne     = int(Token::Tag::O_cmp_ne),
+    };
+
+    InfixExpr(Location location, Ptr<Expr>&& lhs, Tag tag, Ptr<Expr>&& rhs)
+        : Expr(location)
+        , lhs(std::move(lhs))
+        , tag(tag)
+        , rhs(std::move(rhs))
+    {}
+
+    std::ostream& stream(std::ostream&) const override;
+
+    Ptr<Expr> lhs;
+    Tag tag;
+    Ptr<Expr> rhs;
+};
+
+struct ForallExpr : public Expr {
+    ForallExpr(Location location, Ptr<Ptrn>&& domain, Ptr<Expr>&& codomain)
+        : Expr(location)
+        , domain(std::move(domain))
+        , codomain(std::move(codomain))
+    {}
+
+    Ptr<Ptrn> domain;
+    Ptr<Expr> codomain;
+};
+
+
 struct ForExpr : public Expr {
+};
+
+struct LambdaExpr : public Expr {
+    LambdaExpr(Location location, Ptr<Ptrn>&& domain, Ptr<Expr>&& codomain, Ptr<Expr>&& body)
+        : Expr(location)
+        , domain(std::move(domain))
+        , codomain(std::move(codomain))
+        , body(std::move(body))
+    {}
+
+    Ptr<Ptrn> domain;
+    Ptr<Expr> codomain;
+    Ptr<Expr> body;
 };
 
 struct MatchExpr : public Expr {
@@ -163,6 +239,45 @@ struct PackExpr : public Expr {
 
     Ptrs<Ptrn> domains;
     Ptr<Expr> body;
+};
+
+struct PrefixExpr : public Expr {
+    enum class Tag {
+        O_inc = int(Token::Tag::O_inc),
+        O_dec = int(Token::Tag::O_dec),
+        O_add = int(Token::Tag::O_add),
+        O_sub = int(Token::Tag::O_sub),
+        O_and = int(Token::Tag::O_and),
+    };
+
+    PrefixExpr(Location location, Tag tag, Ptr<Expr>&& rhs)
+        : Expr(location)
+        , tag(tag)
+        , rhs(std::move(rhs))
+    {}
+
+    std::ostream& stream(std::ostream&) const override;
+
+    Tag tag;
+    Ptr<Expr> rhs;
+};
+
+struct PostfixExpr : public Expr {
+    enum class Tag {
+        O_inc = int(Token::Tag::O_inc),
+        O_dec = int(Token::Tag::O_dec),
+    };
+
+    PostfixExpr(Location location, Ptr<Expr>&& lhs, Tag tag)
+        : Expr(location)
+        , lhs(std::move(lhs))
+        , tag(tag)
+    {}
+
+    std::ostream& stream(std::ostream&) const override;
+
+    Ptr<Expr> lhs;
+    Tag tag;
 };
 
 struct TupleExpr : public Expr {
@@ -234,6 +349,8 @@ struct ExprStmnt : public Stmnt {
         , expr(std::move(expr))
     {}
 
+    std::ostream& stream(std::ostream&) const override;
+
     Ptr<Expr> expr;
 };
 
@@ -243,6 +360,8 @@ struct LetStmnt : public Stmnt {
         , ptrn(std::move(ptrn))
         , init(std::move(init))
     {}
+
+    std::ostream& stream(std::ostream&) const override;
 
     Ptr<Ptrn> ptrn;
     Ptr<Expr> init;

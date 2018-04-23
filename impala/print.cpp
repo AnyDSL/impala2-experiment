@@ -59,8 +59,26 @@ std::ostream& ErrorPtrn::stream(std::ostream& os) const {
  * Expr
  */
 
+std::ostream& BlockExpr::stream(std::ostream& os) const {
+    for (auto&& stmnt : stmnts)
+        stmnt->stream(os) << std::endl;
+    return expr->stream(os);
+}
+
 std::ostream& IdExpr::stream(std::ostream& os) const {
     return streamf(os, "{}", id);
+}
+
+std::ostream& InfixExpr::stream(std::ostream& os) const {
+    return streamf(os, "({}{}{})", lhs, Token::tag2str((Token::Tag) tag), rhs);
+}
+
+std::ostream& PrefixExpr::stream(std::ostream& os) const {
+    return streamf(os, "({}{})", Token::tag2str((Token::Tag) tag), rhs);
+}
+
+std::ostream& PostfixExpr::stream(std::ostream& os) const {
+    return streamf(os, "({}{})", lhs, Token::tag2str((Token::Tag) tag));
 }
 
 std::ostream& TupleExpr::Elem::stream(std::ostream& os) const {
@@ -89,6 +107,21 @@ std::ostream& VariadicExpr::stream(std::ostream& os) const {
 
 std::ostream& ErrorExpr::stream(std::ostream& os) const {
     return streamf(os, "<error expression>");
+}
+
+/*
+ * Stmnt
+ */
+
+std::ostream& ExprStmnt::stream(std::ostream& os) const {
+    return streamf(os, "{};", expr);
+}
+
+std::ostream& LetStmnt::stream(std::ostream& os) const {
+    if (init)
+        return streamf(os, "let {} = {};", ptrn, init);
+    else
+        return streamf(os, "let {};", ptrn);
 }
 
 }

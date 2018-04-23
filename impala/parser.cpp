@@ -89,7 +89,7 @@ bool Parser::expect(Token::Tag tag, const char* context) {
         return true;
     }
     std::ostringstream os;
-    thorin::streamf(os, "'{}'", Token::tag2string(tag));
+    thorin::streamf(os, "'{}'", Token::tag2str(tag));
     error(os.str().c_str(), context);
     return false;
 }
@@ -97,8 +97,6 @@ bool Parser::expect(Token::Tag tag, const char* context) {
 void Parser::error(const char* what, const Token& tok, const char* context) {
     lexer_.compiler.error(tok.location(), "expected {}, got '{}' while parsing {}", what, tok, context);
 }
-
-Ptr<Id> Parser::parse_id() { return make_ptr<Id>(eat(Token::Tag::M_id)); }
 
 /*
  * try
@@ -146,6 +144,21 @@ Ptr<BlockExpr> Parser::try_block_expr(const char* context) {
 }
 
 /*
+ * misc
+ */
+
+Ptr<Id> Parser::parse_id() { return make_ptr<Id>(eat(Token::Tag::M_id)); }
+
+Ptr<Expr> Parser::parse_type_ascription(const char* ascription_context) {
+    if (ascription_context) {
+        expect(Token::Tag::P_colon, ascription_context);
+        return try_expr("type ascription");
+    }
+
+    return accept(Token::Tag::P_colon) ? try_expr("type ascription") : nullptr;
+}
+
+/*
  * Ptrn
  */
 
@@ -173,17 +186,8 @@ Ptr<TuplePtrn> Parser::parse_tuple_ptrn(const char* ascription_context) {
 }
 
 /*
- * Expr
+ * Expr - prefix, infix, postfix
  */
-
-Ptr<Expr> Parser::parse_type_ascription(const char* ascription_context) {
-    if (ascription_context) {
-        expect(Token::Tag::P_colon, ascription_context);
-        return try_expr("type ascription");
-    }
-
-    return accept(Token::Tag::P_colon) ? try_expr("type ascription") : nullptr;
-}
 
 Ptr<Expr> Parser::parse_expr(Token::Prec p) {
     auto tracker = track();
@@ -208,6 +212,33 @@ Ptr<Expr> Parser::parse_expr(Token::Prec p) {
     return lhs;
 }
 
+Ptr<Expr> Parser::parse_prefix_expr() {
+    auto tracker = track();
+    auto tag = lex().tag();
+    auto rhs = parse_expr(Token::Prec::Unary);
+
+    return make_ptr<PrefixExpr>(tracker, (PrefixExpr::Tag) tag, std::move(rhs));
+}
+
+Ptr<Expr> Parser::parse_infix_expr(Tracker tracker, Ptr<Expr>&& lhs) {
+    auto tag = lex().tag();
+    auto rhs = parse_expr(Token::tag2prec(tag));
+    return make_ptr<InfixExpr>(tracker, std::move(lhs), (InfixExpr::Tag) tag, std::move(rhs));
+}
+
+Ptr<Expr> Parser::parse_postfix_expr(Tracker tracker, Ptr<Expr>&& lhs) {
+    switch (ahead().tag()) {
+        //case Token::Tag::P_dot: return parse_field_expr();
+        default: [[fallthrough]];
+    }
+
+    auto tag = lex().tag();
+    return make_ptr<PostfixExpr>(tracker, std::move(lhs), (PostfixExpr::Tag) tag);
+}
+
+/*
+ * primary expr
+ */
 
 Ptr<Expr> Parser::parse_primary_expr() {
     switch (ahead().tag()) {
@@ -219,11 +250,43 @@ Ptr<Expr> Parser::parse_primary_expr() {
         case Token::Tag::D_bracket_l: return parse_sigma_expr();
         case Token::Tag::D_paren_l:   return parse_tuple_expr();
         case Token::Tag::K_ar:        return parse_variadic_expr();
+        case Token::Tag::K_cn:        return parse_cn_expr();
+        case Token::Tag::K_Cn:        return parse_cn_type_expr();
+        case Token::Tag::K_fn:        return parse_fn_expr();
+        case Token::Tag::K_Fn:        return parse_fn_type_expr();
         case Token::Tag::K_if:        return parse_if_expr();
         case Token::Tag::K_pk:        return parse_pack_expr();
         case Token::Tag::M_id:        return parse_id_expr();
-        default:                      return parse_error_expr();
+        case Token::Tag::O_forall:    return parse_forall_expr();
+        case Token::Tag::O_lambda:    return parse_lambda_expr();
+        default:
+            error("expression", "primary expression");
+            return make_error_expr();
     }
+}
+
+Ptr<ForallExpr>   Parser::parse_cn_type_expr() {
+    return nullptr;
+}
+
+Ptr<ForallExpr>   Parser::parse_fn_type_expr() {
+    return nullptr;
+}
+
+Ptr<ForallExpr>   Parser::parse_forall_expr() {
+    return nullptr;
+}
+
+Ptr<LambdaExpr>   Parser::parse_cn_expr() {
+    return nullptr;
+}
+
+Ptr<LambdaExpr>   Parser::parse_fn_expr() {
+    return nullptr;
+}
+
+Ptr<LambdaExpr>   Parser::parse_lambda_expr() {
+    return nullptr;
 }
 
 Ptr<BlockExpr> Parser::parse_block_expr() {

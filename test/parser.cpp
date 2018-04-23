@@ -66,8 +66,8 @@ TEST(Parser, Stmnts) {
     Compiler compiler;
     parse(compiler, "if cond { x }");
     parse(compiler, "if cond { x } else { y }");
-    parse(compiler, "if cond { x } else if { y }");
-    parse(compiler, "if cond { x } else if { y } else { z }");
+    parse(compiler, "if cond { x } else if cond { y }");
+    parse(compiler, "if cond { x } else if cond { y } else { z }");
 
     parse(compiler, "{ foo; if cond { x } }");
     parse(compiler, "{ foo; if cond { x } else { y } }");

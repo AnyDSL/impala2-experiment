@@ -112,7 +112,7 @@ public:
 
     enum class Prec {
         Bottom,
-        Assign = Bottom,
+        Assign,
         Hlt,
         OrOr, AndAnd,
         Rel,
@@ -127,7 +127,7 @@ public:
     Token(Location location, Tag tag)
         : location_(location)
         , tag_(tag)
-        , symbol_(tag2string(tag))
+        , symbol_(tag2str(tag))
     {}
     Token(Location location, thorin::s64 s)
         : location_(location)
@@ -171,7 +171,7 @@ public:
     //bool operator != (const Token& token) const { return token.location_ != location_ || token.symbol_ != symbol_; }
     //uint32_t hash() const { return hash_combine(location_.hash(), hash_string(symbol_)); }
 
-    static const char* tag2string(Tag tag) {
+    static const char* tag2str(Tag tag) {
         switch (tag) {
 #define CODE(t, str) case Tag::t: return str;
             IMPALA_KEYWORDS(CODE)

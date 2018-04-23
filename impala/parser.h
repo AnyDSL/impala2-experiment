@@ -29,7 +29,10 @@ private:
 public:
     Parser(Compiler&, std::istream&, const char* filename);
 
+    //@{ misc
     Ptr<Id>         parse_id();
+    Ptr<Expr>       parse_type_ascription(const char* ascription_context = nullptr);
+    //@}
 
     //@{ Ptrn%s
     /**
@@ -44,23 +47,30 @@ public:
     //@}
 
     //@{ Expr%s
-    Ptr<Expr>         parse_type_ascription(const char* ascription_context = nullptr);
     Ptr<Expr>         parse_expr() { return parse_expr(Token::Prec::Bottom); }
     Ptr<Expr>         parse_expr(Token::Prec);
-    Ptr<Expr>         parse_error_expr();
     Ptr<Expr>         parse_primary_expr();
     Ptr<Expr>         parse_prefix_expr();
     Ptr<Expr>         parse_postfix_expr(Tracker, Ptr<Expr>&&);
     Ptr<Expr>         parse_infix_expr(Tracker, Ptr<Expr>&&);
+    //@}
+
+    //@{ primary Expr%s
     Ptr<BlockExpr>    parse_block_expr();
+    Ptr<ForExpr>      parse_for_expr();
+    Ptr<ForallExpr>   parse_cn_type_expr();
+    Ptr<ForallExpr>   parse_fn_type_expr();
+    Ptr<ForallExpr>   parse_forall_expr();
     Ptr<IdExpr>       parse_id_expr();
     Ptr<IfExpr>       parse_if_expr();
-    Ptr<ForExpr>      parse_for_expr();
+    Ptr<LambdaExpr>   parse_cn_expr();
+    Ptr<LambdaExpr>   parse_fn_expr();
+    Ptr<LambdaExpr>   parse_lambda_expr();
     Ptr<MatchExpr>    parse_match_expr();
+    Ptr<PackExpr>     parse_pack_expr();
     Ptr<SigmaExpr>    parse_sigma_expr();
     Ptr<TupleExpr>    parse_tuple_expr();
     Ptr<VariadicExpr> parse_variadic_expr();
-    Ptr<PackExpr>     parse_pack_expr();
     Ptr<WhileExpr>    parse_while_expr();
     //@}
 
@@ -80,6 +90,7 @@ private:
 
     //@{ make empty Node
     Ptr<BlockExpr>  make_empty_block_expr() { return make_ptr<BlockExpr>(prev_, Ptrs<Stmnt>{}, make_unit_tuple()); }
+    Ptr<ErrorExpr>  make_error_expr() { return make_ptr<ErrorExpr>(prev_); }
     Ptr<Id>         make_anonymous_id() { return make_ptr<Id>(Token(prev_, "_")); }
     Ptr<TupleExpr>  make_unit_tuple() { return make_ptr<TupleExpr>(prev_, Ptrs<TupleExpr::Elem>{}, Ptr<Expr>{}); }
     //@}
