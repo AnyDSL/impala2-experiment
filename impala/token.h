@@ -48,6 +48,8 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(M_eof,          "<eof>") \
     f(M_id,           "<identifier>") \
     /* delimiters */ \
+    f(D_angle_l,      "‹") \
+    f(D_angle_r,      "›") \
     f(D_brace_l,      "{") \
     f(D_brace_r,      "}") \
     f(D_bracket_l,    "[") \

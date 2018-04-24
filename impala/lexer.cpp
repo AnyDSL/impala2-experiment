@@ -136,6 +136,8 @@ Token Lexer::lex() {
         if (accept('}')) return {location(), Token::Tag::D_brace_r};
         if (accept('[')) return {location(), Token::Tag::D_bracket_l};
         if (accept(']')) return {location(), Token::Tag::D_bracket_r};
+        if (accept(U'‹')) return {location(), Token::Tag::D_angle_l};
+        if (accept(U'›')) return {location(), Token::Tag::D_angle_r};
         if (accept(U'«')) return {location(), Token::Tag::D_quote_l};
         if (accept(U'»')) return {location(), Token::Tag::D_quote_r};
 
