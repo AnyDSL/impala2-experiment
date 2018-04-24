@@ -49,7 +49,7 @@ Printer& IdPtrn::stream(Printer& p) const {
 }
 
 Printer& TuplePtrn::stream(Printer& p) const {
-    stream_list(p, ptrns, [&](auto&& ptrn) { ptrn->stream(p); }, "(", ")");
+    stream_list(p, ptrns, "(", ")", [&](auto&& ptrn) { ptrn->stream(p); });
     return stream_ascription(p);
 }
 
@@ -109,7 +109,7 @@ Printer& TupleExpr::Elem::stream(Printer& p) const {
 }
 
 Printer& TupleExpr::stream(Printer& p) const {
-    return stream_list(p, elems, [&](auto&& elem) { elem->stream(p); }, "(", ")");
+    return stream_list(p, elems, "(", ")", [&](auto&& elem) { elem->stream(p); });
 }
 
 Printer& UnknownExpr::stream(Printer& p) const {
@@ -122,7 +122,7 @@ Printer& PackExpr::stream(Printer& p) const {
 }
 
 Printer& SigmaExpr::stream(Printer& p) const {
-    return stream_list(p, elems, [&](auto&& elem) { elem->stream(p); }, "[", "]");
+    return stream_list(p, elems, "[", "]", [&](auto&& elem) { elem->stream(p); });
 }
 
 Printer& VariadicExpr::stream(Printer& p) const {
