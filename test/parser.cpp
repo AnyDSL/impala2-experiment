@@ -38,11 +38,13 @@ TEST(Parser, Prec) {
     "    ((++a) == b);\n"
     "    ()\n"
     "}\n";
+
     Compiler compiler;
     auto expr = parse(compiler, in);
     std::ostringstream os;
     Printer printer(os);
     expr->stream(printer);
+
     EXPECT_EQ(compiler.num_errors(), 0);
     EXPECT_EQ(os.str(), expected);
 }
