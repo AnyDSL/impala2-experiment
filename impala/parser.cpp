@@ -137,7 +137,7 @@ Ptr<Expr> Parser::parse_type_ascription(const char* ascription_context) {
         return try_expr("type ascription");
     }
 
-    return accept(Token::Tag::P_colon) ? try_expr("type ascription") : nullptr;
+    return accept(Token::Tag::P_colon) ? try_expr("type ascription") : make_unknown_expr();
 }
 
 /*
@@ -182,7 +182,7 @@ Ptr<Expr> Parser::parse_expr(Token::Prec p) {
             case Token::Tag::D_paren_l:
             case Token::Tag::D_bracket_l:
             case Token::Tag::P_dot: lhs = parse_postfix_expr(tracker, std::move(lhs)); continue;
-            default: break;
+            default: return lhs;
         }
 
         if (auto q = Token::tag2prec(ahead().tag()); q != Token::Prec::Error && p < q)
@@ -245,30 +245,6 @@ Ptr<Expr> Parser::parse_primary_expr() {
             error("expression", "primary expression");
             return make_error_expr();
     }
-}
-
-Ptr<ForallExpr>   Parser::parse_cn_type_expr() {
-    return nullptr;
-}
-
-Ptr<ForallExpr>   Parser::parse_fn_type_expr() {
-    return nullptr;
-}
-
-Ptr<ForallExpr>   Parser::parse_forall_expr() {
-    return nullptr;
-}
-
-Ptr<LambdaExpr>   Parser::parse_cn_expr() {
-    return nullptr;
-}
-
-Ptr<LambdaExpr>   Parser::parse_fn_expr() {
-    return nullptr;
-}
-
-Ptr<LambdaExpr>   Parser::parse_lambda_expr() {
-    return nullptr;
 }
 
 Ptr<BlockExpr> Parser::parse_block_expr() {
@@ -396,6 +372,67 @@ Ptr<VariadicExpr> Parser::parse_variadic_expr() {
 
 Ptr<WhileExpr> Parser::parse_while_expr() {
     return nullptr;
+}
+
+/*
+ * LambdaExprs
+ */
+
+Ptr<LambdaExpr> Parser::parse_cn_expr() {
+    return nullptr;
+}
+
+Ptr<LambdaExpr> Parser::parse_fn_expr() {
+    return nullptr;
+}
+
+Ptr<LambdaExpr> Parser::parse_lambda_expr() {
+    return nullptr;
+}
+
+/*
+ * ForallExpr
+ */
+
+Ptr<ForallExpr> Parser::parse_cn_type_expr() {
+    auto tracker = track();
+    eat(Token::Tag::K_Cn);
+    auto domain = try_ptrn_t("type ascription of a continuation's domain");
+
+    return make_ptr<ForallExpr>(tracker, std::move(domain), make_bottom_expr());
+}
+
+Ptr<ForallExpr> Parser::parse_fn_type_expr() {
+    auto tracker = track();
+    eat(Token::Tag::K_Fn);
+    auto domain = try_ptrn_t("type ascription of a function's domain");
+    expect(Token::Tag::O_arrow, "function type");
+    auto ret = try_expr("codomain of a function type");
+    // "_: \/ _: ret -> ⊥"
+    auto ret_ptrn = make_id_ptrn(make_cn_type(make_id_ptrn(std::move(ret))));
+
+    if (auto sigma_expr = domain->isa<SigmaExpr>()) {
+        sigma_expr->elems.emplace_back(std::move(ret_ptrn));
+    } else {
+        auto first = std::move(domain);
+        auto location = first->location + ret_ptrn->location;
+        Ptrs<Ptrn> elems;
+        elems.emplace_back(std::move(first));
+        elems.emplace_back(std::move(ret_ptrn));
+        domain = make_id_ptrn(make_ptr<SigmaExpr>(location, std::move(elems)));
+    }
+
+    return make_ptr<ForallExpr>(tracker, std::move(domain), make_bottom_expr());
+}
+
+Ptr<ForallExpr> Parser::parse_forall_expr() {
+    auto tracker = track();
+    eat(Token::Tag::O_forall);
+    auto domain = try_ptrn_t("type ascription of a function's domain");
+    expect(Token::Tag::O_arrow, "function type");
+    auto codomain = try_expr("codomain of a function type");
+
+    return make_ptr<ForallExpr>(tracker, std::move(domain), std::move(codomain));
 }
 
 /*

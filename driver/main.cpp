@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
         auto expr = impala::parse(compiler, file, filename);
 
         if (emit_ast)
-            expr->print(std::cout, fancy);
+            expr->stream(std::cout, fancy);
 
         return EXIT_SUCCESS;
     } catch (std::exception const& e) {

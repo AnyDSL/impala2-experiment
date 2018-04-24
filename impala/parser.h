@@ -57,21 +57,28 @@ public:
 
     //@{ primary Expr%s
     Ptr<BlockExpr>    parse_block_expr();
+    Ptr<BottomExpr>   parse_bottom_expr();
     Ptr<ForExpr>      parse_for_expr();
-    Ptr<ForallExpr>   parse_cn_type_expr();
-    Ptr<ForallExpr>   parse_fn_type_expr();
-    Ptr<ForallExpr>   parse_forall_expr();
     Ptr<IdExpr>       parse_id_expr();
     Ptr<IfExpr>       parse_if_expr();
-    Ptr<LambdaExpr>   parse_cn_expr();
-    Ptr<LambdaExpr>   parse_fn_expr();
-    Ptr<LambdaExpr>   parse_lambda_expr();
     Ptr<MatchExpr>    parse_match_expr();
     Ptr<PackExpr>     parse_pack_expr();
     Ptr<SigmaExpr>    parse_sigma_expr();
     Ptr<TupleExpr>    parse_tuple_expr();
     Ptr<VariadicExpr> parse_variadic_expr();
     Ptr<WhileExpr>    parse_while_expr();
+    //@}
+
+    //@{ ForallExpr%s
+    Ptr<ForallExpr>   parse_cn_type_expr();
+    Ptr<ForallExpr>   parse_fn_type_expr();
+    Ptr<ForallExpr>   parse_forall_expr();
+    //@}
+
+    //@{ LambdaExpr%s
+    Ptr<LambdaExpr>   parse_cn_expr();
+    Ptr<LambdaExpr>   parse_fn_expr();
+    Ptr<LambdaExpr>   parse_lambda_expr();
     //@}
 
     //@{ Stmnt%s
@@ -88,11 +95,22 @@ private:
     Ptr<Ptrn>       try_ptrn_t(const char* ascription_context = nullptr);
     //@}
 
-    //@{ make empty Node
-    Ptr<BlockExpr>  make_empty_block_expr() { return make_ptr<BlockExpr>(prev_, Ptrs<Stmnt>{}, make_unit_tuple()); }
-    Ptr<ErrorExpr>  make_error_expr() { return make_ptr<ErrorExpr>(prev_); }
-    Ptr<Id>         make_anonymous_id() { return make_ptr<Id>(Token(prev_, "_")); }
-    Ptr<TupleExpr>  make_unit_tuple() { return make_ptr<TupleExpr>(prev_, Ptrs<TupleExpr::Elem>{}, Ptr<Expr>{}); }
+    //@{ make AST nodes
+    Ptr<BottomExpr>   make_bottom_expr()      { return make_ptr<BottomExpr> (prev_); }
+    Ptr<BlockExpr>    make_empty_block_expr() { return make_ptr<BlockExpr>  (prev_, Ptrs<Stmnt>{}, make_unit_tuple()); }
+    Ptr<ErrorExpr>    make_error_expr()       { return make_ptr<ErrorExpr>  (prev_); }
+    Ptr<TupleExpr>    make_unit_tuple()       { return make_ptr<TupleExpr>  (prev_, Ptrs<TupleExpr::Elem>{}, Ptr<Expr>{}); }
+    Ptr<UnknownExpr>  make_unknown_expr()     { return make_ptr<UnknownExpr>(prev_); }
+    Ptr<Id>           make_anonymous_id()     { return make_ptr<Id>(Token(prev_, "_")); }
+
+    Ptr<IdPtrn>       make_id_ptrn(Ptr<Expr>&& type) {
+        auto location = type->location;
+        return make_ptr<IdPtrn>(location, make_anonymous_id(), std::move(type), true);
+    }
+    Ptr<ForallExpr>   make_cn_type(Ptr<Ptrn>&& domain) {
+        auto location = domain->location;
+        return make_ptr<ForallExpr>(location, std::move(domain), make_bottom_expr());
+    }
     //@}
 
     const Token& ahead(size_t i = 0) const { assert(i < max_ahead); return ahead_[i]; }

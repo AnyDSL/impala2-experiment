@@ -8,6 +8,7 @@
 #include "thorin/util/stream.h"
 
 #include "impala/token.h"
+#include "impala/print.h"
 
 namespace impala {
 
@@ -21,15 +22,14 @@ template<class T> using Ptrs = std::deque<std::unique_ptr<T>>;
 template<class T, class... Args>
 std::unique_ptr<T> make_ptr(Args... args) { return std::make_unique<T>(std::forward<Args>(args)...); }
 
-struct Node : public thorin::RuntimeCast<Node>, public thorin::Streamable {
+struct Node : public thorin::RuntimeCast<Node>, public thorin::Streamable<Printer> {
     Node(Location location)
         : location(location)
     {}
     virtual ~Node() {}
 
-    virtual void print(Printer&) const;
-    void print(std::ostream&, bool fancy) const;
-    std::ostream& stream(std::ostream&) const override;
+    void stream(std::ostream&, bool fancy) const;
+    Printer& stream(Printer&) const override;
 
     Location location;
 };
@@ -40,7 +40,7 @@ struct Id : public Node {
         , symbol(token.symbol())
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Symbol symbol;
 };
@@ -56,7 +56,7 @@ struct Ptrn : public Node {
         , type_mandatory(type_mandatory)
     {}
 
-    std::ostream& stream_ascription(std::ostream&) const ;
+    Printer& stream_ascription(Printer&) const ;
 
     Ptr<Expr> type;
     bool type_mandatory;
@@ -67,7 +67,7 @@ struct ErrorPtrn : public Ptrn {
         : Ptrn(location, nullptr, false)
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 };
 
 struct IdPtrn : public Ptrn {
@@ -76,7 +76,7 @@ struct IdPtrn : public Ptrn {
         , id(std::move(id))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
 };
@@ -87,7 +87,7 @@ struct TuplePtrn : public Ptrn {
         , ptrns(std::move(ptrns))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> ptrns;
 };
@@ -109,10 +109,18 @@ struct BlockExpr : public Expr {
         , expr(std::move(expr))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptrs<Stmnt> stmnts;
     Ptr<Expr> expr;
+};
+
+struct BottomExpr : public Expr {
+    BottomExpr(Location location)
+        : Expr(location)
+    {}
+
+    Printer& stream(Printer&) const override;
 };
 
 struct ErrorExpr : public Expr {
@@ -120,7 +128,7 @@ struct ErrorExpr : public Expr {
         : Expr(location)
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 };
 
 struct IdExpr : public Expr {
@@ -130,7 +138,7 @@ struct IdExpr : public Expr {
 
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
 };
@@ -190,7 +198,7 @@ struct InfixExpr : public Expr {
         , rhs(std::move(rhs))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptr<Expr> lhs;
     Tag tag;
@@ -203,6 +211,8 @@ struct ForallExpr : public Expr {
         , domain(std::move(domain))
         , codomain(std::move(codomain))
     {}
+
+    Printer& stream(Printer&) const override;
 
     Ptr<Ptrn> domain;
     Ptr<Expr> codomain;
@@ -235,7 +245,7 @@ struct PackExpr : public Expr {
         , body(std::move(body))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> domains;
     Ptr<Expr> body;
@@ -256,7 +266,7 @@ struct PrefixExpr : public Expr {
         , rhs(std::move(rhs))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Tag tag;
     Ptr<Expr> rhs;
@@ -274,7 +284,7 @@ struct PostfixExpr : public Expr {
         , tag(tag)
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptr<Expr> lhs;
     Tag tag;
@@ -288,7 +298,7 @@ struct TupleExpr : public Expr {
             , expr(std::move(expr))
         {}
 
-        std::ostream& stream(std::ostream&) const override;
+        Printer& stream(Printer&) const override;
 
         Ptr<Id> id;
         Ptr<Expr> expr;
@@ -300,7 +310,7 @@ struct TupleExpr : public Expr {
         , type(std::move(type))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptrs<Elem> elems;
     Ptr<Expr> type;
@@ -313,7 +323,7 @@ struct VariadicExpr : public Expr {
         , body(std::move(body))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> domains;
     Ptr<Expr> body;
@@ -325,9 +335,17 @@ struct SigmaExpr : public Expr {
         , elems(std::move(elems))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> elems;
+};
+
+struct UnknownExpr : public Expr {
+    UnknownExpr(Location location)
+        : Expr(location)
+    {}
+
+    Printer& stream(Printer&) const override;
 };
 
 struct WhileExpr : public Expr {
@@ -349,7 +367,7 @@ struct ExprStmnt : public Stmnt {
         , expr(std::move(expr))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptr<Expr> expr;
 };
@@ -361,7 +379,7 @@ struct LetStmnt : public Stmnt {
         , init(std::move(init))
     {}
 
-    std::ostream& stream(std::ostream&) const override;
+    Printer& stream(Printer&) const override;
 
     Ptr<Ptrn> ptrn;
     Ptr<Expr> init;

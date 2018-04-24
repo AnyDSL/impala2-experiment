@@ -7,121 +7,142 @@ namespace impala {
 using thorin::streamf;
 using thorin::stream_list;
 
-std::ostream& Node::stream(std::ostream& os) const {
-    Printer printer(os);
-    print(printer);
-    return os;
+Printer& Printer::endl() {
+    ostream() << std::endl;
+    for (int i = 0; i != level_; ++i)
+        ostream() << '\t';
+    return *this;
 }
 
-void Node::print(std::ostream& os, bool /*fancy*/) const {
-    //Printer printer(os, fancy);
-    //print(printer);
-    stream(os) << std::endl;
+void Node::stream(std::ostream& ostream, bool fancy) const {
+    Printer printer(ostream, fancy);
+    stream(printer);
+}
+
+Printer& Node::stream(Printer& p) const {
+    return p << "TODO";
 }
 
 //------------------------------------------------------------------------------
 
-void Node::print(Printer& p) const {
-    if (p.fancy())
-        thorin::outln("fancy");
-    // TODO
-}
+/*
+ * misc
+ */
 
-std::ostream& Id::stream(std::ostream& os) const {
-    return streamf(os, "{}", symbol);
+Printer& Id::stream(Printer& p) const {
+    return streamf(p, "{}", symbol);
 }
 
 /*
  * Ptrn
  */
 
-std::ostream& Ptrn::stream_ascription(std::ostream& os) const {
-    return type ? streamf(os, ": {}", type) : os;
+Printer& Ptrn::stream_ascription(Printer& p) const {
+    return type ? streamf(p, ": {}", type) : p;
 }
 
-std::ostream& IdPtrn::stream(std::ostream& os) const {
+Printer& IdPtrn::stream(Printer& p) const {
     if (type_mandatory && id->symbol.is_anonymous())
-        return streamf(os, "{}", type);
-    streamf(os, "{}", id);
-    return stream_ascription(os);
+        return streamf(p, "{}", type);
+    streamf(p, "{}", id);
+    return stream_ascription(p);
 }
 
-std::ostream& TuplePtrn::stream(std::ostream& os) const {
-    stream_list(os, ptrns, [&](auto&& ptrn) { ptrn->stream(os); }, "(", ")");
-    return stream_ascription(os);
+Printer& TuplePtrn::stream(Printer& p) const {
+    stream_list(p, ptrns, [&](auto&& ptrn) { ptrn->stream(p); }, "(", ")");
+    return stream_ascription(p);
 }
 
-std::ostream& ErrorPtrn::stream(std::ostream& os) const {
-    return streamf(os, "<error pattern>");
+Printer& ErrorPtrn::stream(Printer& p) const {
+    return streamf(p, "<error pattern>");
 }
 
 /*
  * Expr
  */
 
-std::ostream& BlockExpr::stream(std::ostream& os) const {
+Printer& BlockExpr::stream(Printer& p) const {
+    (p << '{').indent().endl();
     for (auto&& stmnt : stmnts)
-        stmnt->stream(os) << std::endl;
-    return expr->stream(os);
+        stmnt->stream(p).endl();
+    expr->stream(p).dedent().endl();
+    return (p << '}').endl();
 }
 
-std::ostream& IdExpr::stream(std::ostream& os) const {
-    return streamf(os, "{}", id);
+Printer& BottomExpr::stream(Printer& p) const {
+    return streamf(p, "⊥");
 }
 
-std::ostream& InfixExpr::stream(std::ostream& os) const {
-    return streamf(os, "({}{}{})", lhs, Token::tag2str((Token::Tag) tag), rhs);
+Printer& ForallExpr::stream(Printer& p) const {
+    if (codomain->isa<BottomExpr>()) {
+        if (auto sigma_expr = domain->isa<SigmaExpr>(); sigma_expr && !sigma_expr->elems.empty() && sigma_expr->elems.back()->type->isa<BottomExpr>())
+            return streamf(p, "Fn {} -> {}", domain, "TODO");
+        return streamf(p, "Cn {}", domain);
+    }
+    return streamf(p, "\\/ {} -> {}", domain, codomain);
 }
 
-std::ostream& PrefixExpr::stream(std::ostream& os) const {
-    return streamf(os, "({}{})", Token::tag2str((Token::Tag) tag), rhs);
+Printer& IdExpr::stream(Printer& p) const {
+    return streamf(p, "{}", id);
 }
 
-std::ostream& PostfixExpr::stream(std::ostream& os) const {
-    return streamf(os, "({}{})", lhs, Token::tag2str((Token::Tag) tag));
+Printer& InfixExpr::stream(Printer& p) const {
+    return streamf(p, "({} {} {})", lhs, Token::tag2str((Token::Tag) tag), rhs);
 }
 
-std::ostream& TupleExpr::Elem::stream(std::ostream& os) const {
+Printer& PrefixExpr::stream(Printer& p) const {
+    return streamf(p, "({}{})", Token::tag2str((Token::Tag) tag), rhs);
+}
+
+Printer& PostfixExpr::stream(Printer& p) const {
+    return streamf(p, "({}{})", lhs, Token::tag2str((Token::Tag) tag));
+}
+
+Printer& TupleExpr::Elem::stream(Printer& p) const {
     if (id->symbol.is_anonymous())
-        return streamf(os, "{}", expr);
-    return streamf(os, "{}= {}", id, expr);
+        return streamf(p, "{}", expr);
+    return streamf(p, "{}= {}", id, expr);
 }
 
-std::ostream& TupleExpr::stream(std::ostream& os) const {
-    return stream_list(os, elems, [&](auto&& elem) { elem->stream(os); }, "(", ")");
+Printer& TupleExpr::stream(Printer& p) const {
+    return stream_list(p, elems, [&](auto&& elem) { elem->stream(p); }, "(", ")");
 }
 
-std::ostream& PackExpr::stream(std::ostream& os) const {
-    stream_list(os << "pk(", domains, [&](auto&& ptrn) { ptrn->stream(os); });
-    return streamf(os, "; {})", body);
+Printer& UnknownExpr::stream(Printer& p) const {
+    return streamf(p, "<?>");
 }
 
-std::ostream& SigmaExpr::stream(std::ostream& os) const {
-    return stream_list(os, elems, [&](auto&& elem) { elem->stream(os); }, "[", "]");
+Printer& PackExpr::stream(Printer& p) const {
+    stream_list(streamf(p, "pk("), domains, [&](auto&& ptrn) { ptrn->stream(p); });
+    return streamf(p, "; {})", body);
 }
 
-std::ostream& VariadicExpr::stream(std::ostream& os) const {
-    stream_list(os << "ar[", domains, [&](auto&& ptrn) { ptrn->stream(os); });
-    return streamf(os, "; {}]", body);
+Printer& SigmaExpr::stream(Printer& p) const {
+    return stream_list(p, elems, [&](auto&& elem) { elem->stream(p); }, "[", "]");
 }
 
-std::ostream& ErrorExpr::stream(std::ostream& os) const {
-    return streamf(os, "<error expression>");
+Printer& VariadicExpr::stream(Printer& p) const {
+    stream_list(streamf(p, "ar["), domains, [&](auto&& ptrn) { ptrn->stream(p); });
+    return streamf(p, "; {}]", body);
+}
+
+Printer& ErrorExpr::stream(Printer& p) const {
+    return streamf(p, "<error expression>");
 }
 
 /*
  * Stmnt
  */
 
-std::ostream& ExprStmnt::stream(std::ostream& os) const {
-    return streamf(os, "{};", expr);
+Printer& ExprStmnt::stream(Printer& p) const {
+    return streamf(p, "{};", expr);
 }
 
-std::ostream& LetStmnt::stream(std::ostream& os) const {
+Printer& LetStmnt::stream(Printer& p) const {
     if (init)
-        return streamf(os, "let {} = {};", ptrn, init);
+        return streamf(p, "let {} = {};", ptrn, init);
     else
-        return streamf(os, "let {};", ptrn);
+        return streamf(p, "let {};", ptrn);
 }
 
 }

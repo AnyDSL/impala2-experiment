@@ -149,7 +149,10 @@ Token Lexer::lex() {
         }
 
         // operators
-        if (accept('\\')) return {location(), Token::Tag::O_lambda};
+        if (accept('\\')) {
+            if (accept('/')) return {location(), Token::Tag::O_forall};
+            return {location(), Token::Tag::O_lambda};
+        }
         if (accept('=')) {
             if (accept('=')) return {location(), Token::Tag::O_cmp_eq};
             return {location(), Token::Tag::O_eq};
@@ -193,7 +196,6 @@ Token Lexer::lex() {
                 continue;
             }
             if (accept('='))  return {location(), Token::Tag::O_div_eq};
-            if (accept('\\')) return {location(), Token::Tag::O_forall};
             return {location(), Token::Tag::O_div};
         }
         if (accept('%')) {
