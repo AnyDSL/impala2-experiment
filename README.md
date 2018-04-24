@@ -49,7 +49,7 @@ e = id
   | "." id                                           (* field  *)
   | "ar" "[" pt "," ... "," pt ";" e "]"             (* variadic *)
   | "pk" "(" pt "," ... "," pt ";" e ")"             (* pack *)
-  | "/\" pt "->" e                                   (* abstraction type *)
+  | "\/" pt "->" e                                   (* abstraction type *)
   | "Fn" pt "->" e                                   (* function type *)
   | "Cn" e                                           (* continuation type *)
   | "\"  p ["->" e] e                                (* abstraction *)
