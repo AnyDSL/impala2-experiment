@@ -6,8 +6,8 @@ namespace impala {
 
 using thorin::streamf;
 
-void Node::stream(std::ostream& ostream, bool fancy) const {
-    Printer printer(ostream, fancy);
+void Node::dump() const {
+    Printer printer(std::cout);
     stream(printer);
 }
 

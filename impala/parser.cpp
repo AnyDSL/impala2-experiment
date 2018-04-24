@@ -38,8 +38,7 @@ namespace impala {
 Parser::Parser(Compiler& compiler, std::istream& stream, const char* filename)
     : lexer_(compiler, stream, filename)
 {
-    for (int i = 0; i != max_ahead; ++i)
-        lex();
+    for (int i = 0; i != max_ahead; ++i) lex();
     prev_ = Location(filename, 1, 1, 1, 1);
 }
 
@@ -180,11 +179,13 @@ Ptr<Expr> Parser::parse_expr(Token::Prec p) {
             case Token::Tag::O_dec:
             case Token::Tag::D_paren_l:
             case Token::Tag::D_bracket_l:
-            case Token::Tag::P_dot: lhs = parse_postfix_expr(tracker, std::move(lhs)); continue;
-            default: return lhs;
+            case Token::Tag::P_dot:
+                lhs = parse_postfix_expr(tracker, std::move(lhs));
+                continue;
+            default: break;
         }
 
-        if (auto q = Token::tag2prec(ahead().tag()); q != Token::Prec::Error && p < q)
+        if (auto q = Token::tag2prec(ahead().tag()); p < q)
             lhs = parse_infix_expr(tracker, std::move(lhs));
         else
             break;

@@ -113,6 +113,7 @@ public:
     };
 
     enum class Prec {
+        Error,
         Bottom,
         Assign,
         Hlt,
@@ -122,7 +123,6 @@ public:
         Shift, Add, Mul,
         Unary,
         RunRun,
-        Error,
     };
 
     Token() {}

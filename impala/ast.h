@@ -28,8 +28,8 @@ struct Node : public thorin::RuntimeCast<Node>, public thorin::Streamable<Printe
     {}
     virtual ~Node() {}
 
-    void stream(std::ostream&, bool fancy) const;
     Printer& stream(Printer&) const override;
+    void dump() const;
 
     Location location;
 };

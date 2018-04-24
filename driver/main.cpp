@@ -8,6 +8,7 @@
 #include "impala/ast.h"
 #include "impala/compiler.h"
 #include "impala/parser.h"
+#include "impala/print.h"
 
 using thorin::outln;
 
@@ -149,8 +150,10 @@ int main(int argc, char** argv) {
         std::ifstream file(filename, std::ios::binary);
         auto expr = impala::parse(compiler, file, filename);
 
-        if (emit_ast)
-            expr->stream(std::cout, fancy);
+        if (emit_ast) {
+            impala::Printer printer(std::cout, fancy);
+            expr->stream(printer);
+        }
 
         return EXIT_SUCCESS;
     } catch (std::exception const& e) {
