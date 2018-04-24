@@ -1,28 +1,20 @@
 #ifndef IMPALA_PRINT_H
 #define IMPALA_PRINT_H
 
-#include <cassert>
-#include <ostream>
+#include "thorin/util/stream.h"
 
 namespace impala {
 
-class Printer {
+class Printer : public thorin::IndentPrinter<Printer> {
 public:
-    explicit Printer(std::ostream& ostream, bool fancy = false)
-        : ostream_(ostream)
+    explicit Printer(std::ostream& ostream, bool fancy = false, const char* tab = "    ")
+        : thorin::IndentPrinter<Printer>(ostream, tab)
         , fancy_(fancy)
     {}
 
-    std::ostream& ostream() { return ostream_; };
     bool fancy() const { return fancy_; }
-    Printer& indent() { ++level_; return *this; }
-    Printer& dedent() { assert(level_ > 0); --level_; return *this; }
-    Printer& endl();
-    template<class T> Printer& operator<<(const T& val) { ostream() << val; return *this; }
 
 private:
-    std::ostream& ostream_;
-    int level_ = 0;
     bool fancy_;
 };
 

@@ -6,13 +6,6 @@ namespace impala {
 
 using thorin::streamf;
 
-Printer& Printer::endl() {
-    ostream() << std::endl;
-    for (int i = 0; i != level_; ++i)
-        ostream() << '\t';
-    return *this;
-}
-
 void Node::stream(std::ostream& ostream, bool fancy) const {
     Printer printer(ostream, fancy);
     stream(printer);
