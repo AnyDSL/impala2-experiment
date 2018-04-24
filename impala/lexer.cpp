@@ -130,16 +130,16 @@ Token Lexer::lex() {
         }
 
         // delimiters
-        if (accept('(')) return {location(), Token::Tag::D_paren_l};
-        if (accept(')')) return {location(), Token::Tag::D_paren_r};
-        if (accept('{')) return {location(), Token::Tag::D_brace_l};
-        if (accept('}')) return {location(), Token::Tag::D_brace_r};
-        if (accept('[')) return {location(), Token::Tag::D_bracket_l};
-        if (accept(']')) return {location(), Token::Tag::D_bracket_r};
-        if (accept(U'‹')) return {location(), Token::Tag::D_angle_l};
-        if (accept(U'›')) return {location(), Token::Tag::D_angle_r};
+        if (accept( '(')) return {location(), Token::Tag::D_paren_l};
+        if (accept( ')')) return {location(), Token::Tag::D_paren_r};
+        if (accept( '[')) return {location(), Token::Tag::D_bracket_l};
+        if (accept( ']')) return {location(), Token::Tag::D_bracket_r};
+        if (accept( '{')) return {location(), Token::Tag::D_brace_l};
+        if (accept( '}')) return {location(), Token::Tag::D_brace_r};
         if (accept(U'«')) return {location(), Token::Tag::D_quote_l};
         if (accept(U'»')) return {location(), Token::Tag::D_quote_r};
+        if (accept(U'‹')) return {location(), Token::Tag::D_angle_l};
+        if (accept(U'›')) return {location(), Token::Tag::D_angle_r};
 
         // punctation
         if (accept('.')) return {location(), Token::Tag::P_dot};
