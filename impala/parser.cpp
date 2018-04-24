@@ -85,7 +85,7 @@ void Parser::error(const char* what, const Token& tok, const char* context) {
 Ptr<Expr> Parser::try_expr(const char* context) {
     switch (ahead().tag()) {
         case EXPR: return parse_expr();
-        default: [[fallthrough]];
+        default: break;
     }
     error("expression", context);
     return make_ptr<ErrorExpr>(prev_);
@@ -101,7 +101,7 @@ Ptr<Ptrn> Parser::try_ptrn(const char* context) {
     switch (ahead().tag()) {
         case Token::Tag::M_id:
         case Token::Tag::D_paren_l: return parse_ptrn();
-        default: [[fallthrough]];
+        default: break;
     }
 
     error("pattern", context);
@@ -182,7 +182,7 @@ Ptr<Expr> Parser::parse_expr(Token::Prec p) {
             case Token::Tag::D_paren_l:
             case Token::Tag::D_bracket_l:
             case Token::Tag::P_dot: lhs = parse_postfix_expr(tracker, std::move(lhs)); continue;
-            default: [[fallthrough]];
+            default: break;
         }
 
         if (auto q = Token::tag2prec(ahead().tag()); q != Token::Prec::Error && p < q)
@@ -211,7 +211,7 @@ Ptr<Expr> Parser::parse_infix_expr(Tracker tracker, Ptr<Expr>&& lhs) {
 Ptr<Expr> Parser::parse_postfix_expr(Tracker tracker, Ptr<Expr>&& lhs) {
     switch (ahead().tag()) {
         //case Token::Tag::P_dot: return parse_field_expr();
-        default: [[fallthrough]];
+        default: break;
     }
 
     auto tag = lex().tag();
