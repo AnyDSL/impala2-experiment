@@ -5,7 +5,6 @@
 namespace impala {
 
 using thorin::streamf;
-using thorin::stream_list;
 
 Printer& Printer::endl() {
     ostream() << std::endl;
@@ -49,7 +48,7 @@ Printer& IdPtrn::stream(Printer& p) const {
 }
 
 Printer& TuplePtrn::stream(Printer& p) const {
-    stream_list(p, ptrns, "(", ")", [&](auto&& ptrn) { ptrn->stream(p); });
+    streamf(p, "({, })", ptrns);
     return stream_ascription(p);
 }
 
@@ -109,7 +108,7 @@ Printer& TupleExpr::Elem::stream(Printer& p) const {
 }
 
 Printer& TupleExpr::stream(Printer& p) const {
-    return stream_list(p, elems, "(", ")", [&](auto&& elem) { elem->stream(p); });
+    return streamf(p, "({, })", elems);
 }
 
 Printer& UnknownExpr::stream(Printer& p) const {
@@ -117,17 +116,15 @@ Printer& UnknownExpr::stream(Printer& p) const {
 }
 
 Printer& PackExpr::stream(Printer& p) const {
-    stream_list(streamf(p, "pk("), domains, [&](auto&& ptrn) { ptrn->stream(p); });
-    return streamf(p, "; {})", body);
+    return streamf(p, "pk({, }; {})", domains, body);
 }
 
 Printer& SigmaExpr::stream(Printer& p) const {
-    return stream_list(p, elems, "[", "]", [&](auto&& elem) { elem->stream(p); });
+    return streamf(p, "[{, }]", elems);
 }
 
 Printer& VariadicExpr::stream(Printer& p) const {
-    stream_list(streamf(p, "ar["), domains, [&](auto&& ptrn) { ptrn->stream(p); });
-    return streamf(p, "; {}]", body);
+    return streamf(p, "ar[{, }; {}]", domains, body);
 }
 
 Printer& ErrorExpr::stream(Printer& p) const {
