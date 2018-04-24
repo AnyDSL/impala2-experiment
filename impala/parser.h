@@ -101,11 +101,11 @@ private:
     Ptr<ErrorExpr>    make_error_expr()       { return make_ptr<ErrorExpr>  (prev_); }
     Ptr<TupleExpr>    make_unit_tuple()       { return make_ptr<TupleExpr>  (prev_, Ptrs<TupleExpr::Elem>{}, Ptr<Expr>{}); }
     Ptr<UnknownExpr>  make_unknown_expr()     { return make_ptr<UnknownExpr>(prev_); }
-    Ptr<Id>           make_anonymous_id()     { return make_ptr<Id>(Token(prev_, "_")); }
 
-    Ptr<IdPtrn>       make_id_ptrn(Ptr<Expr>&& type) {
+    Ptr<Id>           make_id(const char* s)  { return make_ptr<Id>(Token(prev_, s)); }
+    Ptr<IdPtrn>       make_id_ptrn(const char* s, Ptr<Expr>&& type) {
         auto location = type->location;
-        return make_ptr<IdPtrn>(location, make_anonymous_id(), std::move(type), true);
+        return make_ptr<IdPtrn>(location, make_id(s), std::move(type), true);
     }
     Ptr<ForallExpr>   make_cn_type(Ptr<Ptrn>&& domain) {
         auto location = domain->location;

@@ -230,6 +230,8 @@ struct LambdaExpr : public Expr {
         , body(std::move(body))
     {}
 
+    Printer& stream(Printer&) const override;
+
     Ptr<Ptrn> domain;
     Ptr<Expr> codomain;
     Ptr<Expr> body;

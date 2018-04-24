@@ -90,6 +90,10 @@ Printer& InfixExpr::stream(Printer& p) const {
     return streamf(p, "({} {} {})", lhs, Token::tag2str((Token::Tag) tag), rhs);
 }
 
+Printer& LambdaExpr::stream(Printer& p) const {
+    return streamf(p, "\\ {} -> {} {}", domain, codomain, body);
+}
+
 Printer& PrefixExpr::stream(Printer& p) const {
     return streamf(p, "({}{})", Token::tag2str((Token::Tag) tag), rhs);
 }

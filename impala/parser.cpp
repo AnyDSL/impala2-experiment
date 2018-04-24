@@ -115,8 +115,7 @@ Ptr<Ptrn> Parser::try_ptrn_t(const char* ascription_context) {
     }
     auto tracker = track();
     auto type = try_expr(ascription_context);
-    auto id = make_anonymous_id();
-    return make_ptr<IdPtrn>(tracker, std::move(id), std::move(type), true);
+    return make_ptr<IdPtrn>(tracker, make_id("_"), std::move(type), true);
 }
 
 Ptr<BlockExpr> Parser::try_block_expr(const char* context) {
@@ -330,7 +329,7 @@ Ptr<TupleExpr> Parser::parse_tuple_expr() {
             id = parse_id();
             eat(Token::Tag::O_eq);
         } else {
-            id = make_anonymous_id();
+            id = make_id("_");
         }
         auto expr = try_expr("tuple element");
         return make_ptr<TupleExpr::Elem>(tracker, std::move(id), std::move(expr));
@@ -379,15 +378,46 @@ Ptr<WhileExpr> Parser::parse_while_expr() {
  */
 
 Ptr<LambdaExpr> Parser::parse_cn_expr() {
-    return nullptr;
+    auto tracker = track();
+    eat(Token::Tag::K_cn);
+    auto domain = try_ptrn("domain of a continuation");
+    auto body = try_expr("body of an abstraction");
+
+    return make_ptr<LambdaExpr>(tracker, std::move(domain), make_bottom_expr(), std::move(body));
 }
 
 Ptr<LambdaExpr> Parser::parse_fn_expr() {
-    return nullptr;
+    auto tracker = track();
+    eat(Token::Tag::K_fn);
+    auto domain = try_ptrn("domain of a continuation");
+    auto ret = accept(Token::Tag::O_arrow) ? try_expr("codomain of an abstraction") : make_unknown_expr();
+    // "_: \/ _: ret -> ⊥"
+    auto ret_ptrn = make_id_ptrn("return", make_cn_type(make_id_ptrn("_", std::move(ret))));
+
+    if (auto sigma_expr = domain->isa<SigmaExpr>()) {
+        sigma_expr->elems.emplace_back(std::move(ret_ptrn));
+    } else {
+        auto first = std::move(domain);
+        auto location = first->location + ret_ptrn->location;
+        Ptrs<Ptrn> elems;
+        elems.emplace_back(std::move(first));
+        elems.emplace_back(std::move(ret_ptrn));
+        domain = make_id_ptrn("_", make_ptr<SigmaExpr>(location, std::move(elems)));
+    }
+
+    auto body = try_expr("body of an abstraction");
+
+    return make_ptr<LambdaExpr>(tracker, std::move(domain), make_bottom_expr(), std::move(body));
 }
 
 Ptr<LambdaExpr> Parser::parse_lambda_expr() {
-    return nullptr;
+    auto tracker = track();
+    eat(Token::Tag::O_lambda);
+    auto domain = try_ptrn("domain of an abstraction");
+    auto codomain = accept(Token::Tag::O_arrow) ? try_expr("codomain of an abstraction") : make_unknown_expr();
+    auto body = try_expr("body of an abstraction");
+
+    return make_ptr<LambdaExpr>(tracker, std::move(domain), std::move(codomain), std::move(body));
 }
 
 /*
@@ -409,7 +439,7 @@ Ptr<ForallExpr> Parser::parse_fn_type_expr() {
     expect(Token::Tag::O_arrow, "function type");
     auto ret = try_expr("codomain of a function type");
     // "_: \/ _: ret -> ⊥"
-    auto ret_ptrn = make_id_ptrn(make_cn_type(make_id_ptrn(std::move(ret))));
+    auto ret_ptrn = make_id_ptrn("_", make_cn_type(make_id_ptrn("_", std::move(ret))));
 
     if (auto sigma_expr = domain->isa<SigmaExpr>()) {
         sigma_expr->elems.emplace_back(std::move(ret_ptrn));
@@ -419,7 +449,7 @@ Ptr<ForallExpr> Parser::parse_fn_type_expr() {
         Ptrs<Ptrn> elems;
         elems.emplace_back(std::move(first));
         elems.emplace_back(std::move(ret_ptrn));
-        domain = make_id_ptrn(make_ptr<SigmaExpr>(location, std::move(elems)));
+        domain = make_id_ptrn("_", make_ptr<SigmaExpr>(location, std::move(elems)));
     }
 
     return make_ptr<ForallExpr>(tracker, std::move(domain), make_bottom_expr());
