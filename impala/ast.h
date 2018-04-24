@@ -28,7 +28,6 @@ struct Node : public thorin::RuntimeCast<Node>, public thorin::Streamable<Printe
     {}
     virtual ~Node() {}
 
-    Printer& stream(Printer&) const override;
     void dump() const;
 
     Location location;
@@ -151,6 +150,8 @@ struct IfExpr : public Expr {
         , else_expr(std::move(else_expr))
     {}
 
+    Printer& stream(Printer&) const override;
+
     Ptr<Expr> cond;
     Ptr<Expr> then_expr;
     Ptr<Expr> else_expr;
@@ -220,6 +221,7 @@ struct ForallExpr : public Expr {
 
 
 struct ForExpr : public Expr {
+    Printer& stream(Printer&) const override;
 };
 
 struct LambdaExpr : public Expr {
@@ -238,6 +240,7 @@ struct LambdaExpr : public Expr {
 };
 
 struct MatchExpr : public Expr {
+    Printer& stream(Printer&) const override;
 };
 
 struct PackExpr : public Expr {

@@ -6,13 +6,11 @@ namespace impala {
 
 using thorin::streamf;
 
+//------------------------------------------------------------------------------
+
 void Node::dump() const {
     Printer printer(std::cout);
     stream(printer);
-}
-
-Printer& Node::stream(Printer& p) const {
-    return p << "TODO";
 }
 
 //------------------------------------------------------------------------------
@@ -76,6 +74,10 @@ Printer& ForallExpr::stream(Printer& p) const {
 
 Printer& IdExpr::stream(Printer& p) const {
     return streamf(p, "{}", id);
+}
+
+Printer& IfExpr::stream(Printer& p) const {
+    return streamf(p, "if {} {}else {}", cond, then_expr, else_expr);
 }
 
 Printer& InfixExpr::stream(Printer& p) const {
