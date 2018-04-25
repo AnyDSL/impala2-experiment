@@ -161,16 +161,16 @@ Token Lexer::lex() {
         }
         if (accept('<')) {
             if (accept('<')) {
-                if (accept('=')) return {location(), Token::Tag::O_shift_l_eq};
-                return {location(), Token::Tag::O_shift_l};
+                if (accept('=')) return {location(), Token::Tag::O_shl_eq};
+                return {location(), Token::Tag::O_shl};
             }
             if (accept('=')) return {location(), Token::Tag::O_cmp_le};
             return {location(), Token::Tag::O_cmp_lt};
         }
         if (accept('>')) {
             if (accept('>')) {
-                if (accept('=')) return {location(), Token::Tag::O_shift_r_eq};
-                return {location(), Token::Tag::O_shift_r};
+                if (accept('=')) return {location(), Token::Tag::O_shr_eq};
+                return {location(), Token::Tag::O_shr};
             }
             if (accept('=')) return {location(), Token::Tag::O_cmp_ge};
             return {location(), Token::Tag::O_cmp_gt};
@@ -201,8 +201,8 @@ Token Lexer::lex() {
             return {location(), Token::Tag::O_div};
         }
         if (accept('%')) {
-            if (accept('=')) return {location(), Token::Tag::O_mod_eq};
-            return {location(), Token::Tag::O_mod};
+            if (accept('=')) return {location(), Token::Tag::O_rem_eq};
+            return {location(), Token::Tag::O_rem};
         }
         if (accept('&')) {
             if (accept('&')) return {location(), Token::Tag::O_and_and};

@@ -75,9 +75,9 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(O_sub_eq,       "-=") \
     f(O_mul_eq,       "*=") \
     f(O_div_eq,       "/=") \
-    f(O_mod_eq,       "%=") \
-    f(O_shift_l_eq,   "<<=") \
-    f(O_shift_r_eq,   ">>=") \
+    f(O_rem_eq,       "%=") \
+    f(O_shl_eq,       "<<=") \
+    f(O_shr_eq,       ">>=") \
     f(O_and_eq,       "&=") \
     f(O_or_eq,        "|=") \
     f(O_xor_eq,       "^=") \
@@ -85,10 +85,10 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(O_sub,          "-") \
     f(O_mul,          "*") \
     f(O_div,          "/") \
-    f(O_mod,          "%") \
+    f(O_rem,          "%") \
     f(O_tilde,        "~") \
-    f(O_shift_l,      "<<") \
-    f(O_shift_r,      ">>") \
+    f(O_shl,          "<<") \
+    f(O_shr,          ">>") \
     f(O_and,          "&") \
     f(O_and_and,      "&&") \
     f(O_or,           "|") \
@@ -191,9 +191,9 @@ public:
             case Tag::O_sub_eq:
             case Tag::O_mul_eq:
             case Tag::O_div_eq:
-            case Tag::O_mod_eq:
-            case Tag::O_shift_l_eq:
-            case Tag::O_shift_r_eq:
+            case Tag::O_rem_eq:
+            case Tag::O_shl_eq:
+            case Tag::O_shr_eq:
             case Tag::O_and_eq:
             case Tag::O_or_eq:
             case Tag::O_xor_eq:  return Prec::Assign;
@@ -209,14 +209,46 @@ public:
             case Tag::O_or:      return Prec::Or;
             case Tag::O_xor:     return Prec::Xor;
             case Tag::O_and:     return Prec::And;
-            case Tag::O_shift_l:
-            case Tag::O_shift_r: return Prec::Shift;
+            case Tag::O_shl:
+            case Tag::O_shr:     return Prec::Shift;
             case Tag::O_add:
-            case Tag::O_sub: return Prec::Add;
+            case Tag::O_sub:     return Prec::Add;
             case Tag::O_mul:
             case Tag::O_div:
-            case Tag::O_mod: return Prec::Mul;
-            default: return Prec::Error;
+            case Tag::O_rem:     return Prec::Mul;
+            default:             return Prec::Error;
+        }
+    }
+
+    static const char* tag2infix_name(Tag tag) {
+        switch (tag) {
+            case Tag::O_add_eq:     return "add_assign";
+            case Tag::O_sub_eq:     return "sub_assign";
+            case Tag::O_mul_eq:     return "mul_assign";
+            case Tag::O_div_eq:     return "div_assign";
+            case Tag::O_rem_eq:     return "add_assign";
+            case Tag::O_shl_eq:     return "shl_assign";
+            case Tag::O_shr_eq:     return "shr_assign";
+            case Tag::O_and_eq:     return "and_assign";
+            case Tag::O_or_eq:      return  "or_assign";
+            case Tag::O_xor_eq:     return "xor_assign";
+            case Tag::O_cmp_le:
+            case Tag::O_cmp_ge:
+            case Tag::O_cmp_lt:
+            case Tag::O_cmp_gt:
+            case Tag::O_cmp_eq:
+            case Tag::O_cmp_ne:
+            case Tag::O_or:
+            case Tag::O_xor:
+            case Tag::O_and:
+            case Tag::O_shl:
+            case Tag::O_shr:
+            case Tag::O_add:
+            case Tag::O_sub:
+            case Tag::O_mul:
+            case Tag::O_div:
+            case Tag::O_rem: return "TODO";
+            default: return "TODO";
         }
     }
 
