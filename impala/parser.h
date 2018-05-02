@@ -49,13 +49,15 @@ public:
     //@{ Expr%s
     Ptr<Expr>         parse_expr() { return parse_expr(Token::Prec::Bottom); }
     Ptr<Expr>         parse_expr(Token::Prec);
-    Ptr<Expr>         parse_primary_expr();
     Ptr<Expr>         parse_prefix_expr();
-    Ptr<Expr>         parse_postfix_expr(Tracker, Ptr<Expr>&&);
     Ptr<Expr>         parse_infix_expr(Tracker, Ptr<Expr>&&);
+    Ptr<Expr>         parse_postfix_expr(Tracker, Ptr<Expr>&&);
+    Ptr<AppExpr>      parse_app_expr(Tracker, Ptr<Expr>&&);
+    Ptr<FieldExpr>    parse_field_expr(Tracker, Ptr<Expr>&&);
     //@}
 
     //@{ primary Expr%s
+    Ptr<Expr>         parse_primary_expr();
     Ptr<BlockExpr>    parse_block_expr();
     Ptr<BottomExpr>   parse_bottom_expr();
     Ptr<ForExpr>      parse_for_expr();

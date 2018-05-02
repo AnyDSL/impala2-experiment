@@ -91,7 +91,7 @@ Ptr<Expr> Parser::try_expr(const char* context) {
 }
 
 Ptr<Id> Parser::try_id(const char* context) {
-    if (accept(Token::Tag::M_id)) return parse_id();
+    if (ahead().isa(Token::Tag::M_id)) return parse_id();
     error("identifier", context);
     return make_ptr<Id>(Token(prev_, "<error>"));
 }
@@ -215,12 +215,24 @@ Ptr<Expr> Parser::parse_infix_expr(Tracker tracker, Ptr<Expr>&& lhs) {
 
 Ptr<Expr> Parser::parse_postfix_expr(Tracker tracker, Ptr<Expr>&& lhs) {
     switch (ahead().tag()) {
-        //case Token::Tag::P_dot: return parse_field_expr();
+        case Token::Tag::P_dot:     return parse_field_expr(tracker, std::move(lhs));
+        case Token::Tag::D_paren_l: return parse_app_expr(tracker, std::move(lhs));
         default: break;
     }
 
     auto tag = lex().tag();
     return make_ptr<PostfixExpr>(tracker, std::move(lhs), (PostfixExpr::Tag) tag);
+}
+
+Ptr<AppExpr> Parser::parse_app_expr(Tracker tracker, Ptr<Expr>&& callee) {
+    auto arg = parse_tuple_expr();
+    return make_ptr<AppExpr>(tracker, std::move(callee), std::move(arg));
+}
+
+Ptr<FieldExpr> Parser::parse_field_expr(Tracker tracker, Ptr<Expr>&& lhs) {
+    eat(Token::Tag::P_dot);
+    auto id = try_id("field expression");
+    return make_ptr<FieldExpr>(tracker, std::move(lhs), std::move(id));
 }
 
 /*

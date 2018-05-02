@@ -72,6 +72,10 @@ Printer& BottomExpr::stream(Printer& p) const {
     return streamf(p, "⊥");
 }
 
+Printer& FieldExpr::stream(Printer& p) const {
+    return streamf(p, "{}.{}", lhs, id);
+}
+
 Printer& ForallExpr::stream(Printer& p) const {
     if (codomain->isa<BottomExpr>())
         return streamf(p, "Cn {}", domain);

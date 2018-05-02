@@ -191,6 +191,19 @@ struct InfixExpr : public Expr {
     Ptr<Expr> rhs;
 };
 
+struct FieldExpr : public Expr {
+    FieldExpr(Location location, Ptr<Expr>&& lhs, Ptr<Id>&& id)
+        : Expr(location)
+        , lhs(std::move(lhs))
+        , id(std::move(id))
+    {}
+
+    Printer& stream(Printer&) const override;
+
+    Ptr<Expr> lhs;
+    Ptr<Id> id;
+};
+
 struct ForallExpr : public Expr {
     ForallExpr(Location location, Ptr<Ptrn>&& domain, Ptr<Expr>&& codomain)
         : Expr(location)
@@ -203,7 +216,6 @@ struct ForallExpr : public Expr {
     Ptr<Ptrn> domain;
     Ptr<Expr> codomain;
 };
-
 
 struct ForExpr : public Expr {
     Printer& stream(Printer&) const override;
