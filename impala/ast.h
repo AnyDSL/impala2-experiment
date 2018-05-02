@@ -101,6 +101,19 @@ struct Expr : public Node {
     {}
 };
 
+struct AppExpr : public Expr {
+    AppExpr(Location location, Ptr<Expr>&& callee, Ptr<Expr>&& arg)
+        : Expr(location)
+        , callee(std::move(callee))
+        , arg(std::move(arg))
+    {}
+
+    Printer& stream(Printer&) const override;
+
+    Ptr<Expr> callee;
+    Ptr<Expr> arg;
+};
+
 struct BlockExpr : public Expr {
     BlockExpr(Location location, Ptrs<Stmnt>&& stmnts, Ptr<Expr>&& expr)
         : Expr(location)
@@ -159,37 +172,9 @@ struct IfExpr : public Expr {
 
 struct InfixExpr : public Expr {
     enum class Tag {
-        O_assign         = int(Token::Tag::O_assign),
-        O_add_assign     = int(Token::Tag::O_add_assign),
-        O_sub_assign     = int(Token::Tag::O_sub_assign),
-        O_mul_assign     = int(Token::Tag::O_mul_assign),
-        O_div_assign     = int(Token::Tag::O_div_assign),
-        O_rem_assign     = int(Token::Tag::O_rem_assign),
-        O_shl_assign     = int(Token::Tag::O_shl_assign),
-        O_shr_assign     = int(Token::Tag::O_shr_assign),
-        O_and_assign     = int(Token::Tag::O_and_assign),
-        O_or_assign      = int(Token::Tag::O_or_assign),
-        O_xor_assign     = int(Token::Tag::O_xor_assign),
-        O_add        = int(Token::Tag::O_add),
-        O_sub        = int(Token::Tag::O_sub),
-        O_mul        = int(Token::Tag::O_mul),
-        O_div        = int(Token::Tag::O_div),
-        O_rem        = int(Token::Tag::O_rem),
         O_tilde      = int(Token::Tag::O_tilde),
-        O_shl        = int(Token::Tag::O_shl),
-        O_shr        = int(Token::Tag::O_shr),
-        O_and        = int(Token::Tag::O_and),
         O_and_and    = int(Token::Tag::O_and_and),
-        O_or         = int(Token::Tag::O_or),
         O_or_or      = int(Token::Tag::O_or_or),
-        O_xor        = int(Token::Tag::O_xor),
-        O_not        = int(Token::Tag::O_not),
-        O_cmp_le     = int(Token::Tag::O_cmp_le),
-        O_cmp_ge     = int(Token::Tag::O_cmp_ge),
-        O_cmp_lt     = int(Token::Tag::O_cmp_lt),
-        O_cmp_gt     = int(Token::Tag::O_cmp_gt),
-        O_cmp_eq     = int(Token::Tag::O_cmp_eq),
-        O_cmp_ne     = int(Token::Tag::O_cmp_ne),
     };
 
     InfixExpr(Location location, Ptr<Expr>&& lhs, Tag tag, Ptr<Expr>&& rhs)

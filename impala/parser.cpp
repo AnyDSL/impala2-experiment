@@ -203,9 +203,14 @@ Ptr<Expr> Parser::parse_prefix_expr() {
 }
 
 Ptr<Expr> Parser::parse_infix_expr(Tracker tracker, Ptr<Expr>&& lhs) {
-    auto tag = lex().tag();
-    auto rhs = parse_expr(Token::tag2prec(tag));
-    return make_ptr<InfixExpr>(tracker, std::move(lhs), (InfixExpr::Tag) tag, std::move(rhs));
+    auto token = lex();
+    auto rhs = parse_expr(Token::tag2prec(token.tag()));
+    if (auto name = Token::tag2name(token.tag()); name[0] != '\0') {
+        auto callee = make_ptr<IdExpr>(make_ptr<Id>(Token(token.location(), Symbol(name))));
+        auto args = make_tuple(std::move(lhs), std::move(rhs));
+        return make_ptr<AppExpr>(tracker, std::move(callee), std::move(args));
+    }
+    return make_ptr<InfixExpr>(tracker, std::move(lhs), (InfixExpr::Tag) token.tag(), std::move(rhs));
 }
 
 Ptr<Expr> Parser::parse_postfix_expr(Tracker tracker, Ptr<Expr>&& lhs) {

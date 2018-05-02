@@ -52,6 +52,12 @@ Printer& ErrorPtrn::stream(Printer& p) const {
  * Expr
  */
 
+Printer& AppExpr::stream(Printer& p) const {
+    if (arg->isa<TupleExpr>())
+        return streamf(p, "{}{}", callee, arg);
+    return streamf(p, "{}({})", callee, arg);
+}
+
 Printer& BlockExpr::stream(Printer& p) const {
     (p << '{').indent().endl();
     for (auto&& stmnt : stmnts)

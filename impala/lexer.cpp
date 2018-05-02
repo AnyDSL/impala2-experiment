@@ -156,7 +156,7 @@ Token Lexer::lex() {
             return {location(), Token::Tag::O_lambda};
         }
         if (accept('=')) {
-            if (accept('=')) return {location(), Token::Tag::O_cmp_eq};
+            if (accept('=')) return {location(), Token::Tag::O_eq};
             return {location(), Token::Tag::O_assign};
         }
         if (accept('<')) {
@@ -164,16 +164,16 @@ Token Lexer::lex() {
                 if (accept('=')) return {location(), Token::Tag::O_shl_assign};
                 return {location(), Token::Tag::O_shl};
             }
-            if (accept('=')) return {location(), Token::Tag::O_cmp_le};
-            return {location(), Token::Tag::O_cmp_lt};
+            if (accept('=')) return {location(), Token::Tag::O_le};
+            return {location(), Token::Tag::O_lt};
         }
         if (accept('>')) {
             if (accept('>')) {
                 if (accept('=')) return {location(), Token::Tag::O_shr_assign};
                 return {location(), Token::Tag::O_shr};
             }
-            if (accept('=')) return {location(), Token::Tag::O_cmp_ge};
-            return {location(), Token::Tag::O_cmp_gt};
+            if (accept('=')) return {location(), Token::Tag::O_ge};
+            return {location(), Token::Tag::O_gt};
         }
         if (accept('+')) {
             if (accept('+')) return {location(), Token::Tag::O_inc};
@@ -219,7 +219,7 @@ Token Lexer::lex() {
             return {location(), Token::Tag::O_xor};
         }
         if (accept('!')) {
-            if (accept('=')) return {location(), Token::Tag::O_cmp_ne};
+            if (accept('=')) return {location(), Token::Tag::O_ne};
             return {location(), Token::Tag::O_not};
         }
         if (dec(peek()) || sgn(peek()))

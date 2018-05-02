@@ -102,6 +102,17 @@ private:
     Ptr<TupleExpr>    make_unit_tuple()       { return make_ptr<TupleExpr>  (prev_, Ptrs<TupleExpr::Elem>{}, Ptr<Expr>{}); }
     Ptr<UnknownExpr>  make_unknown_expr()     { return make_ptr<UnknownExpr>(prev_); }
 
+    Ptr<TupleExpr::Elem> make_tuple_elem(Ptr<Expr>&& expr) {
+        auto location = expr->location;
+        return make_ptr<TupleExpr::Elem>(location, make_ptr<Id>(Token(location, Symbol("_"))), std::move(expr));
+    }
+    Ptr<TupleExpr>    make_tuple(Ptr<Expr>&& lhs, Ptr<Expr>&& rhs) {
+        Ptrs<TupleExpr::Elem> args;
+        auto location = lhs->location + rhs->location;
+        args.emplace_back(make_tuple_elem(std::move(lhs)));
+        args.emplace_back(make_tuple_elem(std::move(rhs)));
+        return make_ptr<TupleExpr>(location, std::move(args), make_unknown_expr());
+    }
     Ptr<Id>           make_id(const char* s)  { return make_ptr<Id>(Token(prev_, s)); }
     Ptr<IdPtrn>       make_id_ptrn(const char* s, Ptr<Expr>&& type) {
         auto location = type->location;

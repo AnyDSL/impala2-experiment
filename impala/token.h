@@ -97,12 +97,12 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(O_or_or,      "||",  OrOr,    "") \
     f(O_xor,        "^",   Xor,     "bitxor") \
     f(O_not,        "!",   Error,   "") \
-    f(O_cmp_le,     "<=",  Rel,     "cmp_le") \
-    f(O_cmp_ge,     ">=",  Rel,     "cmp_le") \
-    f(O_cmp_lt,     "<",   Rel,     "cmp_le") \
-    f(O_cmp_gt,     ">",   Rel,     "cmp_le") \
-    f(O_cmp_eq,     "==",  Rel,     "cmp_eq") \
-    f(O_cmp_ne,     "!=",  Rel,     "cmp_neq")
+    f(O_le,         "<=",  Rel,     "le") \
+    f(O_ge,         ">=",  Rel,     "ge") \
+    f(O_lt,         "<",   Rel,     "lt") \
+    f(O_gt,         ">",   Rel,     "gt") \
+    f(O_eq,         "==",  Rel,     "eq") \
+    f(O_ne,         "!=",  Rel,     "ne")
 
 class Token {
 public:

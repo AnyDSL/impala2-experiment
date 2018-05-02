@@ -30,12 +30,12 @@ TEST(Parser, Prec) {
     static const std::string expected =
     "{\n"
     "    (++((a++)++));\n"
-    "    ((a + b) + c);\n"
-    "    (a + (b * c));\n"
-    "    ((a * b) + c);\n"
-    "    ((a + b) = c);\n"
-    "    (a = (b + c));\n"
-    "    ((++a) == b);\n"
+    "    add(add(a, b), c);\n"
+    "    add(a, mul(b, c));\n"
+    "    add(mul(a, b), c);\n"
+    "    (add(a, b) = c);\n"
+    "    (a = add(b, c));\n"
+    "    eq((++a), b);\n"
     "    ()\n"
     "}\n";
 
