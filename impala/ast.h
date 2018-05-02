@@ -28,7 +28,7 @@ struct Node : public thorin::RuntimeCast<Node>, public thorin::Streamable<Printe
     {}
     virtual ~Node() {}
 
-    void dump() const;
+    std::ostream& stream_out(std::ostream&) const;
 
     Location location;
 };

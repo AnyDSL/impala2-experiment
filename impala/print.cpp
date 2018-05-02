@@ -8,9 +8,10 @@ using thorin::streamf;
 
 //------------------------------------------------------------------------------
 
-void Node::dump() const {
-    Printer printer(std::cout);
+std::ostream& Node::stream_out(std::ostream& s) const {
+    Printer printer(s);
     stream(printer);
+    return s;
 }
 
 //------------------------------------------------------------------------------
