@@ -157,11 +157,11 @@ Token Lexer::lex() {
         }
         if (accept('=')) {
             if (accept('=')) return {location(), Token::Tag::O_cmp_eq};
-            return {location(), Token::Tag::O_eq};
+            return {location(), Token::Tag::O_assign};
         }
         if (accept('<')) {
             if (accept('<')) {
-                if (accept('=')) return {location(), Token::Tag::O_shl_eq};
+                if (accept('=')) return {location(), Token::Tag::O_shl_assign};
                 return {location(), Token::Tag::O_shl};
             }
             if (accept('=')) return {location(), Token::Tag::O_cmp_le};
@@ -169,7 +169,7 @@ Token Lexer::lex() {
         }
         if (accept('>')) {
             if (accept('>')) {
-                if (accept('=')) return {location(), Token::Tag::O_shr_eq};
+                if (accept('=')) return {location(), Token::Tag::O_shr_assign};
                 return {location(), Token::Tag::O_shr};
             }
             if (accept('=')) return {location(), Token::Tag::O_cmp_ge};
@@ -177,17 +177,17 @@ Token Lexer::lex() {
         }
         if (accept('+')) {
             if (accept('+')) return {location(), Token::Tag::O_inc};
-            if (accept('=')) return {location(), Token::Tag::O_add_eq};
+            if (accept('=')) return {location(), Token::Tag::O_add_assign};
             return {location(), Token::Tag::O_add};
         }
         if (accept('-')) {
             if (accept('>')) return {location(), Token::Tag::O_arrow};
             if (accept('-')) return {location(), Token::Tag::O_dec};
-            if (accept('=')) return {location(), Token::Tag::O_sub_eq};
+            if (accept('=')) return {location(), Token::Tag::O_sub_assign};
             return {location(), Token::Tag::O_sub};
         }
         if (accept('*')) {
-            if (accept('=')) return {location(), Token::Tag::O_mul_eq};
+            if (accept('=')) return {location(), Token::Tag::O_mul_assign};
             return {location(), Token::Tag::O_mul};
         }
         if (accept('/')) {
@@ -197,25 +197,25 @@ Token Lexer::lex() {
                 while (!eof() && peek() != '\n') next();
                 continue;
             }
-            if (accept('='))  return {location(), Token::Tag::O_div_eq};
+            if (accept('='))  return {location(), Token::Tag::O_div_assign};
             return {location(), Token::Tag::O_div};
         }
         if (accept('%')) {
-            if (accept('=')) return {location(), Token::Tag::O_rem_eq};
+            if (accept('=')) return {location(), Token::Tag::O_rem_assign};
             return {location(), Token::Tag::O_rem};
         }
         if (accept('&')) {
             if (accept('&')) return {location(), Token::Tag::O_and_and};
-            if (accept('=')) return {location(), Token::Tag::O_and_eq};
+            if (accept('=')) return {location(), Token::Tag::O_and_assign};
             return {location(), Token::Tag::O_and};
         }
         if (accept('|')) {
             if (accept('|')) return {location(), Token::Tag::O_or_or};
-            if (accept('=')) return {location(), Token::Tag::O_or_eq};
+            if (accept('=')) return {location(), Token::Tag::O_or_assign};
             return {location(), Token::Tag::O_or};
         }
         if (accept('^')) {
-            if (accept('=')) return {location(), Token::Tag::O_xor_eq};
+            if (accept('=')) return {location(), Token::Tag::O_xor_assign};
             return {location(), Token::Tag::O_xor};
         }
         if (accept('!')) {

@@ -65,42 +65,44 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(P_dot,          ".") \
     f(P_semicolon,    ";") \
     /* operators */ \
-    f(O_lambda,       "\\") \
-    f(O_forall,       "\\/") \
-    f(O_arrow,        "->") \
-    f(O_inc,          "++") \
-    f(O_dec,          "--") \
-    f(O_eq,           "=") \
-    f(O_add_eq,       "+=") \
-    f(O_sub_eq,       "-=") \
-    f(O_mul_eq,       "*=") \
-    f(O_div_eq,       "/=") \
-    f(O_rem_eq,       "%=") \
-    f(O_shl_eq,       "<<=") \
-    f(O_shr_eq,       ">>=") \
-    f(O_and_eq,       "&=") \
-    f(O_or_eq,        "|=") \
-    f(O_xor_eq,       "^=") \
-    f(O_add,          "+") \
-    f(O_sub,          "-") \
-    f(O_mul,          "*") \
-    f(O_div,          "/") \
-    f(O_rem,          "%") \
-    f(O_tilde,        "~") \
-    f(O_shl,          "<<") \
-    f(O_shr,          ">>") \
-    f(O_and,          "&") \
-    f(O_and_and,      "&&") \
-    f(O_or,           "|") \
-    f(O_or_or,        "||") \
-    f(O_xor,          "^") \
-    f(O_not,          "!") \
-    f(O_cmp_le,       "<=") \
-    f(O_cmp_ge,       ">=") \
-    f(O_cmp_lt,       "<") \
-    f(O_cmp_gt,       ">") \
-    f(O_cmp_eq,       "==") \
-    f(O_cmp_ne,       "!=")
+
+#define IMPALA_OPS(f) \
+    f(O_lambda,     "\\",  Error,   "") \
+    f(O_forall,     "\\/", Error,   "") \
+    f(O_arrow,      "->",  Error,   "") \
+    f(O_inc,        "++",  Error,   "") \
+    f(O_dec,        "--",  Error,   "") \
+    f(O_assign,     "=",   Assign,  "") \
+    f(O_add_assign, "+=",  Assign,  "add_assign") \
+    f(O_sub_assign, "-=",  Assign,  "sub_assign") \
+    f(O_mul_assign, "*=",  Assign,  "mul_assign") \
+    f(O_div_assign, "/=",  Assign,  "div_assign") \
+    f(O_rem_assign, "%=",  Assign,  "rem_assign") \
+    f(O_shl_assign, "<<=", Assign,  "shl_assign") \
+    f(O_shr_assign, ">>=", Assign,  "shr_assign") \
+    f(O_and_assign, "&=",  Assign,  "bitand_assign") \
+    f(O_or_assign,  "|=",  Assign,  "bitor_assign") \
+    f(O_xor_assign, "^=",  Assign,  "bitxor_assign") \
+    f(O_add,        "+",   Add,     "add") \
+    f(O_sub,        "-",   Add,     "sub") \
+    f(O_mul,        "*",   Mul,     "mul") \
+    f(O_div,        "/",   Mul,     "div") \
+    f(O_rem,        "%",   Mul,     "rem") \
+    f(O_tilde,      "~",   Error,   "") \
+    f(O_shl,        "<<",  Shift,   "shl") \
+    f(O_shr,        ">>",  Shift,   "shr") \
+    f(O_and,        "&",   And,     "bitand") \
+    f(O_and_and,    "&&",  AndAnd,  "") \
+    f(O_or,         "|",   Or,      "bitor") \
+    f(O_or_or,      "||",  OrOr,    "") \
+    f(O_xor,        "^",   Xor,     "bitxor") \
+    f(O_not,        "!",   Error,   "") \
+    f(O_cmp_le,     "<=",  Rel,     "cmp_le") \
+    f(O_cmp_ge,     ">=",  Rel,     "cmp_le") \
+    f(O_cmp_lt,     "<",   Rel,     "cmp_le") \
+    f(O_cmp_gt,     ">",   Rel,     "cmp_le") \
+    f(O_cmp_eq,     "==",  Rel,     "cmp_eq") \
+    f(O_cmp_ne,     "!=",  Rel,     "cmp_neq")
 
 class Token {
 public:
@@ -109,6 +111,9 @@ public:
         IMPALA_KEYWORDS(CODE)
         IMPALA_LIT(CODE)
         IMPALA_TOKENS(CODE)
+#undef CODE
+#define CODE(t, str, prec, name) t,
+        IMPALA_OPS(CODE)
 #undef CODE
     };
 
@@ -153,12 +158,13 @@ public:
     {}
 
     Tag tag() const { return tag_; }
+    bool isa(Tag tag) const { return tag_ == tag; }
     Location location() const { return location_; }
-    //const std::string& identifier() const { assert(is_identifier()); return symbol_; }
     Symbol symbol() const { assert(tag() == Tag::M_id); return symbol_; }
     thorin::f64 f64() const { assert(tag() == Tag::L_f); return f64_; }
     thorin::s64 s64() const { assert(tag() == Tag::L_s); return s64_; }
     thorin::u64 u64() const { assert(tag() == Tag::L_u); return u64_; }
+
     bool is_literal() const {
         switch (tag()) {
 #define CODE(t, str) case Tag::t: return true;
@@ -168,11 +174,6 @@ public:
         }
     }
 
-    bool isa(Tag tag) const { return tag_ == tag; }
-    //bool operator == (const Token& token) const { return token.location_ == location_ && token.symbol_ == symbol_; }
-    //bool operator != (const Token& token) const { return token.location_ != location_ || token.symbol_ != symbol_; }
-    //uint32_t hash() const { return hash_combine(location_.hash(), hash_string(symbol_)); }
-
     static const char* tag2str(Tag tag) {
         switch (tag) {
 #define CODE(t, str) case Tag::t: return str;
@@ -180,75 +181,28 @@ public:
             IMPALA_LIT(CODE)
             IMPALA_TOKENS(CODE)
 #undef CODE
+#define CODE(t, str, prec, name) case Tag::t: return str;
+            IMPALA_OPS(CODE)
+#undef CODE
             default: THORIN_UNREACHABLE;
         }
     }
 
     static Prec tag2prec(Tag tag) {
         switch (tag) {
-            case Tag::O_eq:
-            case Tag::O_add_eq:
-            case Tag::O_sub_eq:
-            case Tag::O_mul_eq:
-            case Tag::O_div_eq:
-            case Tag::O_rem_eq:
-            case Tag::O_shl_eq:
-            case Tag::O_shr_eq:
-            case Tag::O_and_eq:
-            case Tag::O_or_eq:
-            case Tag::O_xor_eq:  return Prec::Assign;
-            case Tag::O_or_or:   return Prec::OrOr;
-            case Tag::O_and_and: return Prec::AndAnd;
-            case Tag::O_not:
-            case Tag::O_cmp_le:
-            case Tag::O_cmp_ge:
-            case Tag::O_cmp_lt:
-            case Tag::O_cmp_gt:
-            case Tag::O_cmp_eq:
-            case Tag::O_cmp_ne:  return Prec::Rel;
-            case Tag::O_or:      return Prec::Or;
-            case Tag::O_xor:     return Prec::Xor;
-            case Tag::O_and:     return Prec::And;
-            case Tag::O_shl:
-            case Tag::O_shr:     return Prec::Shift;
-            case Tag::O_add:
-            case Tag::O_sub:     return Prec::Add;
-            case Tag::O_mul:
-            case Tag::O_div:
-            case Tag::O_rem:     return Prec::Mul;
-            default:             return Prec::Error;
+#define CODE(t, str, prec, name) case Tag::t: return Prec::prec;
+            IMPALA_OPS(CODE)
+#undef CODE
+            default: return Prec::Error;
         }
     }
 
-    static const char* tag2infix_name(Tag tag) {
+    static const char* tag2name(Tag tag) {
         switch (tag) {
-            case Tag::O_add_eq:     return "add_assign";
-            case Tag::O_sub_eq:     return "sub_assign";
-            case Tag::O_mul_eq:     return "mul_assign";
-            case Tag::O_div_eq:     return "div_assign";
-            case Tag::O_rem_eq:     return "add_assign";
-            case Tag::O_shl_eq:     return "shl_assign";
-            case Tag::O_shr_eq:     return "shr_assign";
-            case Tag::O_and_eq:     return "and_assign";
-            case Tag::O_or_eq:      return  "or_assign";
-            case Tag::O_xor_eq:     return "xor_assign";
-            case Tag::O_cmp_le:
-            case Tag::O_cmp_ge:
-            case Tag::O_cmp_lt:
-            case Tag::O_cmp_gt:
-            case Tag::O_cmp_eq:
-            case Tag::O_cmp_ne:
-            case Tag::O_or:
-            case Tag::O_xor:
-            case Tag::O_and:
-            case Tag::O_shl:
-            case Tag::O_shr:
-            case Tag::O_add:
-            case Tag::O_sub:
-            case Tag::O_mul:
-            case Tag::O_div:
-            case Tag::O_rem: return "TODO";
-            default: return "TODO";
+#define CODE(t, str, prec, name) case Tag::t: return name;
+            IMPALA_OPS(CODE)
+#undef CODE
+            default: return "";
         }
     }
 

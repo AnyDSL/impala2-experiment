@@ -326,9 +326,9 @@ Ptr<TupleExpr> Parser::parse_tuple_expr() {
     auto elems = parse_list("tuple", Token::Tag::D_paren_l, Token::Tag::D_paren_r, [&]{
         auto tracker = track();
         Ptr<Id> id;
-        if (ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::O_eq)) {
+        if (ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::O_assign)) {
             id = parse_id();
-            eat(Token::Tag::O_eq);
+            eat(Token::Tag::O_assign);
         } else {
             id = make_id("_");
         }
@@ -475,7 +475,7 @@ Ptr<LetStmnt> Parser::parse_let_stmnt() {
     eat(Token::Tag::K_let);
     auto ptrn = try_ptrn("let statement");
     Ptr<Expr> init;
-    if (accept(Token::Tag::O_eq))
+    if (accept(Token::Tag::O_assign))
         init = try_expr("initialization expression of a let statement");
     return make_ptr<LetStmnt>(tracker, std::move(ptrn), std::move(init));
 }
