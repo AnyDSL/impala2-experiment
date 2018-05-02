@@ -175,9 +175,9 @@ Ptr<Expr> Parser::parse_expr(Token::Prec p) {
 
     while (true) {
         switch (ahead().tag()) {
-            case Token::Tag::P_dot:       lhs = parse_field_expr(tracker, std::move(lhs));   continue;
+            case Token::Tag::P_dot:       lhs = parse_field_expr  (tracker, std::move(lhs)); continue;
             case Token::Tag::D_paren_l:   lhs = parse_cps_app_expr(tracker, std::move(lhs)); continue;
-            case Token::Tag::D_bracket_l: lhs = parse_ds_app_expr(tracker, std::move(lhs));  continue;
+            case Token::Tag::D_bracket_l: lhs = parse_ds_app_expr (tracker, std::move(lhs)); continue;
             case Token::Tag::O_inc:
             case Token::Tag::O_dec:       lhs = parse_postfix_expr(tracker, std::move(lhs)); continue;
             default: break;
