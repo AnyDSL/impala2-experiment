@@ -81,14 +81,14 @@ struct IdPtrn : public Ptrn {
 };
 
 struct TuplePtrn : public Ptrn {
-    TuplePtrn(Location location, Ptrs<Ptrn>&& ptrns, Ptr<Expr>&& type, bool type_mandatory)
+    TuplePtrn(Location location, Ptrs<Ptrn>&& elems, Ptr<Expr>&& type, bool type_mandatory)
         : Ptrn(location, std::move(type), type_mandatory)
-        , ptrns(std::move(ptrns))
+        , elems(std::move(elems))
     {}
 
     Printer& stream(Printer&) const override;
 
-    Ptrs<Ptrn> ptrns;
+    Ptrs<Ptrn> elems;
 };
 
 /*

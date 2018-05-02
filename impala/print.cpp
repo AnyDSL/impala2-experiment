@@ -1,5 +1,7 @@
 #include "impala/print.h"
 
+#include "thorin/util/array.h"
+
 #include "impala/ast.h"
 
 namespace impala {
@@ -29,7 +31,7 @@ Printer& Id::stream(Printer& p) const {
  */
 
 Printer& Ptrn::stream_ascription(Printer& p) const {
-    return type ? streamf(p, ": {}", type) : p;
+    return type->isa<UnknownExpr>() ? p : streamf(p, ": {}", type);
 }
 
 Printer& IdPtrn::stream(Printer& p) const {
@@ -40,7 +42,7 @@ Printer& IdPtrn::stream(Printer& p) const {
 }
 
 Printer& TuplePtrn::stream(Printer& p) const {
-    streamf(p, "({, })", ptrns);
+    streamf(p, "({, })", elems);
     return stream_ascription(p);
 }
 
@@ -71,11 +73,8 @@ Printer& BottomExpr::stream(Printer& p) const {
 }
 
 Printer& ForallExpr::stream(Printer& p) const {
-    if (codomain->isa<BottomExpr>()) {
-        if (auto sigma_expr = domain->isa<SigmaExpr>(); sigma_expr && !sigma_expr->elems.empty() && sigma_expr->elems.back()->type->isa<BottomExpr>())
-            return streamf(p, "Fn {} -> {}", domain, "TODO");
+    if (codomain->isa<BottomExpr>())
         return streamf(p, "Cn {}", domain);
-    }
     return streamf(p, "\\/ {} -> {}", domain, codomain);
 }
 
@@ -92,6 +91,10 @@ Printer& InfixExpr::stream(Printer& p) const {
 }
 
 Printer& LambdaExpr::stream(Printer& p) const {
+    if (codomain->isa<BottomExpr>())
+        return streamf(p, "cn {} {}", domain, body);
+    if (codomain->isa<UnknownExpr>())
+        return streamf(p, "\\ {} {}", domain, body);
     return streamf(p, "\\ {} -> {} {}", domain, codomain, body);
 }
 
@@ -110,7 +113,9 @@ Printer& TupleExpr::Elem::stream(Printer& p) const {
 }
 
 Printer& TupleExpr::stream(Printer& p) const {
-    return streamf(p, "({, })", elems);
+    if (type->isa<UnknownExpr>())
+        return streamf(p, "({, })", elems);
+    return streamf(p, "({, }): {}", elems, type);
 }
 
 Printer& UnknownExpr::stream(Printer& p) const {
