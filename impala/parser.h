@@ -52,7 +52,8 @@ public:
     Ptr<Expr>         parse_prefix_expr();
     Ptr<Expr>         parse_infix_expr(Tracker, Ptr<Expr>&&);
     Ptr<Expr>         parse_postfix_expr(Tracker, Ptr<Expr>&&);
-    Ptr<AppExpr>      parse_app_expr(Tracker, Ptr<Expr>&&);
+    Ptr<AppExpr>      parse_cps_app_expr(Tracker, Ptr<Expr>&&);
+    Ptr<AppExpr>      parse_ds_app_expr(Tracker, Ptr<Expr>&&);
     Ptr<FieldExpr>    parse_field_expr(Tracker, Ptr<Expr>&&);
     //@}
 
@@ -66,7 +67,7 @@ public:
     Ptr<MatchExpr>    parse_match_expr();
     Ptr<PackExpr>     parse_pack_expr();
     Ptr<SigmaExpr>    parse_sigma_expr();
-    Ptr<TupleExpr>    parse_tuple_expr();
+    Ptr<TupleExpr>    parse_tuple_expr(Token::Tag delim_l = Token::Tag::D_paren_l, Token::Tag delim_r = Token::Tag::D_paren_r);
     Ptr<VariadicExpr> parse_variadic_expr();
     Ptr<WhileExpr>    parse_while_expr();
     //@}

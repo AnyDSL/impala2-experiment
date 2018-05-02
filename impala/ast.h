@@ -102,16 +102,18 @@ struct Expr : public Node {
 };
 
 struct AppExpr : public Expr {
-    AppExpr(Location location, Ptr<Expr>&& callee, Ptr<Expr>&& arg)
+    AppExpr(Location location, Ptr<Expr>&& callee, Ptr<Expr>&& arg, bool cps)
         : Expr(location)
         , callee(std::move(callee))
         , arg(std::move(arg))
+        , cps(cps)
     {}
 
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> callee;
     Ptr<Expr> arg;
+    bool cps;
 };
 
 struct BlockExpr : public Expr {

@@ -175,13 +175,11 @@ Ptr<Expr> Parser::parse_expr(Token::Prec p) {
 
     while (true) {
         switch (ahead().tag()) {
+            case Token::Tag::P_dot:       lhs = parse_field_expr(tracker, std::move(lhs));   continue;
+            case Token::Tag::D_paren_l:   lhs = parse_cps_app_expr(tracker, std::move(lhs)); continue;
+            case Token::Tag::D_bracket_l: lhs = parse_ds_app_expr(tracker, std::move(lhs));  continue;
             case Token::Tag::O_inc:
-            case Token::Tag::O_dec:
-            case Token::Tag::D_paren_l:
-            case Token::Tag::D_bracket_l:
-            case Token::Tag::P_dot:
-                lhs = parse_postfix_expr(tracker, std::move(lhs));
-                continue;
+            case Token::Tag::O_dec:       lhs = parse_postfix_expr(tracker, std::move(lhs)); continue;
             default: break;
         }
 
@@ -208,25 +206,24 @@ Ptr<Expr> Parser::parse_infix_expr(Tracker tracker, Ptr<Expr>&& lhs) {
     if (auto name = Token::tag2name(token.tag()); name[0] != '\0') {
         auto callee = make_ptr<IdExpr>(make_ptr<Id>(Token(token.location(), Symbol(name))));
         auto args = make_tuple(std::move(lhs), std::move(rhs));
-        return make_ptr<AppExpr>(tracker, std::move(callee), std::move(args));
+        return make_ptr<AppExpr>(tracker, std::move(callee), std::move(args), true);
     }
     return make_ptr<InfixExpr>(tracker, std::move(lhs), (InfixExpr::Tag) token.tag(), std::move(rhs));
 }
 
 Ptr<Expr> Parser::parse_postfix_expr(Tracker tracker, Ptr<Expr>&& lhs) {
-    switch (ahead().tag()) {
-        case Token::Tag::P_dot:     return parse_field_expr(tracker, std::move(lhs));
-        case Token::Tag::D_paren_l: return parse_app_expr(tracker, std::move(lhs));
-        default: break;
-    }
-
     auto tag = lex().tag();
     return make_ptr<PostfixExpr>(tracker, std::move(lhs), (PostfixExpr::Tag) tag);
 }
 
-Ptr<AppExpr> Parser::parse_app_expr(Tracker tracker, Ptr<Expr>&& callee) {
+Ptr<AppExpr> Parser::parse_cps_app_expr(Tracker tracker, Ptr<Expr>&& callee) {
     auto arg = parse_tuple_expr();
-    return make_ptr<AppExpr>(tracker, std::move(callee), std::move(arg));
+    return make_ptr<AppExpr>(tracker, std::move(callee), std::move(arg), true);
+}
+
+Ptr<AppExpr> Parser::parse_ds_app_expr(Tracker tracker, Ptr<Expr>&& callee) {
+    auto arg = parse_tuple_expr(Token::Tag::D_bracket_l, Token::Tag::D_bracket_r);
+    return make_ptr<AppExpr>(tracker, std::move(callee), std::move(arg), false);
 }
 
 Ptr<FieldExpr> Parser::parse_field_expr(Tracker tracker, Ptr<Expr>&& lhs) {
@@ -337,10 +334,10 @@ Ptr<MatchExpr> Parser::parse_match_expr() {
     return nullptr;
 }
 
-Ptr<TupleExpr> Parser::parse_tuple_expr() {
+Ptr<TupleExpr> Parser::parse_tuple_expr(Token::Tag delim_l, Token::Tag delim_r) {
     auto tracker = track();
 
-    auto elems = parse_list("tuple", Token::Tag::D_paren_l, Token::Tag::D_paren_r, [&]{
+    auto elems = parse_list("tuple", delim_l, delim_r, [&]{
         auto tracker = track();
         Ptr<Id> id;
         if (ahead(0).isa(Token::Tag::M_id) && ahead(1).isa(Token::Tag::O_assign)) {

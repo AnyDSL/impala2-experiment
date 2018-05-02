@@ -55,9 +55,17 @@ Printer& ErrorPtrn::stream(Printer& p) const {
  */
 
 Printer& AppExpr::stream(Printer& p) const {
-    if (arg->isa<TupleExpr>())
-        return streamf(p, "{}{}", callee, arg);
-    return streamf(p, "{}({})", callee, arg);
+    if (cps) {
+        if (arg->isa<TupleExpr>())
+            return streamf(p, "{}{}", callee, arg);
+        else
+            return streamf(p, "{}({})", callee, arg);
+    } else {
+        if (auto tuple = arg->isa<TupleExpr>())
+            return streamf(p, "{}[{, }]", callee, tuple->elems);
+        else
+            return streamf(p, "{}[{}]", callee, arg);
+    }
 }
 
 Printer& BlockExpr::stream(Printer& p) const {
