@@ -219,6 +219,8 @@ private:
 
 std::ostream& operator<<(std::ostream& os, const Token& t);
 
+typedef Token::Tag TT;
+
 }
 
 #endif

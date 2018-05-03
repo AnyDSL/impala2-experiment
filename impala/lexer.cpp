@@ -20,7 +20,7 @@ Lexer::Lexer(Compiler& compiler, std::istream& is, const char* filename)
     , filename_(filename)
 {
     size_t i = 0;
-#define CODE(tag, str) keywords_[i++] = {Symbol(str), Token::Tag::tag};
+#define CODE(tag, str) keywords_[i++] = {Symbol(str), TT::tag};
     IMPALA_KEYWORDS(CODE)
 #undef CODE
 
@@ -121,7 +121,7 @@ Token Lexer::lex() {
         front_col_  = peek_col_;
 
         // end of file
-        if (eof()) return {location(), Token::Tag::M_eof};
+        if (eof()) return {location(), TT::M_eof};
 
         // skip whitespace
         if (accept_if(wsp, false)) {
@@ -130,65 +130,65 @@ Token Lexer::lex() {
         }
 
         // delimiters
-        if (accept( '(')) return {location(), Token::Tag::D_paren_l};
-        if (accept( ')')) return {location(), Token::Tag::D_paren_r};
-        if (accept( '[')) return {location(), Token::Tag::D_bracket_l};
-        if (accept( ']')) return {location(), Token::Tag::D_bracket_r};
-        if (accept( '{')) return {location(), Token::Tag::D_brace_l};
-        if (accept( '}')) return {location(), Token::Tag::D_brace_r};
-        if (accept(U'«')) return {location(), Token::Tag::D_quote_l};
-        if (accept(U'»')) return {location(), Token::Tag::D_quote_r};
-        if (accept(U'‹')) return {location(), Token::Tag::D_angle_l};
-        if (accept(U'›')) return {location(), Token::Tag::D_angle_r};
+        if (accept( '(')) return {location(), TT::D_paren_l};
+        if (accept( ')')) return {location(), TT::D_paren_r};
+        if (accept( '[')) return {location(), TT::D_bracket_l};
+        if (accept( ']')) return {location(), TT::D_bracket_r};
+        if (accept( '{')) return {location(), TT::D_brace_l};
+        if (accept( '}')) return {location(), TT::D_brace_r};
+        if (accept(U'«')) return {location(), TT::D_quote_l};
+        if (accept(U'»')) return {location(), TT::D_quote_r};
+        if (accept(U'‹')) return {location(), TT::D_angle_l};
+        if (accept(U'›')) return {location(), TT::D_angle_r};
 
         // punctation
-        if (accept('.')) return {location(), Token::Tag::P_dot};
-        if (accept(',')) return {location(), Token::Tag::P_comma};
-        if (accept(';')) return {location(), Token::Tag::P_semicolon};
+        if (accept('.')) return {location(), TT::P_dot};
+        if (accept(',')) return {location(), TT::P_comma};
+        if (accept(';')) return {location(), TT::P_semicolon};
         if (accept(':')) {
-            if (accept(':')) return {location(), Token::Tag::P_colon_colon};
-            return {location(), Token::Tag::P_colon};
+            if (accept(':')) return {location(), TT::P_colon_colon};
+            return {location(), TT::P_colon};
         }
 
         // operators
         if (accept('\\')) {
-            if (accept('/')) return {location(), Token::Tag::O_forall};
-            return {location(), Token::Tag::O_lambda};
+            if (accept('/')) return {location(), TT::O_forall};
+            return {location(), TT::O_lambda};
         }
         if (accept('=')) {
-            if (accept('=')) return {location(), Token::Tag::O_eq};
-            return {location(), Token::Tag::O_assign};
+            if (accept('=')) return {location(), TT::O_eq};
+            return {location(), TT::O_assign};
         }
         if (accept('<')) {
             if (accept('<')) {
-                if (accept('=')) return {location(), Token::Tag::O_shl_assign};
-                return {location(), Token::Tag::O_shl};
+                if (accept('=')) return {location(), TT::O_shl_assign};
+                return {location(), TT::O_shl};
             }
-            if (accept('=')) return {location(), Token::Tag::O_le};
-            return {location(), Token::Tag::O_lt};
+            if (accept('=')) return {location(), TT::O_le};
+            return {location(), TT::O_lt};
         }
         if (accept('>')) {
             if (accept('>')) {
-                if (accept('=')) return {location(), Token::Tag::O_shr_assign};
-                return {location(), Token::Tag::O_shr};
+                if (accept('=')) return {location(), TT::O_shr_assign};
+                return {location(), TT::O_shr};
             }
-            if (accept('=')) return {location(), Token::Tag::O_ge};
-            return {location(), Token::Tag::O_gt};
+            if (accept('=')) return {location(), TT::O_ge};
+            return {location(), TT::O_gt};
         }
         if (accept('+')) {
-            if (accept('+')) return {location(), Token::Tag::O_inc};
-            if (accept('=')) return {location(), Token::Tag::O_add_assign};
-            return {location(), Token::Tag::O_add};
+            if (accept('+')) return {location(), TT::O_inc};
+            if (accept('=')) return {location(), TT::O_add_assign};
+            return {location(), TT::O_add};
         }
         if (accept('-')) {
-            if (accept('>')) return {location(), Token::Tag::O_arrow};
-            if (accept('-')) return {location(), Token::Tag::O_dec};
-            if (accept('=')) return {location(), Token::Tag::O_sub_assign};
-            return {location(), Token::Tag::O_sub};
+            if (accept('>')) return {location(), TT::O_arrow};
+            if (accept('-')) return {location(), TT::O_dec};
+            if (accept('=')) return {location(), TT::O_sub_assign};
+            return {location(), TT::O_sub};
         }
         if (accept('*')) {
-            if (accept('=')) return {location(), Token::Tag::O_mul_assign};
-            return {location(), Token::Tag::O_mul};
+            if (accept('=')) return {location(), TT::O_mul_assign};
+            return {location(), TT::O_mul};
         }
         if (accept('/')) {
             // Handle comments here
@@ -197,30 +197,30 @@ Token Lexer::lex() {
                 while (!eof() && peek() != '\n') next();
                 continue;
             }
-            if (accept('='))  return {location(), Token::Tag::O_div_assign};
-            return {location(), Token::Tag::O_div};
+            if (accept('='))  return {location(), TT::O_div_assign};
+            return {location(), TT::O_div};
         }
         if (accept('%')) {
-            if (accept('=')) return {location(), Token::Tag::O_rem_assign};
-            return {location(), Token::Tag::O_rem};
+            if (accept('=')) return {location(), TT::O_rem_assign};
+            return {location(), TT::O_rem};
         }
         if (accept('&')) {
-            if (accept('&')) return {location(), Token::Tag::O_and_and};
-            if (accept('=')) return {location(), Token::Tag::O_and_assign};
-            return {location(), Token::Tag::O_and};
+            if (accept('&')) return {location(), TT::O_and_and};
+            if (accept('=')) return {location(), TT::O_and_assign};
+            return {location(), TT::O_and};
         }
         if (accept('|')) {
-            if (accept('|')) return {location(), Token::Tag::O_or_or};
-            if (accept('=')) return {location(), Token::Tag::O_or_assign};
-            return {location(), Token::Tag::O_or};
+            if (accept('|')) return {location(), TT::O_or_or};
+            if (accept('=')) return {location(), TT::O_or_assign};
+            return {location(), TT::O_or};
         }
         if (accept('^')) {
-            if (accept('=')) return {location(), Token::Tag::O_xor_assign};
-            return {location(), Token::Tag::O_xor};
+            if (accept('=')) return {location(), TT::O_xor_assign};
+            return {location(), TT::O_xor};
         }
         if (accept('!')) {
-            if (accept('=')) return {location(), Token::Tag::O_ne};
-            return {location(), Token::Tag::O_not};
+            if (accept('=')) return {location(), TT::O_ne};
+            return {location(), TT::O_not};
         }
         if (dec(peek()) || sgn(peek()))
             return parse_literal();

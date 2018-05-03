@@ -43,7 +43,7 @@ public:
     ///other
     Ptr<Ptrn>       parse_ptrn(const char* ascription_context = nullptr);
     Ptr<IdPtrn>     parse_id_ptrn(const char* ascription_context = nullptr);
-    Ptr<TuplePtrn>  parse_tuple_ptrn(const char* ascription_context = nullptr);
+    Ptr<TuplePtrn>  parse_tuple_ptrn(const char* ascription_context = nullptr, TT delim_l = TT::D_paren_l, TT delim_r = TT::D_paren_r);
     //@}
 
     //@{ Expr%s
@@ -67,7 +67,7 @@ public:
     Ptr<MatchExpr>    parse_match_expr();
     Ptr<PackExpr>     parse_pack_expr();
     Ptr<SigmaExpr>    parse_sigma_expr();
-    Ptr<TupleExpr>    parse_tuple_expr(Token::Tag delim_l = Token::Tag::D_paren_l, Token::Tag delim_r = Token::Tag::D_paren_r);
+    Ptr<TupleExpr>    parse_tuple_expr(TT delim_l = TT::D_paren_l, TT delim_r = TT::D_paren_r);
     Ptr<VariadicExpr> parse_variadic_expr();
     Ptr<WhileExpr>    parse_while_expr();
     //@}
@@ -87,6 +87,9 @@ public:
     //@{ Stmnt%s
     Ptr<Stmnt>      parse_stmnt();
     Ptr<LetStmnt>   parse_let_stmnt();
+    Ptr<LetStmnt>    parse_item_stmnt();
+    Ptr<Expr>       parse_cn_item(Ptr<IdPtrn>&);
+    Ptr<Expr>       parse_fn_item(Ptr<IdPtrn>&);
     //@}
 
 private:
@@ -128,14 +131,14 @@ private:
     //@}
 
     const Token& ahead(size_t i = 0) const { assert(i < max_ahead); return ahead_[i]; }
-    Token eat(Token::Tag tag) { assert_unused(tag == ahead().tag() && "internal parser error"); return lex(); }
-    bool accept(Token::Tag tok);
-    bool expect(Token::Tag tok, const char* context);
+    Token eat(TT tag) { assert_unused(tag == ahead().tag() && "internal parser error"); return lex(); }
+    bool accept(TT tok);
+    bool expect(TT tok, const char* context);
     void error(const char* what, const char* context) { error(what, ahead(), context); }
     void error(const char* what, const Token& tok, const char* context);
 
     template<class F>
-    auto parse_list(Token::Tag delim_r, F f, Token::Tag sep = Token::Tag::P_comma) -> std::deque<decltype(f())> {
+    auto parse_list(TT delim_r, F f, TT sep = TT::P_comma) -> std::deque<decltype(f())> {
         std::deque<decltype(f())> result;
         if (!ahead().isa(delim_r)) {
             do {
@@ -145,8 +148,7 @@ private:
         return result;
     }
     template<class F>
-    auto parse_list(const char* context, Token::Tag delim_l, Token::Tag delim_r,
-                    F f, Token::Tag sep = Token::Tag::P_comma) -> std::deque<decltype(f())>  {
+    auto parse_list(const char* context, TT delim_l, TT delim_r, F f, TT sep = TT::P_comma) -> std::deque<decltype(f())>  {
         eat(delim_l);
         auto result = parse_list(delim_r, f, sep);
         expect(delim_r, context);
