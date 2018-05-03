@@ -17,19 +17,19 @@ public:
     int num_warnings() const { return num_warnings_; }
     int num_errors() const { return num_errors_; }
 
-    template<typename... Args>
+    template<class... Args>
     std::ostream& error(Location location, const char* fmt, Args... args) {
         ++num_errors_;
         thorin::errf("{}: error: ", location);
         return thorin::errln(fmt, std::forward<Args>(args)...);
     }
-    template<typename... Args>
-    std::ostream& warning(Location location, const char* fmt, Args... args) {
+    template<class... Args>
+    std::ostream& warn(Location location, const char* fmt, Args... args) {
         ++num_warnings_;
         thorin::errf("{}: warning: ", location);
         return thorin::errln(fmt, std::forward<Args>(args)...);
     }
-    template<typename... Args>
+    template<class... Args>
     std::ostream& note(Location location, const char* fmt, Args... args) {
         thorin::errf("{}: note: ", location);
         return thorin::errln(fmt, std::forward<Args>(args)...);

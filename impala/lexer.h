@@ -54,7 +54,7 @@ private:
     uint32_t peek() const { return peek_; }
     const std::string& str() const { return str_; }
     Location location() const { return {filename_, front_line_, front_col_, back_line_, back_col_}; }
-    template<typename... Args>
+    template<class... Args>
     std::ostream& error(const char* fmt, Args... args) { return compiler.error(location(), fmt, std::forward<Args>(args)...); }
 
     std::istream& stream_;

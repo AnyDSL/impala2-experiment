@@ -19,8 +19,8 @@ void Scopes::insert(const IdPtrn* id_ptrn) {
     if (id_ptrn->symbol().is_anonymous()) return;
 
     if (auto [i, succ] = scopes_.back().emplace(id_ptrn->symbol(), id_ptrn); !succ) {
-        compiler().error(id_ptrn->id->location, "identifier '{}' already declared", id_ptrn->symbol());
-        compiler().note(i->second->id->location, "previously declared here");
+        compiler().error(id_ptrn->id->location, "redefinition of '{}'", id_ptrn->symbol());
+        compiler().note(i->second->id->location, "previous declaration of '{}' was here", id_ptrn->symbol());
     }
 }
 
@@ -75,7 +75,7 @@ void IdExpr::bind(Scopes& scopes) const {
     if (!symbol().is_anonymous()) {
         id_ptrn = scopes.find(symbol());
         if (id_ptrn == nullptr)
-            scopes.compiler().error(location, "'{}' not found in current scope", symbol());
+            scopes.compiler().error(location, "use of undeclared identifier '{}'", symbol());
     } else {
         scopes.compiler().error(location, "identifier '_' is reserved for anonymous declarations");
     }
