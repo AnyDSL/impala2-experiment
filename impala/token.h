@@ -127,7 +127,7 @@ public:
         Or, Xor, And,
         Shift, Add, Mul,
         Unary,
-        RunRun,
+        Arrow,
     };
 
     Token() {}

@@ -24,6 +24,24 @@ template<class T> using Ptrs = std::deque<std::unique_ptr<T>>;
 template<class T, class... Args>
 std::unique_ptr<T> make_ptr(Args... args) { return std::make_unique<T>(std::forward<Args>(args)...); }
 
+namespace detail {
+    template<class T> void make(T&) {}
+    template<class T, class A, class... Args>
+    void make(T&& container, A&& arg, Args&&... args) {
+        container.emplace_back(std::forward<A>(arg));
+        make(container, std::forward<Args>(args)...);
+    }
+}
+
+template<class T, class... Args>
+T make(Args&&... args) {
+    T result;
+    detail::make(result, std::forward<Args>(args)...);
+    return result;
+}
+
+//------------------------------------------------------------------------------
+
 struct Node : public thorin::RuntimeCast<Node>, public thorin::Streamable<Printer> {
     Node(Location location)
         : location(location)

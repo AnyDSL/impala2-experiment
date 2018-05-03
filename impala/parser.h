@@ -47,8 +47,7 @@ public:
     //@}
 
     //@{ Expr%s
-    Ptr<Expr>         parse_expr() { return parse_expr(Token::Prec::Bottom); }
-    Ptr<Expr>         parse_expr(Token::Prec);
+    Ptr<Expr>         parse_expr(Token::Prec = Token::Prec::Bottom);
     Ptr<Expr>         parse_prefix_expr();
     Ptr<Expr>         parse_infix_expr(Tracker, Ptr<Expr>&&);
     Ptr<Expr>         parse_postfix_expr(Tracker, Ptr<Expr>&&);
@@ -87,7 +86,7 @@ public:
     //@{ Stmnt%s
     Ptr<Stmnt>      parse_stmnt();
     Ptr<LetStmnt>   parse_let_stmnt();
-    Ptr<LetStmnt>    parse_item_stmnt();
+    Ptr<LetStmnt>   parse_item_stmnt();
     Ptr<Expr>       parse_cn_item(Ptr<IdPtrn>&);
     Ptr<Expr>       parse_fn_item(Ptr<IdPtrn>&);
     //@}
@@ -95,9 +94,12 @@ public:
 private:
     //@{ try to parse a Node
     Ptr<BlockExpr>  try_block_expr(const char* context);
-    Ptr<Expr>       try_expr(const char* context);
+    Ptr<Expr>       try_expr(const char* context, Token::Prec prec = Token::Prec::Bottom);
     Ptr<Id>         try_id(const char* context);
     Ptr<Ptrn>       try_ptrn(const char* context);
+    /// May also be an @p Expr which is intererpreted as an @p IdPtrn with an anonymous @p Id.
+    /// If @p ascription_context is not a @c nullptr the type ascription is mandatory.
+    /// Otherwise, it's optional.
     Ptr<Ptrn>       try_ptrn_t(const char* ascription_context = nullptr);
     //@}
 
@@ -113,10 +115,8 @@ private:
         return make_ptr<TupleExpr::Elem>(location, make_ptr<Id>(Token(location, Symbol("_"))), std::move(expr));
     }
     Ptr<TupleExpr>    make_tuple(Ptr<Expr>&& lhs, Ptr<Expr>&& rhs) {
-        Ptrs<TupleExpr::Elem> args;
         auto location = lhs->location + rhs->location;
-        args.emplace_back(make_tuple_elem(std::move(lhs)));
-        args.emplace_back(make_tuple_elem(std::move(rhs)));
+        auto args = make<Ptrs<TupleExpr::Elem>>(make_tuple_elem(std::move(lhs)), make_tuple_elem(std::move(rhs)));
         return make_ptr<TupleExpr>(location, std::move(args), make_unknown_expr());
     }
     Ptr<Id>           make_id(const char* s)  { return make_ptr<Id>(Token(prev_, s)); }
