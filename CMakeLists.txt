@@ -10,6 +10,8 @@ add_subdirectory(thorin2)
 
 add_library(impala
     impala/ast.h
+    impala/bind.cpp
+    impala/bind.h
     impala/compiler.h
     impala/lexer.cpp
     impala/parser.cpp

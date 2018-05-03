@@ -12,6 +12,8 @@
 
 namespace impala {
 
+class Scopes;
+
 struct Expr;
 struct Stmnt;
 
@@ -44,6 +46,10 @@ struct Id : public Node {
     Symbol symbol;
 };
 
+struct Decl {
+    Symbol symbol;
+};
+
 /*
  * Ptrn
  */
@@ -55,6 +61,7 @@ struct Ptrn : public Node {
         , type_mandatory(type_mandatory)
     {}
 
+    virtual void bind(Scopes&) const = 0;
     Printer& stream_ascription(Printer&) const ;
 
     Ptr<Expr> type;
@@ -66,6 +73,7 @@ struct ErrorPtrn : public Ptrn {
         : Ptrn(location, nullptr, false)
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -75,6 +83,7 @@ struct IdPtrn : public Ptrn {
         , id(std::move(id))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
@@ -86,6 +95,7 @@ struct TuplePtrn : public Ptrn {
         , elems(std::move(elems))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> elems;
@@ -99,6 +109,8 @@ struct Expr : public Node {
     Expr(Location location)
         : Node(location)
     {}
+
+    virtual void bind(Scopes&) const = 0;
 };
 
 struct AppExpr : public Expr {
@@ -109,6 +121,7 @@ struct AppExpr : public Expr {
         , cps(cps)
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> callee;
@@ -123,6 +136,7 @@ struct BlockExpr : public Expr {
         , expr(std::move(expr))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Stmnt> stmnts;
@@ -134,6 +148,7 @@ struct BottomExpr : public Expr {
         : Expr(location)
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -142,6 +157,7 @@ struct ErrorExpr : public Expr {
         : Expr(location)
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -152,6 +168,7 @@ struct IdExpr : public Expr {
 
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
@@ -165,6 +182,7 @@ struct IfExpr : public Expr {
         , else_expr(std::move(else_expr))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> cond;
@@ -186,6 +204,7 @@ struct InfixExpr : public Expr {
         , rhs(std::move(rhs))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> lhs;
@@ -200,6 +219,7 @@ struct FieldExpr : public Expr {
         , id(std::move(id))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> lhs;
@@ -213,6 +233,7 @@ struct ForallExpr : public Expr {
         , codomain(std::move(codomain))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Ptrn> domain;
@@ -220,6 +241,7 @@ struct ForallExpr : public Expr {
 };
 
 struct ForExpr : public Expr {
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -231,6 +253,7 @@ struct LambdaExpr : public Expr {
         , body(std::move(body))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Ptrn> domain;
@@ -239,6 +262,7 @@ struct LambdaExpr : public Expr {
 };
 
 struct MatchExpr : public Expr {
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -249,6 +273,7 @@ struct PackExpr : public Expr {
         , body(std::move(body))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> domains;
@@ -270,6 +295,7 @@ struct PrefixExpr : public Expr {
         , rhs(std::move(rhs))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Tag tag;
@@ -288,6 +314,7 @@ struct PostfixExpr : public Expr {
         , tag(tag)
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> lhs;
@@ -302,6 +329,7 @@ struct TupleExpr : public Expr {
             , expr(std::move(expr))
         {}
 
+        void bind(Scopes&) const;
         Printer& stream(Printer&) const override;
 
         Ptr<Id> id;
@@ -314,6 +342,7 @@ struct TupleExpr : public Expr {
         , type(std::move(type))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Elem> elems;
@@ -327,6 +356,7 @@ struct VariadicExpr : public Expr {
         , body(std::move(body))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> domains;
@@ -339,6 +369,7 @@ struct SigmaExpr : public Expr {
         , elems(std::move(elems))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> elems;
@@ -349,6 +380,7 @@ struct UnknownExpr : public Expr {
         : Expr(location)
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -363,6 +395,8 @@ struct Stmnt : public Node {
     Stmnt(Location location)
         : Node(location)
     {}
+
+    virtual void bind(Scopes&) const = 0;
 };
 
 struct ExprStmnt : public Stmnt {
@@ -371,6 +405,7 @@ struct ExprStmnt : public Stmnt {
         , expr(std::move(expr))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> expr;
@@ -383,6 +418,7 @@ struct LetStmnt : public Stmnt {
         , init(std::move(init))
     {}
 
+    void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Ptrn> ptrn;
