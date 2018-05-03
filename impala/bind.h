@@ -7,7 +7,7 @@ namespace impala {
 
 using thorin::Symbol;
 
-struct Decl;
+struct IdPtrn;
 struct Node;
 
 /// Binds identifiers to the nodes of the AST.
@@ -17,23 +17,24 @@ public:
         : compiler_(compiler)
     {}
 
+    Compiler& compiler() { return compiler_; }
+
     /// Performs name binding on a whole program.
     void run(const Node*);
 
-    //void bind_head(const ast::Decl&);
+    //void bind_head(const ast::IdPtrn&);
     void bind(const Node*);
 
     void push() { scopes_.emplace_back(); }
     void pop()  { scopes_.pop_back(); }
-    //void insert_symbol(const ast::NamedDecl&);
 
-    using Entry = std::pair<Symbol, const Decl*>;
+    void insert(const IdPtrn*);
 
-    Entry* find(Symbol symbol);
+    const IdPtrn* find(Symbol symbol);
 
 private:
     Compiler& compiler_;
-    std::vector<thorin::SymbolMap<const Decl*>> scopes_;
+    std::vector<thorin::SymbolMap<const IdPtrn*>> scopes_;
 };
 
 }

@@ -6,6 +6,7 @@
 #include "thorin/util/log.h"
 
 #include "impala/ast.h"
+#include "impala/bind.h"
 #include "impala/compiler.h"
 #include "impala/parser.h"
 #include "impala/print.h"
@@ -149,6 +150,8 @@ int main(int argc, char** argv) {
         auto filename = infiles.front().c_str();
         std::ifstream file(filename, std::ios::binary);
         auto expr = impala::parse(compiler, file, filename);
+        impala::Scopes scopes(compiler);
+        expr->bind(scopes);
 
         if (emit_ast) {
             impala::Printer printer(std::cout, fancy);

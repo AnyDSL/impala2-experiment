@@ -18,16 +18,21 @@ public:
     int num_errors() const { return num_errors_; }
 
     template<typename... Args>
-    std::ostream& warning(Location location, const char* fmt, Args... args) {
-        ++num_warnings_;
-        thorin::streamf(std::cerr, "{}: warning: ", location);
-        return thorin::streamf(std::cerr, fmt, args...) << std::endl;;
-    }
-    template<typename... Args>
     std::ostream& error(Location location, const char* fmt, Args... args) {
         ++num_errors_;
-        thorin::streamf(std::cerr, "{}: error: ", location);
-        return thorin::streamf(std::cerr, fmt, args...) << std::endl;;
+        thorin::errf("{}: error: ", location);
+        return thorin::errln(fmt, std::forward<Args>(args)...);
+    }
+    template<typename... Args>
+    std::ostream& warning(Location location, const char* fmt, Args... args) {
+        ++num_warnings_;
+        thorin::errf("{}: warning: ", location);
+        return thorin::errln(fmt, std::forward<Args>(args)...);
+    }
+    template<typename... Args>
+    std::ostream& note(Location location, const char* fmt, Args... args) {
+        thorin::errf("{}: note: ", location);
+        return thorin::errln(fmt, std::forward<Args>(args)...);
     }
 
     World world;

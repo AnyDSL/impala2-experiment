@@ -20,5 +20,9 @@ private:
 
 }
 
+namespace thorin {
+template void Streamable<impala::Printer>::dump() const;
+}
+
 #endif
 

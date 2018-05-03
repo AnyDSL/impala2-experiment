@@ -4,13 +4,24 @@
 
 namespace impala {
 
-Scopes::Entry* Scopes::find(Symbol symbol) {
+const IdPtrn* Scopes::find(Symbol symbol) {
     for (auto i = scopes_.rbegin(); i != scopes_.rend(); ++i) {
         auto& scope = *i;
         if (auto i = scope.find(symbol); i != scope.end())
-            return &*i;
+            return i->second;
     }
     return nullptr;
+}
+
+void Scopes::insert(const IdPtrn* id_ptrn) {
+    assert(!scopes_.empty());
+
+    if (id_ptrn->symbol().is_anonymous()) return;
+
+    if (auto [i, succ] = scopes_.back().emplace(id_ptrn->symbol(), id_ptrn); !succ) {
+        compiler().error(id_ptrn->id->location, "identifier '{}' already declared", id_ptrn->symbol());
+        compiler().note(i->second->id->location, "previously declared here");
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -20,7 +31,8 @@ Scopes::Entry* Scopes::find(Symbol symbol) {
  */
 
 void IdPtrn::bind(Scopes& scopes) const {
-    scopes.find(id->symbol);
+    scopes.insert(this);
+    type->bind(scopes);
 }
 
 void TuplePtrn::bind(Scopes& scopes) const {
@@ -41,9 +53,11 @@ void AppExpr::bind(Scopes& scopes) const {
 }
 
 void BlockExpr::bind(Scopes& scopes) const {
+    scopes.push();
     for (auto&& stmnt : stmnts)
         stmnt->bind(scopes);
     expr->bind(scopes);
+    scopes.pop();
 }
 
 void BottomExpr::bind(Scopes&) const {}
@@ -58,7 +72,13 @@ void ForallExpr::bind(Scopes& scopes) const {
 }
 
 void IdExpr::bind(Scopes& scopes) const {
-    scopes.find(id->symbol);
+    if (!symbol().is_anonymous()) {
+        id_ptrn = scopes.find(symbol());
+        if (id_ptrn == nullptr)
+            scopes.compiler().error(location, "'{}' not found in current scope", symbol());
+    } else {
+        scopes.compiler().error(location, "identifier '_' is reserved for anonymous declarations");
+    }
 }
 
 void IfExpr::bind(Scopes& scopes) const {

@@ -46,10 +46,6 @@ struct Id : public Node {
     Symbol symbol;
 };
 
-struct Decl {
-    Symbol symbol;
-};
-
 /*
  * Ptrn
  */
@@ -82,6 +78,8 @@ struct IdPtrn : public Ptrn {
         : Ptrn(location, std::move(type), type_mandatory)
         , id(std::move(id))
     {}
+
+    Symbol symbol() const { return id->symbol; }
 
     void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
@@ -168,10 +166,13 @@ struct IdExpr : public Expr {
 
     {}
 
+    Symbol symbol() const { return id->symbol; }
+
     void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
+    mutable const IdPtrn* id_ptrn;
 };
 
 struct IfExpr : public Expr {

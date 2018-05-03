@@ -49,7 +49,7 @@ Parser::Parser(Compiler& compiler, std::istream& stream, const char* filename)
 Token Parser::lex() {
     auto result = ahead();
     prev_ = ahead_[0].location();
-    for (int i = 0; i < max_ahead - 1; i++)
+    for (int i = 0; i < max_ahead - 1; ++i)
         ahead_[i] = ahead_[i + 1];
     ahead_[max_ahead - 1] = lexer_.lex();
     return result;
