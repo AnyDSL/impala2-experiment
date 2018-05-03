@@ -518,16 +518,26 @@ Ptr<LetStmnt> Parser::parse_item_stmnt() {
     return make_ptr<LetStmnt>(tracker, std::move(id_ptrn), std::move(init));
 }
 
-Ptr<Expr> Parser::parse_cn_item(Ptr<IdPtrn>& ) {
+Ptr<Expr> Parser::parse_cn_item(Ptr<IdPtrn>& id_ptrn) {
+    auto tracker = track();
+    eat(TT::K_cn);
+    id_ptrn = make_id_ptrn(parse_id());
+    if (ahead().isa(TT::D_bracket_l)) {
+        auto ds_domain = parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r);
+        auto cps_domain = parse_tuple_ptrn();
+        auto codomain = accept(TT::O_arrow) ? try_expr("codomain of a function") : make_unknown_expr();
+        auto body = try_expr("body of a function");
+
+        auto inner = make_ptr<LambdaExpr>(tracker, std::move(cps_domain), std::move(codomain), std::move(body));
+        return make_ptr<LambdaExpr>(tracker, std::move(ds_domain), make_unknown_expr(), std::move(inner));
+    }
     return nullptr;
 }
 
 Ptr<Expr> Parser::parse_fn_item(Ptr<IdPtrn>& id_ptrn) {
     auto tracker = track();
     eat(TT::K_fn);
-    auto id = parse_id();
-    auto l = id->location;
-    id_ptrn = make_ptr<IdPtrn>(l, std::move(id), make_unknown_expr(), false);
+    id_ptrn = make_id_ptrn(parse_id());
     if (ahead().isa(TT::D_bracket_l)) {
         auto ds_domain = parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r);
         auto cps_domain = parse_tuple_ptrn();

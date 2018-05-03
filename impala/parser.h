@@ -124,6 +124,10 @@ private:
         auto location = type->location;
         return make_ptr<IdPtrn>(location, make_id(s), std::move(type), true);
     }
+    Ptr<IdPtrn>       make_id_ptrn(Ptr<Id>&& id) {
+        auto location = id->location;
+        return make_ptr<IdPtrn>(location, std::move(id), make_unknown_expr(), false);
+    }
     Ptr<ForallExpr>   make_cn_type(Ptr<Ptrn>&& domain) {
         auto location = domain->location;
         return make_ptr<ForallExpr>(location, std::move(domain), make_bottom_expr());
