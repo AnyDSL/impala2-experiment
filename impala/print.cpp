@@ -84,9 +84,21 @@ Printer& FieldExpr::stream(Printer& p) const {
     return streamf(p, "{}.{}", lhs, id);
 }
 
+bool is_cn_type(const Expr* expr) {
+    if (auto forall = expr->isa<ForallExpr>(); forall && forall->codomain->isa<BottomExpr>())
+        return true;
+    return false;
+}
+
+bool is_cn_type(const Ptrn* ptrn) { return is_cn_type(ptrn->type.get()); }
+
+
 Printer& ForallExpr::stream(Printer& p) const {
-    if (codomain->isa<BottomExpr>())
+    if (p.fancy() && is_cn_type(this)) {
+        if (auto sigma = domain->type->isa<SigmaExpr>(); sigma && sigma->elems.size() == 2 && is_cn_type(sigma->elems.back().get()))
+            return streamf(p, "Fn {} -> {}", sigma->elems.front(), sigma->elems.back()->type->as<ForallExpr>()->domain);
         return streamf(p, "Cn {}", domain);
+    }
     return streamf(p, "\\/ {} -> {}", domain, codomain);
 }
 
@@ -103,10 +115,15 @@ Printer& InfixExpr::stream(Printer& p) const {
 }
 
 Printer& LambdaExpr::stream(Printer& p) const {
-    if (codomain->isa<BottomExpr>())
-        return streamf(p, "cn {} {}", domain, body);
-    if (codomain->isa<UnknownExpr>())
-        return streamf(p, "\\ {} {}", domain, body);
+    if (p.fancy()) {
+        if (codomain->isa<BottomExpr>()) {
+            if (auto tuple = domain->isa<TuplePtrn>(); tuple && tuple->elems.size() == 2 && is_cn_type(tuple->elems.back().get()) && tuple->elems.back()->as<IdPtrn>()->symbol() == "return")
+                return streamf(p, "fn {} {}", tuple->elems.front(), body);
+            return streamf(p, "cn {} {}", domain, body);
+        }
+        if (codomain->isa<UnknownExpr>())
+            return streamf(p, "\\ {} {}", domain, body);
+    }
     return streamf(p, "\\ {} -> {} {}", domain, codomain, body);
 }
 
@@ -119,13 +136,13 @@ Printer& PostfixExpr::stream(Printer& p) const {
 }
 
 Printer& TupleExpr::Elem::stream(Printer& p) const {
-    if (id->symbol.is_anonymous())
+    if (p.fancy() && id->symbol.is_anonymous())
         return streamf(p, "{}", expr);
     return streamf(p, "{}= {}", id, expr);
 }
 
 Printer& TupleExpr::stream(Printer& p) const {
-    if (type->isa<UnknownExpr>())
+    if (p.fancy() && type->isa<UnknownExpr>())
         return streamf(p, "({, })", elems);
     return streamf(p, "({, }): {}", elems, type);
 }

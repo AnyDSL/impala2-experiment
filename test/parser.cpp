@@ -42,7 +42,7 @@ TEST(Parser, Prec) {
     Compiler compiler;
     auto expr = parse(compiler, in);
     std::ostringstream os;
-    Printer printer(os);
+    Printer printer(os, true);
     expr->stream(printer);
 
     EXPECT_EQ(compiler.num_errors(), 0);
