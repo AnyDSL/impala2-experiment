@@ -14,16 +14,16 @@ class Parser {
 private:
     class Tracker {
     public:
-        Tracker(Parser& parser, const Location& location)
+        Tracker(Parser& parser, const Loc& loc)
             : parser_(parser)
-            , location_(location)
+            , loc_(loc)
         {}
 
-        operator Location() const { return {location_.front(), parser_.prev_.back()}; }
+        operator Loc() const { return {loc_.front(), parser_.prev_.back()}; }
 
     private:
         Parser& parser_;
-        Location location_;
+        Loc loc_;
     };
 
 public:
@@ -111,26 +111,26 @@ private:
     Ptr<UnknownExpr>  make_unknown_expr()     { return make_ptr<UnknownExpr>(prev_); }
 
     Ptr<TupleExpr::Elem> make_tuple_elem(Ptr<Expr>&& expr) {
-        auto location = expr->location;
-        return make_ptr<TupleExpr::Elem>(location, make_ptr<Id>(Token(location, Symbol("_"))), std::move(expr));
+        auto loc = expr->loc;
+        return make_ptr<TupleExpr::Elem>(loc, make_ptr<Id>(Token(loc, Symbol("_"))), std::move(expr));
     }
     Ptr<TupleExpr>    make_tuple(Ptr<Expr>&& lhs, Ptr<Expr>&& rhs) {
-        auto location = lhs->location + rhs->location;
+        auto loc = lhs->loc + rhs->loc;
         auto args = make_ptrs<TupleExpr::Elem>(make_tuple_elem(std::move(lhs)), make_tuple_elem(std::move(rhs)));
-        return make_ptr<TupleExpr>(location, std::move(args), make_unknown_expr());
+        return make_ptr<TupleExpr>(loc, std::move(args), make_unknown_expr());
     }
     Ptr<Id>           make_id(const char* s)  { return make_ptr<Id>(Token(prev_, s)); }
     Ptr<IdPtrn>       make_id_ptrn(const char* s, Ptr<Expr>&& type) {
-        auto location = type->location;
-        return make_ptr<IdPtrn>(location, make_id(s), std::move(type), true);
+        auto loc = type->loc;
+        return make_ptr<IdPtrn>(loc, make_id(s), std::move(type), true);
     }
     Ptr<IdPtrn>       make_id_ptrn(Ptr<Id>&& id) {
-        auto location = id->location;
-        return make_ptr<IdPtrn>(location, std::move(id), make_unknown_expr(), false);
+        auto loc = id->loc;
+        return make_ptr<IdPtrn>(loc, std::move(id), make_unknown_expr(), false);
     }
     Ptr<ForallExpr>   make_cn_type(Ptr<Ptrn>&& domain) {
-        auto location = domain->location;
-        return make_ptr<ForallExpr>(location, std::move(domain), make_bottom_expr());
+        auto loc = domain->loc;
+        return make_ptr<ForallExpr>(loc, std::move(domain), make_bottom_expr());
     }
     //@}
 
@@ -159,8 +159,8 @@ private:
         return result;
     }
 
-    Tracker track() { return Tracker(*this, ahead().location().front()); }
-    Tracker track(const Location& location) { return Tracker(*this, location); }
+    Tracker track() { return Tracker(*this, ahead().loc().front()); }
+    Tracker track(const Loc& loc) { return Tracker(*this, loc); }
 
     /// Consume next Token in input stream, fill look-ahead buffer, return consumed Token.
     Token lex();
@@ -168,7 +168,7 @@ private:
     Lexer lexer_;                       ///< invoked in order to get next token
     static constexpr int max_ahead = 3; ///< maximum lookahead
     std::array<Token, max_ahead> ahead_;///< SLL look ahead
-    Location prev_;
+    Loc prev_;
 };
 
 Ptr<Expr> parse(Compiler& compiler, std::istream& is, const char* filename);

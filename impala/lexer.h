@@ -3,7 +3,7 @@
 
 #include "impala/compiler.h"
 
-#include "thorin/util/location.h"
+#include "thorin/util/debug.h"
 
 #include "impala/token.h"
 
@@ -53,9 +53,9 @@ private:
     uint32_t next();
     uint32_t peek() const { return peek_; }
     const std::string& str() const { return str_; }
-    Location location() const { return {filename_, front_line_, front_col_, back_line_, back_col_}; }
+    Loc loc() const { return {filename_, front_line_, front_col_, back_line_, back_col_}; }
     template<class... Args>
-    std::ostream& error(const char* fmt, Args... args) { return compiler.error(location(), fmt, std::forward<Args>(args)...); }
+    std::ostream& error(const char* fmt, Args... args) { return compiler.error(loc(), fmt, std::forward<Args>(args)...); }
 
     std::istream& stream_;
     uint32_t peek_ = 0;

@@ -121,7 +121,7 @@ Token Lexer::lex() {
         front_col_  = peek_col_;
 
         // end of file
-        if (eof()) return {location(), TT::M_eof};
+        if (eof()) return {loc(), TT::M_eof};
 
         // skip whitespace
         if (accept_if(wsp, false)) {
@@ -130,65 +130,65 @@ Token Lexer::lex() {
         }
 
         // delimiters
-        if (accept( '(')) return {location(), TT::D_paren_l};
-        if (accept( ')')) return {location(), TT::D_paren_r};
-        if (accept( '[')) return {location(), TT::D_bracket_l};
-        if (accept( ']')) return {location(), TT::D_bracket_r};
-        if (accept( '{')) return {location(), TT::D_brace_l};
-        if (accept( '}')) return {location(), TT::D_brace_r};
-        if (accept(U'«')) return {location(), TT::D_quote_l};
-        if (accept(U'»')) return {location(), TT::D_quote_r};
-        if (accept(U'‹')) return {location(), TT::D_angle_l};
-        if (accept(U'›')) return {location(), TT::D_angle_r};
+        if (accept( '(')) return {loc(), TT::D_paren_l};
+        if (accept( ')')) return {loc(), TT::D_paren_r};
+        if (accept( '[')) return {loc(), TT::D_bracket_l};
+        if (accept( ']')) return {loc(), TT::D_bracket_r};
+        if (accept( '{')) return {loc(), TT::D_brace_l};
+        if (accept( '}')) return {loc(), TT::D_brace_r};
+        if (accept(U'«')) return {loc(), TT::D_quote_l};
+        if (accept(U'»')) return {loc(), TT::D_quote_r};
+        if (accept(U'‹')) return {loc(), TT::D_angle_l};
+        if (accept(U'›')) return {loc(), TT::D_angle_r};
 
         // punctation
-        if (accept('.')) return {location(), TT::P_dot};
-        if (accept(',')) return {location(), TT::P_comma};
-        if (accept(';')) return {location(), TT::P_semicolon};
+        if (accept('.')) return {loc(), TT::P_dot};
+        if (accept(',')) return {loc(), TT::P_comma};
+        if (accept(';')) return {loc(), TT::P_semicolon};
         if (accept(':')) {
-            if (accept(':')) return {location(), TT::P_colon_colon};
-            return {location(), TT::P_colon};
+            if (accept(':')) return {loc(), TT::P_colon_colon};
+            return {loc(), TT::P_colon};
         }
 
         // operators
         if (accept('\\')) {
-            if (accept('/')) return {location(), TT::O_forall};
-            return {location(), TT::O_lambda};
+            if (accept('/')) return {loc(), TT::O_forall};
+            return {loc(), TT::O_lambda};
         }
         if (accept('=')) {
-            if (accept('=')) return {location(), TT::O_eq};
-            return {location(), TT::O_assign};
+            if (accept('=')) return {loc(), TT::O_eq};
+            return {loc(), TT::O_assign};
         }
         if (accept('<')) {
             if (accept('<')) {
-                if (accept('=')) return {location(), TT::O_shl_assign};
-                return {location(), TT::O_shl};
+                if (accept('=')) return {loc(), TT::O_shl_assign};
+                return {loc(), TT::O_shl};
             }
-            if (accept('=')) return {location(), TT::O_le};
-            return {location(), TT::O_lt};
+            if (accept('=')) return {loc(), TT::O_le};
+            return {loc(), TT::O_lt};
         }
         if (accept('>')) {
             if (accept('>')) {
-                if (accept('=')) return {location(), TT::O_shr_assign};
-                return {location(), TT::O_shr};
+                if (accept('=')) return {loc(), TT::O_shr_assign};
+                return {loc(), TT::O_shr};
             }
-            if (accept('=')) return {location(), TT::O_ge};
-            return {location(), TT::O_gt};
+            if (accept('=')) return {loc(), TT::O_ge};
+            return {loc(), TT::O_gt};
         }
         if (accept('+')) {
-            if (accept('+')) return {location(), TT::O_inc};
-            if (accept('=')) return {location(), TT::O_add_assign};
-            return {location(), TT::O_add};
+            if (accept('+')) return {loc(), TT::O_inc};
+            if (accept('=')) return {loc(), TT::O_add_assign};
+            return {loc(), TT::O_add};
         }
         if (accept('-')) {
-            if (accept('>')) return {location(), TT::O_arrow};
-            if (accept('-')) return {location(), TT::O_dec};
-            if (accept('=')) return {location(), TT::O_sub_assign};
-            return {location(), TT::O_sub};
+            if (accept('>')) return {loc(), TT::O_arrow};
+            if (accept('-')) return {loc(), TT::O_dec};
+            if (accept('=')) return {loc(), TT::O_sub_assign};
+            return {loc(), TT::O_sub};
         }
         if (accept('*')) {
-            if (accept('=')) return {location(), TT::O_mul_assign};
-            return {location(), TT::O_mul};
+            if (accept('=')) return {loc(), TT::O_mul_assign};
+            return {loc(), TT::O_mul};
         }
         if (accept('/')) {
             // Handle comments here
@@ -197,30 +197,30 @@ Token Lexer::lex() {
                 while (!eof() && peek() != '\n') next();
                 continue;
             }
-            if (accept('='))  return {location(), TT::O_div_assign};
-            return {location(), TT::O_div};
+            if (accept('='))  return {loc(), TT::O_div_assign};
+            return {loc(), TT::O_div};
         }
         if (accept('%')) {
-            if (accept('=')) return {location(), TT::O_rem_assign};
-            return {location(), TT::O_rem};
+            if (accept('=')) return {loc(), TT::O_rem_assign};
+            return {loc(), TT::O_rem};
         }
         if (accept('&')) {
-            if (accept('&')) return {location(), TT::O_and_and};
-            if (accept('=')) return {location(), TT::O_and_assign};
-            return {location(), TT::O_and};
+            if (accept('&')) return {loc(), TT::O_and_and};
+            if (accept('=')) return {loc(), TT::O_and_assign};
+            return {loc(), TT::O_and};
         }
         if (accept('|')) {
-            if (accept('|')) return {location(), TT::O_or_or};
-            if (accept('=')) return {location(), TT::O_or_assign};
-            return {location(), TT::O_or};
+            if (accept('|')) return {loc(), TT::O_or_or};
+            if (accept('=')) return {loc(), TT::O_or_assign};
+            return {loc(), TT::O_or};
         }
         if (accept('^')) {
-            if (accept('=')) return {location(), TT::O_xor_assign};
-            return {location(), TT::O_xor};
+            if (accept('=')) return {loc(), TT::O_xor_assign};
+            return {loc(), TT::O_xor};
         }
         if (accept('!')) {
-            if (accept('=')) return {location(), TT::O_ne};
-            return {location(), TT::O_not};
+            if (accept('=')) return {loc(), TT::O_ne};
+            return {loc(), TT::O_not};
         }
         if (dec(peek()) || sgn(peek()))
             return parse_literal();
@@ -230,7 +230,7 @@ Token Lexer::lex() {
             while (accept_if(sym) || accept_if(dec)) {}
             Symbol symbol(str_);
             auto i = std::find_if(keywords_.begin(), keywords_.end(), [&](auto p) { return p.first == symbol; });
-            return i == keywords_.end() ? Token{location(), symbol} : Token{location(), i->second};
+            return i == keywords_.end() ? Token{loc(), symbol} : Token{loc(), i->second};
         }
 
         // TODO utf-8 stuff here
@@ -283,10 +283,10 @@ Token Lexer::parse_literal() {
     }
 
     if (is_float)
-        return {location(), thorin::s64(strtoll(str().c_str(), nullptr, base))};
+        return {loc(), thorin::s64(strtoll(str().c_str(), nullptr, base))};
     if (sign)
-        return {location(), thorin::u64(strtoll(str().c_str(), nullptr, base))};
-    return {location(), thorin::u64(strtoull(str().c_str(), nullptr, base))};
+        return {loc(), thorin::u64(strtoll(str().c_str(), nullptr, base))};
+    return {loc(), thorin::u64(strtoull(str().c_str(), nullptr, base))};
 }
 
 }

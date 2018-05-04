@@ -1,7 +1,7 @@
 #ifndef IMPALA_TOKEN_H
 #define IMPALA_TOKEN_H
 
-#include "thorin/util/location.h"
+#include "thorin/util/debug.h"
 #include "thorin/util/symbol.h"
 #include "thorin/util/types.h"
 #include "thorin/util/utility.h"
@@ -9,7 +9,7 @@
 namespace impala {
 
 using thorin::Box;
-using thorin::Location;
+using thorin::Loc;
 using thorin::Symbol;
 using namespace thorin::literals;
 
@@ -131,35 +131,35 @@ public:
     };
 
     Token() {}
-    Token(Location location, Tag tag)
-        : location_(location)
+    Token(Loc loc, Tag tag)
+        : loc_(loc)
         , tag_(tag)
         , symbol_(tag2str(tag))
     {}
-    Token(Location location, thorin::s64 s)
-        : location_(location)
+    Token(Loc loc, thorin::s64 s)
+        : loc_(loc)
         , tag_(Tag::L_s)
         , s64_(s)
     {}
-    Token(Location location, thorin::u64 u)
-        : location_(location)
+    Token(Loc loc, thorin::u64 u)
+        : loc_(loc)
         , tag_(Tag::L_u)
         , u64_(u)
     {}
-    Token(Location location, thorin::f64 f)
-        : location_(location)
+    Token(Loc loc, thorin::f64 f)
+        : loc_(loc)
         , tag_(Tag::L_f)
         , f64_(f)
     {}
-    Token(Location location, Symbol symbol)
-        : location_(location)
+    Token(Loc loc, Symbol symbol)
+        : loc_(loc)
         , tag_(Tag::M_id)
         , symbol_(symbol)
     {}
 
     Tag tag() const { return tag_; }
     bool isa(Tag tag) const { return tag_ == tag; }
-    Location location() const { return location_; }
+    Loc loc() const { return loc_; }
     Symbol symbol() const { assert(tag() == Tag::M_id); return symbol_; }
     thorin::f64 f64() const { assert(tag() == Tag::L_f); return f64_; }
     thorin::s64 s64() const { assert(tag() == Tag::L_s); return s64_; }
@@ -207,7 +207,7 @@ public:
     }
 
 private:
-    Location location_;
+    Loc loc_;
     Tag tag_;
     union {
         Symbol symbol_;

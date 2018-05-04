@@ -39,7 +39,7 @@ Parser::Parser(Compiler& compiler, std::istream& stream, const char* filename)
     : lexer_(compiler, stream, filename)
 {
     for (int i = 0; i != max_ahead; ++i) lex();
-    prev_ = Location(filename, 1, 1, 1, 1);
+    prev_ = Loc(filename, 1, 1, 1, 1);
 }
 
 /*
@@ -48,7 +48,7 @@ Parser::Parser(Compiler& compiler, std::istream& stream, const char* filename)
 
 Token Parser::lex() {
     auto result = ahead();
-    prev_ = ahead_[0].location();
+    prev_ = ahead_[0].loc();
     for (int i = 0; i < max_ahead - 1; ++i)
         ahead_[i] = ahead_[i + 1];
     ahead_[max_ahead - 1] = lexer_.lex();
@@ -74,7 +74,7 @@ bool Parser::expect(TT tag, const char* context) {
 }
 
 void Parser::error(const char* what, const Token& tok, const char* context) {
-    lexer_.compiler.error(tok.location(), "expected {}, got '{}' while parsing {}", what, tok, context);
+    lexer_.compiler.error(tok.loc(), "expected {}, got '{}' while parsing {}", what, tok, context);
 }
 
 /*
@@ -204,7 +204,7 @@ Ptr<Expr> Parser::parse_infix_expr(Tracker tracker, Ptr<Expr>&& lhs) {
     auto token = lex();
     auto rhs = parse_expr(Token::tag2prec(token.tag()));
     if (auto name = Token::tag2name(token.tag()); name[0] != '\0') {
-        auto callee = make_ptr<IdExpr>(make_ptr<Id>(Token(token.location(), Symbol(name))));
+        auto callee = make_ptr<IdExpr>(make_ptr<Id>(Token(token.loc(), Symbol(name))));
         auto args = make_tuple(std::move(lhs), std::move(rhs));
         return make_ptr<AppExpr>(tracker, std::move(callee), std::move(args), true);
     }
@@ -289,7 +289,7 @@ Ptr<BlockExpr> Parser::parse_block_expr() {
                     case TT::K_for:     expr = parse_for_expr(); break;
                     case TT::K_while:   expr = parse_while_expr(); break;
                     case TT::D_brace_l: expr = parse_block_expr(); break;
-                    default:                    expr = parse_expr(); stmnt_like = false;
+                    default:            expr = parse_expr(); stmnt_like = false;
                 }
 
                 if (accept(TT::P_semicolon) || (stmnt_like && !ahead().isa(TT::D_brace_r))) {
@@ -417,8 +417,8 @@ Ptr<LambdaExpr> Parser::parse_fn_expr() {
     auto ret_ptrn = make_id_ptrn("return", make_cn_type(make_id_ptrn("_", std::move(ret))));
 
     auto first = std::move(domain);
-    auto location = first->location + ret_ptrn->location;
-    domain = make_ptr<TuplePtrn>(location, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn)), make_unknown_expr(), false);
+    auto loc = first->loc + ret_ptrn->loc;
+    domain = make_ptr<TuplePtrn>(loc, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn)), make_unknown_expr(), false);
 
     auto body = try_expr("body of an abstraction");
 
@@ -457,8 +457,8 @@ Ptr<ForallExpr> Parser::parse_fn_type_expr() {
     auto ret_ptrn = make_id_ptrn("_", make_cn_type(make_id_ptrn("_", std::move(ret))));
 
     auto first = std::move(domain);
-    auto location = first->location + ret_ptrn->location;
-    domain = make_id_ptrn("_", make_ptr<SigmaExpr>(location, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn))));
+    auto loc = first->loc + ret_ptrn->loc;
+    domain = make_id_ptrn("_", make_ptr<SigmaExpr>(loc, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn))));
 
     return make_ptr<ForallExpr>(tracker, std::move(domain), make_bottom_expr());
 }
@@ -534,8 +534,8 @@ Ptr<Expr> Parser::parse_fn_item(Ptr<IdPtrn>& id_ptrn) {
     auto ret_ptrn = make_id_ptrn("return", make_cn_type(make_id_ptrn("_", std::move(ret))));
 
     auto first = std::move(domain);
-    auto location = first->location + ret_ptrn->location;
-    domain = make_ptr<TuplePtrn>(location, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn)), make_unknown_expr(), false);
+    auto loc = first->loc + ret_ptrn->loc;
+    domain = make_ptr<TuplePtrn>(loc, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn)), make_unknown_expr(), false);
 
     auto body = try_expr("body of a function");
 

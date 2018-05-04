@@ -5,7 +5,7 @@
 
 namespace impala {
 
-using thorin::Location;
+using thorin::Loc;
 
 class Compiler {
 public:
@@ -18,20 +18,20 @@ public:
     int num_errors() const { return num_errors_; }
 
     template<class... Args>
-    std::ostream& error(Location location, const char* fmt, Args... args) {
+    std::ostream& error(Loc loc, const char* fmt, Args... args) {
         ++num_errors_;
-        thorin::errf("{}: error: ", location);
+        thorin::errf("{}: error: ", loc);
         return thorin::errln(fmt, std::forward<Args>(args)...);
     }
     template<class... Args>
-    std::ostream& warn(Location location, const char* fmt, Args... args) {
+    std::ostream& warn(Loc loc, const char* fmt, Args... args) {
         ++num_warnings_;
-        thorin::errf("{}: warning: ", location);
+        thorin::errf("{}: warning: ", loc);
         return thorin::errln(fmt, std::forward<Args>(args)...);
     }
     template<class... Args>
-    std::ostream& note(Location location, const char* fmt, Args... args) {
-        thorin::errf("{}: note: ", location);
+    std::ostream& note(Loc loc, const char* fmt, Args... args) {
+        thorin::errf("{}: note: ", loc);
         return thorin::errln(fmt, std::forward<Args>(args)...);
     }
 

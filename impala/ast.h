@@ -43,19 +43,19 @@ Ptrs<T> make_ptrs(Args&&... args) {
 //------------------------------------------------------------------------------
 
 struct Node : public thorin::Streamable<Printer> {
-    Node(Location location)
-        : location(location)
+    Node(Loc loc)
+        : loc(loc)
     {}
     virtual ~Node() {}
 
     std::ostream& stream_out(std::ostream&) const;
 
-    Location location;
+    Loc loc;
 };
 
 struct Id : public Node {
     Id(Token token)
-        : Node(token.location())
+        : Node(token.loc())
         , symbol(token.symbol())
     {}
 
@@ -69,8 +69,8 @@ struct Id : public Node {
  */
 
 struct Ptrn : public thorin::RuntimeCast<Ptrn>, public Node {
-    Ptrn(Location location, Ptr<Expr>&& type, bool type_mandatory)
-        : Node(location)
+    Ptrn(Loc loc, Ptr<Expr>&& type, bool type_mandatory)
+        : Node(loc)
         , type(std::move(type))
         , type_mandatory(type_mandatory)
     {}
@@ -83,8 +83,8 @@ struct Ptrn : public thorin::RuntimeCast<Ptrn>, public Node {
 };
 
 struct ErrorPtrn : public Ptrn {
-    ErrorPtrn(Location location)
-        : Ptrn(location, nullptr, false)
+    ErrorPtrn(Loc loc)
+        : Ptrn(loc, nullptr, false)
     {}
 
     void bind(Scopes&) const override;
@@ -92,8 +92,8 @@ struct ErrorPtrn : public Ptrn {
 };
 
 struct IdPtrn : public Ptrn {
-    IdPtrn(Location location, Ptr<Id>&& id, Ptr<Expr>&& type, bool type_mandatory)
-        : Ptrn(location, std::move(type), type_mandatory)
+    IdPtrn(Loc loc, Ptr<Id>&& id, Ptr<Expr>&& type, bool type_mandatory)
+        : Ptrn(loc, std::move(type), type_mandatory)
         , id(std::move(id))
     {}
 
@@ -106,8 +106,8 @@ struct IdPtrn : public Ptrn {
 };
 
 struct TuplePtrn : public Ptrn {
-    TuplePtrn(Location location, Ptrs<Ptrn>&& elems, Ptr<Expr>&& type, bool type_mandatory)
-        : Ptrn(location, std::move(type), type_mandatory)
+    TuplePtrn(Loc loc, Ptrs<Ptrn>&& elems, Ptr<Expr>&& type, bool type_mandatory)
+        : Ptrn(loc, std::move(type), type_mandatory)
         , elems(std::move(elems))
     {}
 
@@ -122,16 +122,16 @@ struct TuplePtrn : public Ptrn {
  */
 
 struct Expr : public thorin::RuntimeCast<Expr>, public Node {
-    Expr(Location location)
-        : Node(location)
+    Expr(Loc loc)
+        : Node(loc)
     {}
 
     virtual void bind(Scopes&) const = 0;
 };
 
 struct AppExpr : public Expr {
-    AppExpr(Location location, Ptr<Expr>&& callee, Ptr<Expr>&& arg, bool cps)
-        : Expr(location)
+    AppExpr(Loc loc, Ptr<Expr>&& callee, Ptr<Expr>&& arg, bool cps)
+        : Expr(loc)
         , callee(std::move(callee))
         , arg(std::move(arg))
         , cps(cps)
@@ -146,8 +146,8 @@ struct AppExpr : public Expr {
 };
 
 struct BlockExpr : public Expr {
-    BlockExpr(Location location, Ptrs<Stmnt>&& stmnts, Ptr<Expr>&& expr)
-        : Expr(location)
+    BlockExpr(Loc loc, Ptrs<Stmnt>&& stmnts, Ptr<Expr>&& expr)
+        : Expr(loc)
         , stmnts(std::move(stmnts))
         , expr(std::move(expr))
     {}
@@ -160,8 +160,8 @@ struct BlockExpr : public Expr {
 };
 
 struct BottomExpr : public Expr {
-    BottomExpr(Location location)
-        : Expr(location)
+    BottomExpr(Loc loc)
+        : Expr(loc)
     {}
 
     void bind(Scopes&) const override;
@@ -169,8 +169,8 @@ struct BottomExpr : public Expr {
 };
 
 struct ErrorExpr : public Expr {
-    ErrorExpr(Location location)
-        : Expr(location)
+    ErrorExpr(Loc loc)
+        : Expr(loc)
     {}
 
     void bind(Scopes&) const override;
@@ -179,7 +179,7 @@ struct ErrorExpr : public Expr {
 
 struct IdExpr : public Expr {
     IdExpr(Ptr<Id>&& id)
-        : Expr(id->location)
+        : Expr(id->loc)
         , id(std::move(id))
 
     {}
@@ -194,8 +194,8 @@ struct IdExpr : public Expr {
 };
 
 struct IfExpr : public Expr {
-    IfExpr(Location location, Ptr<Expr>&& cond, Ptr<Expr>&& then_expr, Ptr<Expr>&& else_expr)
-        : Expr(location)
+    IfExpr(Loc loc, Ptr<Expr>&& cond, Ptr<Expr>&& then_expr, Ptr<Expr>&& else_expr)
+        : Expr(loc)
         , cond(std::move(cond))
         , then_expr(std::move(then_expr))
         , else_expr(std::move(else_expr))
@@ -216,8 +216,8 @@ struct InfixExpr : public Expr {
         O_or_or      = int(Token::Tag::O_or_or),
     };
 
-    InfixExpr(Location location, Ptr<Expr>&& lhs, Tag tag, Ptr<Expr>&& rhs)
-        : Expr(location)
+    InfixExpr(Loc loc, Ptr<Expr>&& lhs, Tag tag, Ptr<Expr>&& rhs)
+        : Expr(loc)
         , lhs(std::move(lhs))
         , tag(tag)
         , rhs(std::move(rhs))
@@ -232,8 +232,8 @@ struct InfixExpr : public Expr {
 };
 
 struct FieldExpr : public Expr {
-    FieldExpr(Location location, Ptr<Expr>&& lhs, Ptr<Id>&& id)
-        : Expr(location)
+    FieldExpr(Loc loc, Ptr<Expr>&& lhs, Ptr<Id>&& id)
+        : Expr(loc)
         , lhs(std::move(lhs))
         , id(std::move(id))
     {}
@@ -246,8 +246,8 @@ struct FieldExpr : public Expr {
 };
 
 struct ForallExpr : public Expr {
-    ForallExpr(Location location, Ptr<Ptrn>&& domain, Ptr<Expr>&& codomain)
-        : Expr(location)
+    ForallExpr(Loc loc, Ptr<Ptrn>&& domain, Ptr<Expr>&& codomain)
+        : Expr(loc)
         , domain(std::move(domain))
         , codomain(std::move(codomain))
     {}
@@ -265,8 +265,8 @@ struct ForExpr : public Expr {
 };
 
 struct LambdaExpr : public Expr {
-    LambdaExpr(Location location, Ptr<Ptrn>&& domain, Ptr<Expr>&& codomain, Ptr<Expr>&& body)
-        : Expr(location)
+    LambdaExpr(Loc loc, Ptr<Ptrn>&& domain, Ptr<Expr>&& codomain, Ptr<Expr>&& body)
+        : Expr(loc)
         , domain(std::move(domain))
         , codomain(std::move(codomain))
         , body(std::move(body))
@@ -286,8 +286,8 @@ struct MatchExpr : public Expr {
 };
 
 struct PackExpr : public Expr {
-    PackExpr(Location location, Ptrs<Ptrn>&& domains, Ptr<Expr>&& body)
-        : Expr(location)
+    PackExpr(Loc loc, Ptrs<Ptrn>&& domains, Ptr<Expr>&& body)
+        : Expr(loc)
         , domains(std::move(domains))
         , body(std::move(body))
     {}
@@ -308,8 +308,8 @@ struct PrefixExpr : public Expr {
         O_and = int(Token::Tag::O_and),
     };
 
-    PrefixExpr(Location location, Tag tag, Ptr<Expr>&& rhs)
-        : Expr(location)
+    PrefixExpr(Loc loc, Tag tag, Ptr<Expr>&& rhs)
+        : Expr(loc)
         , tag(tag)
         , rhs(std::move(rhs))
     {}
@@ -327,8 +327,8 @@ struct PostfixExpr : public Expr {
         O_dec = int(Token::Tag::O_dec),
     };
 
-    PostfixExpr(Location location, Ptr<Expr>&& lhs, Tag tag)
-        : Expr(location)
+    PostfixExpr(Loc loc, Ptr<Expr>&& lhs, Tag tag)
+        : Expr(loc)
         , lhs(std::move(lhs))
         , tag(tag)
     {}
@@ -342,8 +342,8 @@ struct PostfixExpr : public Expr {
 
 struct TupleExpr : public Expr {
     struct Elem : public Node {
-        Elem(Location location, Ptr<Id>&& id, Ptr<Expr>&& expr)
-            : Node(location)
+        Elem(Loc loc, Ptr<Id>&& id, Ptr<Expr>&& expr)
+            : Node(loc)
             , id(std::move(id))
             , expr(std::move(expr))
         {}
@@ -355,8 +355,8 @@ struct TupleExpr : public Expr {
         Ptr<Expr> expr;
     };
 
-    TupleExpr(Location location, Ptrs<Elem>&& elems, Ptr<Expr>&& type)
-        : Expr(location)
+    TupleExpr(Loc loc, Ptrs<Elem>&& elems, Ptr<Expr>&& type)
+        : Expr(loc)
         , elems(std::move(elems))
         , type(std::move(type))
     {}
@@ -369,8 +369,8 @@ struct TupleExpr : public Expr {
 };
 
 struct VariadicExpr : public Expr {
-    VariadicExpr(Location location, Ptrs<Ptrn>&& domains, Ptr<Expr>&& body)
-        : Expr(location)
+    VariadicExpr(Loc loc, Ptrs<Ptrn>&& domains, Ptr<Expr>&& body)
+        : Expr(loc)
         , domains(std::move(domains))
         , body(std::move(body))
     {}
@@ -383,8 +383,8 @@ struct VariadicExpr : public Expr {
 };
 
 struct SigmaExpr : public Expr {
-    SigmaExpr(Location location, Ptrs<Ptrn>&& elems)
-        : Expr(location)
+    SigmaExpr(Loc loc, Ptrs<Ptrn>&& elems)
+        : Expr(loc)
         , elems(std::move(elems))
     {}
 
@@ -395,8 +395,8 @@ struct SigmaExpr : public Expr {
 };
 
 struct UnknownExpr : public Expr {
-    UnknownExpr(Location location)
-        : Expr(location)
+    UnknownExpr(Loc loc)
+        : Expr(loc)
     {}
 
     void bind(Scopes&) const override;
@@ -411,16 +411,16 @@ struct WhileExpr : public Expr {
  */
 
 struct Stmnt : public thorin::RuntimeCast<Stmnt>, public Node {
-    Stmnt(Location location)
-        : Node(location)
+    Stmnt(Loc loc)
+        : Node(loc)
     {}
 
     virtual void bind(Scopes&) const = 0;
 };
 
 struct ExprStmnt : public Stmnt {
-    ExprStmnt(Location location, Ptr<Expr>&& expr)
-        : Stmnt(location)
+    ExprStmnt(Loc loc, Ptr<Expr>&& expr)
+        : Stmnt(loc)
         , expr(std::move(expr))
     {}
 
@@ -431,8 +431,8 @@ struct ExprStmnt : public Stmnt {
 };
 
 struct LetStmnt : public Stmnt {
-    LetStmnt(Location location, Ptr<Ptrn>&& ptrn, Ptr<Expr>&& init)
-        : Stmnt(location)
+    LetStmnt(Loc loc, Ptr<Ptrn>&& ptrn, Ptr<Expr>&& init)
+        : Stmnt(loc)
         , ptrn(std::move(ptrn))
         , init(std::move(init))
     {}
