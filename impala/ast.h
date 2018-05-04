@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <memory>
+#include <variant>
 
 #include "thorin/util/cast.h"
 #include "thorin/util/stream.h"
@@ -42,6 +43,10 @@ Ptrs<T> make_ptrs(Args&&... args) {
 
 //------------------------------------------------------------------------------
 
+struct IdPtrn;
+struct Item;
+using Decl = std::variant<const IdPtrn*, const Item*>;
+
 struct Node : public thorin::Streamable<Printer> {
     Node(Loc loc)
         : loc(loc)
@@ -62,6 +67,17 @@ struct Id : public Node {
     Printer& stream(Printer&) const override;
 
     Symbol symbol;
+};
+
+struct Item : public Node {
+    Item(Loc loc, Ptr<Id>&& id, Ptr<Expr> expr)
+        : Node(loc)
+        , id(std::move(id))
+        , expr(std::move(expr))
+    {}
+
+    Ptr<Id> id;
+    Ptr<Expr> expr;
 };
 
 /*
@@ -190,7 +206,7 @@ struct IdExpr : public Expr {
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
-    mutable const IdPtrn* id_ptrn;
+    mutable Decl decl;
 };
 
 struct IfExpr : public Expr {
@@ -430,6 +446,18 @@ struct ExprStmnt : public Stmnt {
     Ptr<Expr> expr;
 };
 
+struct ItemStmnt : public Stmnt {
+    ItemStmnt(Loc loc, Ptr<Item>&& item)
+        : Stmnt(loc)
+        , item(std::move(item))
+    {}
+
+    void bind(Scopes&) const override;
+    Printer& stream(Printer&) const override;
+
+    Ptr<Item> item;
+};
+
 struct LetStmnt : public Stmnt {
     LetStmnt(Loc loc, Ptr<Ptrn>&& ptrn, Ptr<Expr>&& init)
         : Stmnt(loc)
@@ -443,6 +471,14 @@ struct LetStmnt : public Stmnt {
     Ptr<Ptrn> ptrn;
     Ptr<Expr> init;
 };
+
+//------------------------------------------------------------------------------
+
+inline const Id* get_id(Decl decl) { return std::visit([&](auto x) { return x->id.get(); }, decl); }
+inline Symbol get_symbol(Decl decl) { return get_id(decl)->symbol; }
+inline bool is_valid(Decl decl) { return std::visit([&](auto x) { return x != nullptr; }, decl); }
+
+//------------------------------------------------------------------------------
 
 }
 

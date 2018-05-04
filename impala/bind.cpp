@@ -4,23 +4,24 @@
 
 namespace impala {
 
-const IdPtrn* Scopes::find(Symbol symbol) {
+Decl Scopes::find(Symbol symbol) {
     for (auto i = scopes_.rbegin(); i != scopes_.rend(); ++i) {
         auto& scope = *i;
         if (auto i = scope.find(symbol); i != scope.end())
             return i->second;
     }
-    return nullptr;
+    return Decl((IdPtrn*)nullptr);
 }
 
-void Scopes::insert(const IdPtrn* id_ptrn) {
+void Scopes::insert(Decl decl) {
     assert(!scopes_.empty());
 
-    if (id_ptrn->symbol().is_anonymous()) return;
+    auto symbol = get_symbol(decl);
+    if (symbol.is_anonymous()) return;
 
-    if (auto [i, succ] = scopes_.back().emplace(id_ptrn->symbol(), id_ptrn); !succ) {
-        compiler().error(id_ptrn->id->loc, "redefinition of '{}'", id_ptrn->symbol());
-        compiler().note(i->second->id->loc, "previous declaration of '{}' was here", id_ptrn->symbol());
+    if (auto [i, succ] = scopes_.back().emplace(symbol, decl); !succ) {
+        compiler().error(get_id(decl)->loc, "redefinition of '{}'", symbol);
+        compiler().note(get_id(i->second)->loc, "previous declaration of '{}' was here", symbol);
     }
 }
 
@@ -73,8 +74,8 @@ void ForallExpr::bind(Scopes& scopes) const {
 
 void IdExpr::bind(Scopes& scopes) const {
     if (!symbol().is_anonymous()) {
-        id_ptrn = scopes.find(symbol());
-        if (id_ptrn == nullptr)
+        decl = scopes.find(symbol());
+        if (!is_valid(decl))
             scopes.compiler().error(loc, "use of undeclared identifier '{}'", symbol());
     } else {
         scopes.compiler().error(loc, "identifier '_' is reserved for anonymous declarations");

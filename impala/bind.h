@@ -1,14 +1,19 @@
 #ifndef IMPALA_BIND_H
 #define IMPALA_BIND_H
 
+#include <variant>
+
 #include "impala/compiler.h"
 
 namespace impala {
 
 using thorin::Symbol;
 
-struct IdPtrn;
 struct Node;
+struct IdPtrn;
+struct Item;
+using Decl = std::variant<const IdPtrn*, const Item*>;
+
 
 /// Binds identifiers to the nodes of the AST.
 class Scopes {
@@ -28,13 +33,13 @@ public:
     void push() { scopes_.emplace_back(); }
     void pop()  { scopes_.pop_back(); }
 
-    void insert(const IdPtrn*);
+    void insert(Decl);
 
-    const IdPtrn* find(Symbol symbol);
+    Decl find(Symbol symbol);
 
 private:
     Compiler& compiler_;
-    std::vector<thorin::SymbolMap<const IdPtrn*>> scopes_;
+    std::vector<thorin::SymbolMap<Decl>> scopes_;
 };
 
 }
