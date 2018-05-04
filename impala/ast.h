@@ -42,7 +42,7 @@ T make(Args&&... args) {
 
 //------------------------------------------------------------------------------
 
-struct Node : public thorin::RuntimeCast<Node>, public thorin::Streamable<Printer> {
+struct Node : public thorin::Streamable<Printer> {
     Node(Location location)
         : location(location)
     {}
@@ -68,7 +68,7 @@ struct Id : public Node {
  * Ptrn
  */
 
-struct Ptrn : public Node {
+struct Ptrn : public thorin::RuntimeCast<Ptrn>, public Node {
     Ptrn(Location location, Ptr<Expr>&& type, bool type_mandatory)
         : Node(location)
         , type(std::move(type))
@@ -121,7 +121,7 @@ struct TuplePtrn : public Ptrn {
  * Expr
  */
 
-struct Expr : public Node {
+struct Expr : public thorin::RuntimeCast<Expr>, public Node {
     Expr(Location location)
         : Node(location)
     {}
@@ -410,7 +410,7 @@ struct WhileExpr : public Expr {
  * Stmnt
  */
 
-struct Stmnt : public Node {
+struct Stmnt : public thorin::RuntimeCast<Stmnt>, public Node {
     Stmnt(Location location)
         : Node(location)
     {}
