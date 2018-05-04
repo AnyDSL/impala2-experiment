@@ -25,18 +25,18 @@ template<class T, class... Args>
 std::unique_ptr<T> make_ptr(Args... args) { return std::make_unique<T>(std::forward<Args>(args)...); }
 
 namespace detail {
-    template<class T> void make(T&) {}
+    template<class T> void make_ptrs(Ptrs<T>&) {}
     template<class T, class A, class... Args>
-    void make(T&& container, A&& arg, Args&&... args) {
-        container.emplace_back(std::forward<A>(arg));
-        make(container, std::forward<Args>(args)...);
+    void make_ptrs(Ptrs<T>& ptrs, A&& arg, Args&&... args) {
+        ptrs.emplace_back(std::forward<A>(arg));
+        make_ptrs(ptrs, std::forward<Args>(args)...);
     }
 }
 
 template<class T, class... Args>
-T make(Args&&... args) {
-    T result;
-    detail::make(result, std::forward<Args>(args)...);
+Ptrs<T> make_ptrs(Args&&... args) {
+    Ptrs<T> result;
+    detail::make_ptrs(result, std::forward<Args>(args)...);
     return result;
 }
 

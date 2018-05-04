@@ -418,7 +418,7 @@ Ptr<LambdaExpr> Parser::parse_fn_expr() {
 
     auto first = std::move(domain);
     auto location = first->location + ret_ptrn->location;
-    domain = make_ptr<TuplePtrn>(location, make<Ptrs<Ptrn>>(std::move(first), std::move(ret_ptrn)), make_unknown_expr(), false);
+    domain = make_ptr<TuplePtrn>(location, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn)), make_unknown_expr(), false);
 
     auto body = try_expr("body of an abstraction");
 
@@ -458,7 +458,7 @@ Ptr<ForallExpr> Parser::parse_fn_type_expr() {
 
     auto first = std::move(domain);
     auto location = first->location + ret_ptrn->location;
-    domain = make_id_ptrn("_", make_ptr<SigmaExpr>(location, make<Ptrs<Ptrn>>(std::move(first), std::move(ret_ptrn))));
+    domain = make_id_ptrn("_", make_ptr<SigmaExpr>(location, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn))));
 
     return make_ptr<ForallExpr>(tracker, std::move(domain), make_bottom_expr());
 }
@@ -535,7 +535,7 @@ Ptr<Expr> Parser::parse_fn_item(Ptr<IdPtrn>& id_ptrn) {
 
     auto first = std::move(domain);
     auto location = first->location + ret_ptrn->location;
-    domain = make_ptr<TuplePtrn>(location, make<Ptrs<Ptrn>>(std::move(first), std::move(ret_ptrn)), make_unknown_expr(), false);
+    domain = make_ptr<TuplePtrn>(location, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn)), make_unknown_expr(), false);
 
     auto body = try_expr("body of a function");
 

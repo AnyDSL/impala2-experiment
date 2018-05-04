@@ -116,7 +116,7 @@ private:
     }
     Ptr<TupleExpr>    make_tuple(Ptr<Expr>&& lhs, Ptr<Expr>&& rhs) {
         auto location = lhs->location + rhs->location;
-        auto args = make<Ptrs<TupleExpr::Elem>>(make_tuple_elem(std::move(lhs)), make_tuple_elem(std::move(rhs)));
+        auto args = make_ptrs<TupleExpr::Elem>(make_tuple_elem(std::move(lhs)), make_tuple_elem(std::move(rhs)));
         return make_ptr<TupleExpr>(location, std::move(args), make_unknown_expr());
     }
     Ptr<Id>           make_id(const char* s)  { return make_ptr<Id>(Token(prev_, s)); }
