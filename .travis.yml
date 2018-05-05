@@ -1,31 +1,21 @@
 language: cpp
 dist: trusty
 sudo: true
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-trusty-6.0
+      - ubuntu-toolchain-r-test
+    packages:
+      - valgrind
 
 env:
   - BUILD_TYPE=Debug
   - BUILD_TYPE=Release
 
-matrix:
-  include:
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-trusty-6.0
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-            - valgrind
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-trusty-6.0
-            - ubuntu-toolchain-r-test
-          packages:
-            - clang-6.0
-            - valgrind
+compiler:
+    - gcc
+    - clang
 
 install:
   # get cmake-3.10 and dump some debug info
@@ -36,8 +26,8 @@ install:
   - cmake --version
 
 script:
-  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-6.0"; fi
-  - if [ "$CXX" = "g++" ]    ; then export CXX="g++-7";       fi
+  - if [ "$CXX" = "clang++" ]; then sudo apt-get install clang-6.0 && export CXX="clang++-6.0"; fi
+  - if [ "$CXX" = "g++" ]    ; then sudo apt-get install g++-7     && export CXX="g++-7";       fi
   - export CXX_FLAGS="-Wall -Wextra -Werror" 
   - ${CXX} --version
   - mkdir -p build
