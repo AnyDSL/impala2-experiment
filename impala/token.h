@@ -28,7 +28,6 @@ using namespace thorin::literals;
     f(K_match,  "match") \
     f(K_mut,    "mut") \
     f(K_pk,     "pk") \
-    f(K_self,   "Self") \
     f(K_struct, "struct") \
     f(K_true,   "true") \
     f(K_trait,  "trait") \
