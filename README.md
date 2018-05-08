@@ -33,14 +33,14 @@ This will use SSH instead of HTTPS and will grant you push access for the submod
 ```ebnf
 p = _p [":" e];                                      (* pattern with optional type *)
 pt = _p ":" e | e;                                   (* pattern with mandatory type *)
-_p = id | tp;                                        (* pattern base *)
+_p = ID | tp;                                        (* pattern base *)
 tp = "(" p "," ... "," p ")";                        (* tuple pattern *)
 
 (* expressions *)
-e = id
+e = ID
   | "[" pt "," ... "," pt "]"                        (* sigma *)
-  | "(" [id "="] e "," ... "," [id "="] e")" [":" e] (* tuple *)
-  | "." id                                           (* field  *)
+  | "(" [ID "="] e "," ... "," [ID "="] e")" [":" e] (* tuple *)
+  | "." ID                                           (* field  *)
   | "ar" "[" pt "," ... "," pt ";" e "]"             (* variadic *)
   | "pk" "(" pt "," ... "," pt ";" e ")"             (* pack *)
   | "\/" pt "->" e                                   (* abstraction type *)
@@ -63,8 +63,13 @@ A = "[" p "," ... "," p "]" | (*nothing*);           (* optional inline abstract
 B = "{" s ... s [ e ] "}";                           (* block expression *)
 
 (* statement *)
-s = e ";"                                            (*expression statement *)
-  | "let" p "=" e ";"                                (*let statement *)
+s = e ";"                                            (* expression statement *)
+  | "let" p "=" e ";"                                (* let statement *)
+  | i                                                (* item statement *)
+
+(* items *)
+i = "fn" ID A tp ["->" e] e                          (* function item *)
+  | "cn" ID A tp e                                   (* continuation item *)
   ;
 ```
 
