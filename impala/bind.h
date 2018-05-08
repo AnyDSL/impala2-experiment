@@ -58,18 +58,10 @@ public:
     {}
 
     Compiler& compiler() { return compiler_; }
-
-    /// Performs name binding on a whole program.
-    void run(const Node*);
-
-    //void bind_head(const ast::IdPtrn&);
     void bind(const Node*);
-
     void push() { scopes_.emplace_back(); }
     void pop()  { scopes_.pop_back(); }
-
     void insert(Decl);
-
     Decl find(Symbol symbol);
 
 private:

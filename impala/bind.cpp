@@ -24,7 +24,7 @@ Decl Scopes::find(Symbol symbol) {
         if (auto i = scope.find(symbol); i != scope.end())
             return i->second;
     }
-    return Decl((IdPtrn*)nullptr);
+    return Decl();
 }
 
 void Scopes::insert(Decl decl) {
@@ -42,7 +42,13 @@ void Scopes::insert(Decl decl) {
 //------------------------------------------------------------------------------
 
 void Item::bind(Scopes& scopes) const {
+    scopes.push();
     expr->bind(scopes);
+    scopes.pop();
+}
+
+void Item::bind_rec(Scopes& scopes) const {
+    scopes.insert({this});
 }
 
 /*
@@ -73,9 +79,22 @@ void AppExpr::bind(Scopes& scopes) const {
 
 void BlockExpr::bind(Scopes& scopes) const {
     scopes.push();
-    for (auto&& stmnt : stmnts)
-        stmnt->bind(scopes);
+
+    auto i = stmnts.begin(), e = stmnts.end();
+    while (i != e) {
+        if ((*i)->isa<ItemStmnt>()) {
+            for (auto j = i; j != e && (*j)->isa<ItemStmnt>(); ++j)
+                (*j)->as<ItemStmnt>()->item->bind_rec(scopes);
+            for (; i != e && (*i)->isa<ItemStmnt>(); ++i)
+                (*i)->as<ItemStmnt>()->item->bind(scopes);
+        } else {
+            (*i)->bind(scopes);
+            ++i;
+        }
+    }
+
     expr->bind(scopes);
+
     scopes.pop();
 }
 
@@ -113,6 +132,8 @@ void InfixExpr::bind(Scopes& scopes) const {
 
 void LambdaExpr::bind(Scopes& scopes) const {
     domain->bind(scopes);
+    codomain->bind(scopes);
+    body->bind(scopes);
 }
 
 void PrefixExpr::bind(Scopes& scopes) const {

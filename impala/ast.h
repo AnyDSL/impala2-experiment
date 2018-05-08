@@ -73,6 +73,7 @@ struct Item : public Node {
     {}
 
     void bind(Scopes& scopes) const;
+    void bind_rec(Scopes& scopes) const;
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
