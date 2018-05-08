@@ -9,11 +9,46 @@ namespace impala {
 
 using thorin::Symbol;
 
-struct Node;
+struct Id;
 struct IdPtrn;
 struct Item;
-using Decl = std::variant<const IdPtrn*, const Item*>;
+struct Node;
 
+//------------------------------------------------------------------------------
+
+// TODO use std::variant - but currently clang has a bug...
+struct Decl {
+    enum class Tag {
+        None, IdPtrn, Item
+    };
+
+    Decl()
+        : tag_(Tag::None)
+    {}
+    Decl(const IdPtrn* id_ptrn)
+        : tag_(Tag::IdPtrn)
+        , id_ptrn_(id_ptrn)
+    {}
+    Decl(const Item* item)
+        : tag_(Tag::Item)
+        , item_(item)
+    {}
+
+    bool is_valid() const { return tag_ != Tag::None; }
+    const IdPtrn* id_ptrn() const { assert(tag_ == Tag::IdPtrn); return id_ptrn_; }
+    const Item* item() const { assert(tag_ == Tag::Item); return item_; }
+    const Id* id() const;
+    Symbol symbol() const;
+
+private:
+    Tag tag_;
+    union {
+        const IdPtrn* id_ptrn_;
+        const Item* item_;
+    };
+};
+
+//------------------------------------------------------------------------------
 
 /// Binds identifiers to the nodes of the AST.
 class Scopes {
@@ -41,6 +76,8 @@ private:
     Compiler& compiler_;
     std::vector<thorin::SymbolMap<Decl>> scopes_;
 };
+
+//------------------------------------------------------------------------------
 
 }
 

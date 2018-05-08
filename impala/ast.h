@@ -3,12 +3,12 @@
 
 #include <deque>
 #include <memory>
-#include <variant>
 
 #include "thorin/util/cast.h"
 #include "thorin/util/stream.h"
 
 #include "impala/token.h"
+#include "impala/bind.h"
 #include "impala/print.h"
 
 namespace impala {
@@ -42,10 +42,6 @@ Ptrs<T> make_ptrs(Args&&... args) {
 }
 
 //------------------------------------------------------------------------------
-
-struct IdPtrn;
-struct Item;
-using Decl = std::variant<const IdPtrn*, const Item*>;
 
 struct Node : public thorin::Streamable<Printer> {
     Node(Loc loc)
@@ -197,7 +193,6 @@ struct IdExpr : public Expr {
     IdExpr(Ptr<Id>&& id)
         : Expr(id->loc)
         , id(std::move(id))
-
     {}
 
     Symbol symbol() const { return id->symbol; }
@@ -471,12 +466,6 @@ struct LetStmnt : public Stmnt {
     Ptr<Ptrn> ptrn;
     Ptr<Expr> init;
 };
-
-//------------------------------------------------------------------------------
-
-inline const Id* get_id(Decl decl) { return std::visit([&](auto x) { return x->id.get(); }, decl); }
-inline Symbol get_symbol(Decl decl) { return get_id(decl)->symbol; }
-inline bool is_valid(Decl decl) { return std::visit([&](auto x) { return x != nullptr; }, decl); }
 
 //------------------------------------------------------------------------------
 

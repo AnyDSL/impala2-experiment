@@ -4,6 +4,20 @@
 
 namespace impala {
 
+//------------------------------------------------------------------------------
+
+const Id* Decl::id() const {
+    switch (tag_) {
+        case Tag::IdPtrn: return id_ptrn_->id.get();
+        case Tag::Item:   return item_->id.get();
+        default: THORIN_UNREACHABLE;
+    }
+}
+
+Symbol Decl::symbol() const { return id()->symbol; }
+
+//------------------------------------------------------------------------------
+
 Decl Scopes::find(Symbol symbol) {
     for (auto i = scopes_.rbegin(); i != scopes_.rend(); ++i) {
         auto& scope = *i;
@@ -16,12 +30,12 @@ Decl Scopes::find(Symbol symbol) {
 void Scopes::insert(Decl decl) {
     assert(!scopes_.empty());
 
-    auto symbol = get_symbol(decl);
+    auto symbol = decl.symbol();
     if (symbol.is_anonymous()) return;
 
     if (auto [i, succ] = scopes_.back().emplace(symbol, decl); !succ) {
-        compiler().error(get_id(decl)->loc, "redefinition of '{}'", symbol);
-        compiler().note(get_id(i->second)->loc, "previous declaration of '{}' was here", symbol);
+        compiler().error(decl.id()->loc, "redefinition of '{}'", symbol);
+        compiler().note(i->second.id()->loc, "previous declaration of '{}' was here", symbol);
     }
 }
 
@@ -75,7 +89,7 @@ void ForallExpr::bind(Scopes& scopes) const {
 void IdExpr::bind(Scopes& scopes) const {
     if (!symbol().is_anonymous()) {
         decl = scopes.find(symbol());
-        if (!is_valid(decl))
+        if (!decl.is_valid())
             scopes.compiler().error(loc, "use of undeclared identifier '{}'", symbol());
     } else {
         scopes.compiler().error(loc, "identifier '_' is reserved for anonymous declarations");
