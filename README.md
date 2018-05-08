@@ -33,8 +33,8 @@ This will use SSH instead of HTTPS and will grant you push access for the submod
 ```ebnf
 p = _p [":" e];                                      (* pattern with optional type *)
 pt = _p ":" e | e;                                   (* pattern with mandatory type *)
-_p = id | pt;                                        (* pattern base *)
-pt = "(" p "," ... "," p ")";                        (* tuple pattern *)
+_p = id | tp;                                        (* pattern base *)
+tp = "(" p "," ... "," p ")";                        (* tuple pattern *)
 
 (* expressions *)
 e = id
