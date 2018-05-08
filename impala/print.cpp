@@ -26,6 +26,10 @@ Printer& Id::stream(Printer& p) const {
     return streamf(p, "{}", symbol);
 }
 
+Printer& Item::stream(Printer& p) const {
+    return streamf(p, "letrec {} = {};", id, expr);
+}
+
 /*
  * Ptrn
  */
@@ -180,6 +184,10 @@ Printer& LetStmnt::stream(Printer& p) const {
         return streamf(p, "let {} = {};", ptrn, init);
     else
         return streamf(p, "let {};", ptrn);
+}
+
+Printer& ItemStmnt::stream(Printer& p) const {
+    return streamf(p, "{}", item).endl();
 }
 
 }

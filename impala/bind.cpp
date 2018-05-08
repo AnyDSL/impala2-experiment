@@ -41,6 +41,10 @@ void Scopes::insert(Decl decl) {
 
 //------------------------------------------------------------------------------
 
+void Item::bind(Scopes& scopes) const {
+    expr->bind(scopes);
+}
+
 /*
  * Ptrn
  */
@@ -162,6 +166,10 @@ void LetStmnt::bind(Scopes& scopes) const {
     if (init)
         init->bind(scopes);
     ptrn->bind(scopes);
+}
+
+void ItemStmnt::bind(Scopes& scopes) const {
+    item->bind(scopes);
 }
 
 }

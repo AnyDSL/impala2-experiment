@@ -29,6 +29,8 @@ private:
 public:
     Parser(Compiler&, std::istream&, const char* filename);
 
+    Compiler& compiler() { return lexer_.compiler; }
+
     //@{ misc
     Ptr<Id>         parse_id();
     Ptr<Expr>       parse_type_ascription(const char* ascription_context = nullptr);
@@ -78,17 +80,15 @@ public:
     //@}
 
     //@{ LambdaExpr%s
-    Ptr<LambdaExpr>   parse_cn_expr();
-    Ptr<LambdaExpr>   parse_fn_expr();
+    Ptr<LambdaExpr>   parse_cn_expr(bool item = false);
+    Ptr<LambdaExpr>   parse_fn_expr(bool item = false);
     Ptr<LambdaExpr>   parse_lambda_expr();
     //@}
 
     //@{ Stmnt%s
     Ptr<Stmnt>      parse_stmnt();
     Ptr<LetStmnt>   parse_let_stmnt();
-    Ptr<LetStmnt>   parse_item_stmnt();
-    Ptr<Expr>       parse_cn_item(Ptr<IdPtrn>&);
-    Ptr<Expr>       parse_fn_item(Ptr<IdPtrn>&);
+    Ptr<ItemStmnt>  parse_item_stmnt();
     //@}
 
 private:
@@ -97,6 +97,7 @@ private:
     Ptr<Expr>       try_expr(const char* context, Token::Prec prec = Token::Prec::Bottom);
     Ptr<Id>         try_id(const char* context);
     Ptr<Ptrn>       try_ptrn(const char* context);
+    Ptr<TuplePtrn>  try_tuple_ptrn(const char* context, TT delim_l = TT::D_paren_l, TT delim_r = TT::D_paren_r);
     /// May also be an @p Expr which is intererpreted as an @p IdPtrn with an anonymous @p Id.
     /// If @p ascription_context is not a @c nullptr the type ascription is mandatory.
     /// Otherwise, it's optional.

@@ -20,10 +20,10 @@ struct Stmnt;
 
 class Printer;
 
-template<class T> using Ptr = std::unique_ptr<T>;
-template<class T> using Ptrs = std::deque<std::unique_ptr<T>>;
+template<class T> using Ptr = std::unique_ptr<const T>;
+template<class T> using Ptrs = std::deque<Ptr<T>>;
 template<class T, class... Args>
-std::unique_ptr<T> make_ptr(Args... args) { return std::make_unique<T>(std::forward<Args>(args)...); }
+Ptr<T> make_ptr(Args... args) { return std::make_unique<const T>(std::forward<Args>(args)...); }
 
 namespace detail {
     template<class T> void make_ptrs(Ptrs<T>&) {}
@@ -71,6 +71,9 @@ struct Item : public Node {
         , id(std::move(id))
         , expr(std::move(expr))
     {}
+
+    void bind(Scopes& scopes) const;
+    Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
     Ptr<Expr> expr;
@@ -286,6 +289,7 @@ struct LambdaExpr : public Expr {
     void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
 
+    mutable const Id* id = nullptr;
     Ptr<Ptrn> domain;
     Ptr<Expr> codomain;
     Ptr<Expr> body;

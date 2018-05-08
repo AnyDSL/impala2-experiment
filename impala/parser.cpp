@@ -74,7 +74,7 @@ bool Parser::expect(TT tag, const char* context) {
 }
 
 void Parser::error(const char* what, const Token& tok, const char* context) {
-    lexer_.compiler.error(tok.loc(), "expected {}, got '{}' while parsing {}", what, tok, context);
+    compiler().error(tok.loc(), "expected {}, got '{}' while parsing {}", what, tok, context);
 }
 
 /*
@@ -115,6 +115,13 @@ Ptr<Ptrn> Parser::try_ptrn_t(const char* ascription_context) {
     auto tracker = track();
     auto type = try_expr("type");
     return make_ptr<IdPtrn>(tracker, make_id("_"), std::move(type), true);
+}
+
+Ptr<TuplePtrn> Parser::try_tuple_ptrn(const char* context, TT delim_l, TT delim_r) {
+    if (ahead().isa(TT::D_paren_l)) return parse_tuple_ptrn(nullptr, delim_l, delim_r);
+
+    error("tuple pattern", context);
+    return make_ptr<TuplePtrn>(prev_, make_ptrs<Ptrn>(), make_unknown_expr(), false);
 }
 
 Ptr<BlockExpr> Parser::try_block_expr(const char* context) {
@@ -273,11 +280,10 @@ Ptr<BlockExpr> Parser::parse_block_expr() {
             case TT::K_let:       stmnts.emplace_back(parse_let_stmnt()); continue;
             //case Token::ASM:       stmnts.emplace_back(parse_asm_stmnt()); continue;
             case EXPR: {
+                // cn and fn items
                 if ((ahead(0).isa(TT::K_cn) || ahead(0).isa(TT::K_fn)) && ahead(1).isa(TT::M_id)) {
-                    if (ahead(2).isa(TT::D_bracket_l)) {
-                        stmnts.emplace_back(parse_item_stmnt());
-                        continue;
-                    }
+                    stmnts.emplace_back(parse_item_stmnt());
+                    continue;
                 }
 
                 auto tracker = track();
@@ -399,19 +405,48 @@ Ptr<WhileExpr> Parser::parse_while_expr() {
  * LambdaExprs
  */
 
-Ptr<LambdaExpr> Parser::parse_cn_expr() {
+Ptr<LambdaExpr> Parser::parse_cn_expr(bool item) {
     auto tracker = track();
     eat(TT::K_cn);
+
+    auto id = ahead().isa(TT::M_id) ? parse_id() : nullptr;
+    if (!item && id) {
+        compiler().error(id->loc, "it is not allowed to name a continuation expression; use a continuation item instead");
+        id = nullptr;
+    }
+
+    auto ds_domain = ahead().isa(TT::D_bracket_l)
+        ? parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r)
+        : nullptr;
+
     auto domain = try_ptrn("domain of a continuation");
     auto body = try_expr("body of a continuation");
 
-    return make_ptr<LambdaExpr>(tracker, std::move(domain), make_bottom_expr(), std::move(body));
+    auto f = make_ptr<LambdaExpr>(tracker, std::move(domain), make_bottom_expr(), std::move(body));
+
+    if (ds_domain)
+        f = make_ptr<LambdaExpr>(tracker, std::move(ds_domain), make_unknown_expr(), std::move(f));
+
+    if (id)
+        f->id = id.release(); // the Item of the callee will be the owner
+    return std::move(f);
 }
 
-Ptr<LambdaExpr> Parser::parse_fn_expr() {
+Ptr<LambdaExpr> Parser::parse_fn_expr(bool item) {
     auto tracker = track();
     eat(TT::K_fn);
-    auto domain = try_ptrn("domain of a function");
+
+    auto id = ahead().isa(TT::M_id) ? parse_id() : nullptr;
+    if (!item && id) {
+        compiler().error(id->loc, "it is not allowed to name a function expression; use a function item instead");
+        id = nullptr;
+    }
+
+    auto ds_domain = ahead().isa(TT::D_bracket_l)
+        ? parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r)
+        : nullptr;
+
+    auto domain = try_tuple_ptrn("domain of a function");
     auto ret = accept(TT::O_arrow) ? try_expr("codomain of an function", Token::Prec::Arrow) : make_unknown_expr();
     // "_: \/ _: ret -> ⊥"
     auto ret_ptrn = make_id_ptrn("return", make_cn_type(make_id_ptrn("_", std::move(ret))));
@@ -420,9 +455,15 @@ Ptr<LambdaExpr> Parser::parse_fn_expr() {
     auto loc = first->loc + ret_ptrn->loc;
     domain = make_ptr<TuplePtrn>(loc, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn)), make_unknown_expr(), false);
 
-    auto body = try_expr("body of an abstraction");
+    auto body = try_expr("body of a function");
+    auto f = make_ptr<LambdaExpr>(tracker, std::move(domain), make_bottom_expr(), std::move(body));
 
-    return make_ptr<LambdaExpr>(tracker, std::move(domain), make_bottom_expr(), std::move(body));
+    if (ds_domain)
+        f = make_ptr<LambdaExpr>(tracker, std::move(ds_domain), make_unknown_expr(), std::move(f));
+
+    if (id)
+        f->id = id.release(); // the Item of the callee will be the owner
+    return std::move(f);
 }
 
 Ptr<LambdaExpr> Parser::parse_lambda_expr() {
@@ -487,63 +528,25 @@ Ptr<LetStmnt> Parser::parse_let_stmnt() {
     return make_ptr<LetStmnt>(tracker, std::move(ptrn), std::move(init));
 }
 
-Ptr<LetStmnt> Parser::parse_item_stmnt() {
+Ptr<ItemStmnt> Parser::parse_item_stmnt() {
     auto tracker = track();
-    Ptr<IdPtrn> id_ptrn;
-    Ptr<Expr> init;
-    switch (ahead().tag()) {
-        case TT::K_cn: init = parse_cn_item(id_ptrn); break;
-        case TT::K_fn: init = parse_fn_item(id_ptrn); break;
-        default: THORIN_UNREACHABLE;
+    Ptr<Item> item;
+    Ptr<Id> id;
+
+    Ptr<LambdaExpr> f = ahead().isa(TT::K_cn) ? parse_cn_expr(true)
+                      : ahead().isa(TT::K_fn) ? parse_fn_expr(true) : nullptr;
+
+    if (f) {
+        id.reset(f->id);
+        item = make_ptr<Item>(tracker, std::move(id), std::move(f));
+    } else {
+        switch (ahead().tag()) {
+            // TODO other cases
+            default: THORIN_UNREACHABLE;
+        }
     }
 
-    return make_ptr<LetStmnt>(tracker, std::move(id_ptrn), std::move(init));
-}
-
-Ptr<Expr> Parser::parse_cn_item(Ptr<IdPtrn>& id_ptrn) {
-    auto tracker = track();
-    eat(TT::K_cn);
-    id_ptrn = make_id_ptrn(parse_id());
-
-    auto ds_domain = ahead().isa(TT::D_bracket_l)
-        ? parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r)
-        : nullptr;
-
-    auto domain = try_ptrn("domain of a function");
-    auto body = try_expr("body of a continuation");
-
-    auto k = make_ptr<LambdaExpr>(tracker, std::move(domain), make_bottom_expr(), std::move(body));
-    if (!ds_domain)
-        return std::move(k);
-    return make_ptr<LambdaExpr>(tracker, std::move(ds_domain), make_unknown_expr(), std::move(k));
-}
-
-Ptr<Expr> Parser::parse_fn_item(Ptr<IdPtrn>& id_ptrn) {
-    auto tracker = track();
-    eat(TT::K_fn);
-    id_ptrn = make_id_ptrn(parse_id());
-
-    auto ds_domain = ahead().isa(TT::D_bracket_l)
-        ? parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r)
-        : nullptr;
-
-    auto domain = try_ptrn("domain of a function");
-    auto ret = accept(TT::O_arrow) ? try_expr("codomain of a function", Token::Prec::Arrow) : make_unknown_expr();
-
-    // "_: \/ _: ret -> ⊥"
-    auto ret_ptrn = make_id_ptrn("return", make_cn_type(make_id_ptrn("_", std::move(ret))));
-
-    auto first = std::move(domain);
-    auto loc = first->loc + ret_ptrn->loc;
-    domain = make_ptr<TuplePtrn>(loc, make_ptrs<Ptrn>(std::move(first), std::move(ret_ptrn)), make_unknown_expr(), false);
-
-    auto body = try_expr("body of a function");
-
-    auto f = make_ptr<LambdaExpr>(tracker, std::move(domain), make_bottom_expr(), std::move(body));
-
-    if (!ds_domain)
-        return std::move(f);
-    return make_ptr<LambdaExpr>(tracker, std::move(ds_domain), make_unknown_expr(), std::move(f));
+    return make_ptr<ItemStmnt>(tracker, std::move(item));
 }
 
 //------------------------------------------------------------------------------
