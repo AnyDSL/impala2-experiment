@@ -419,7 +419,7 @@ Ptr<LambdaExpr> Parser::parse_cn_expr(bool item) {
         ? parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r)
         : nullptr;
 
-    auto domain = try_ptrn("domain of a continuation");
+    auto domain = try_tuple_ptrn("domain of a continuation");
     auto body = try_expr("body of a continuation");
 
     auto f = make_ptr<LambdaExpr>(tracker, std::move(domain), make_bottom_expr(), std::move(body));
