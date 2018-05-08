@@ -429,7 +429,7 @@ Ptr<LambdaExpr> Parser::parse_cn_expr(bool item) {
 
     if (id)
         f->id = id.release(); // the Item of the callee will be the owner
-    return std::move(f);
+    return f;
 }
 
 Ptr<LambdaExpr> Parser::parse_fn_expr(bool item) {
@@ -463,7 +463,7 @@ Ptr<LambdaExpr> Parser::parse_fn_expr(bool item) {
 
     if (id)
         f->id = id.release(); // the Item of the callee will be the owner
-    return std::move(f);
+    return f;
 }
 
 Ptr<LambdaExpr> Parser::parse_lambda_expr() {
