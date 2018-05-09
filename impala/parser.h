@@ -33,7 +33,7 @@ public:
 
     //@{ misc
     Ptr<Prg>        parse_prg();
-    Ptr<Id>         parse_id();
+    Ptr<Id>         parse_id(const char* context = nullptr);
     Ptr<Expr>       parse_type_ascription(const char* ascription_context = nullptr);
     //@}
 
@@ -50,7 +50,7 @@ public:
     //@}
 
     //@{ Expr%s
-    Ptr<Expr>         parse_expr(Token::Prec = Token::Prec::Bottom);
+    Ptr<Expr>         parse_expr(const char* context, TP = TP::Bottom);
     Ptr<Expr>         parse_prefix_expr();
     Ptr<Expr>         parse_infix_expr(Tracker, Ptr<Expr>&&);
     Ptr<Expr>         parse_postfix_expr(Tracker, Ptr<Expr>&&);
@@ -60,8 +60,8 @@ public:
     //@}
 
     //@{ primary Expr%s
-    Ptr<Expr>         parse_primary_expr();
-    Ptr<BlockExpr>    parse_block_expr();
+    Ptr<Expr>         parse_primary_expr(const char* context);
+    Ptr<BlockExpr>    parse_block_expr(const char* context);
     Ptr<BottomExpr>   parse_bottom_expr();
     Ptr<ForExpr>      parse_for_expr();
     Ptr<IdExpr>       parse_id_expr();
@@ -70,6 +70,7 @@ public:
     Ptr<PackExpr>     parse_pack_expr();
     Ptr<SigmaExpr>    parse_sigma_expr();
     Ptr<TupleExpr>    parse_tuple_expr(TT delim_l = TT::D_paren_l, TT delim_r = TT::D_paren_r);
+    Ptr<TypeExpr>     parse_type_expr();
     Ptr<VariadicExpr> parse_variadic_expr();
     Ptr<WhileExpr>    parse_while_expr();
     //@}
@@ -93,9 +94,6 @@ public:
 
 private:
     //@{ try to parse a Node
-    Ptr<BlockExpr>  try_block_expr(const char* context);
-    Ptr<Expr>       try_expr(const char* context, Token::Prec prec = Token::Prec::Bottom);
-    Ptr<Id>         try_id(const char* context);
     Ptr<Ptrn>       try_ptrn(const char* context);
     Ptr<TuplePtrn>  try_tuple_ptrn(const char* context, TT delim_l = TT::D_paren_l, TT delim_r = TT::D_paren_r);
     /// May also be an @p Expr which is intererpreted as an @p IdPtrn with an anonymous @p Id.

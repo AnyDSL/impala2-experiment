@@ -31,6 +31,7 @@ using namespace thorin::literals;
     f(K_struct, "struct") \
     f(K_true,   "true") \
     f(K_trait,  "trait") \
+    f(K_type,   "type") \
     f(K_while,  "while")
 
 #define CODE(t, str) + 1_s
@@ -219,6 +220,7 @@ private:
 std::ostream& operator<<(std::ostream& os, const Token& t);
 
 typedef Token::Tag TT;
+typedef Token::Prec TP;
 
 }
 

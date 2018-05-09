@@ -174,6 +174,8 @@ void SigmaExpr::bind(Scopes& scopes) const {
         elem->bind(scopes);
 }
 
+void TypeExpr::bind(Scopes&) const {}
+
 void VariadicExpr::bind(Scopes& scopes) const {
     for (auto&& domain : domains)
         domain->bind(scopes);

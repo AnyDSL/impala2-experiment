@@ -169,6 +169,10 @@ Printer& SigmaExpr::stream(Printer& p) const {
     return streamf(p, "[{, }]", elems);
 }
 
+Printer& TypeExpr::stream(Printer& p) const {
+    return streamf(p, "type");
+}
+
 Printer& VariadicExpr::stream(Printer& p) const {
     return streamf(p, "ar[{, }; {}]", domains, body);
 }

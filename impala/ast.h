@@ -395,6 +395,15 @@ struct TupleExpr : public Expr {
     Ptr<Expr> type;
 };
 
+struct TypeExpr : public Expr {
+    TypeExpr(Loc loc)
+        : Expr(loc)
+    {}
+
+    void bind(Scopes&) const override;
+    Printer& stream(Printer&) const override;
+};
+
 struct VariadicExpr : public Expr {
     VariadicExpr(Loc loc, Ptrs<Ptrn>&& domains, Ptr<Expr>&& body)
         : Expr(loc)
