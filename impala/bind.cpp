@@ -41,6 +41,27 @@ void Scopes::insert(Decl decl) {
 
 //------------------------------------------------------------------------------
 
+static void bind_stmnts(const Ptrs<Stmnt>& stmnts, Scopes& scopes) {
+    auto i = stmnts.begin(), e = stmnts.end();
+    while (i != e) {
+        if ((*i)->isa<ItemStmnt>()) {
+            for (auto j = i; j != e && (*j)->isa<ItemStmnt>(); ++j)
+                (*j)->as<ItemStmnt>()->item->bind_rec(scopes);
+            for (; i != e && (*i)->isa<ItemStmnt>(); ++i)
+                (*i)->as<ItemStmnt>()->item->bind(scopes);
+        } else {
+            (*i)->bind(scopes);
+            ++i;
+        }
+    }
+}
+
+void Prg::bind(Scopes& scopes) const {
+    scopes.push();
+    bind_stmnts(stmnts, scopes);
+    scopes.pop();
+}
+
 void Item::bind(Scopes& scopes) const {
     scopes.push();
     expr->bind(scopes);
@@ -79,22 +100,8 @@ void AppExpr::bind(Scopes& scopes) const {
 
 void BlockExpr::bind(Scopes& scopes) const {
     scopes.push();
-
-    auto i = stmnts.begin(), e = stmnts.end();
-    while (i != e) {
-        if ((*i)->isa<ItemStmnt>()) {
-            for (auto j = i; j != e && (*j)->isa<ItemStmnt>(); ++j)
-                (*j)->as<ItemStmnt>()->item->bind_rec(scopes);
-            for (; i != e && (*i)->isa<ItemStmnt>(); ++i)
-                (*i)->as<ItemStmnt>()->item->bind(scopes);
-        } else {
-            (*i)->bind(scopes);
-            ++i;
-        }
-    }
-
+    bind_stmnts(stmnts, scopes);
     expr->bind(scopes);
-
     scopes.pop();
 }
 

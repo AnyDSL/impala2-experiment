@@ -134,6 +134,23 @@ Ptr<BlockExpr> Parser::try_block_expr(const char* context) {
  * misc
  */
 
+Ptr<Prg> Parser::parse_prg() {
+    auto tracker = track();
+    Ptrs<Stmnt> stmnts;
+    while (!ahead().isa(TT::M_eof)) {
+        switch (ahead().tag()) {
+            case TT::K_cn:
+            case TT::K_fn:  stmnts.emplace_back(parse_item_stmnt()); continue;
+            case TT::K_let: stmnts.emplace_back(parse_let_stmnt());  continue;
+            default:
+                error("item or let statement", "program");
+                lex();
+        }
+    }
+
+    return make_ptr<Prg>(tracker, std::move(stmnts));
+}
+
 Ptr<Id> Parser::parse_id() { return make_ptr<Id>(eat(TT::M_id)); }
 
 Ptr<Expr> Parser::parse_type_ascription(const char* ascription_context) {
@@ -414,6 +431,8 @@ Ptr<LambdaExpr> Parser::parse_cn_expr(bool item) {
         compiler().error(id->loc, "it is not allowed to name a continuation expression; use a continuation item instead");
         id = nullptr;
     }
+    if (item && !id)
+        id = make_id("_");
 
     auto ds_domain = ahead().isa(TT::D_bracket_l)
         ? parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r)
@@ -441,6 +460,8 @@ Ptr<LambdaExpr> Parser::parse_fn_expr(bool item) {
         compiler().error(id->loc, "it is not allowed to name a function expression; use a function item instead");
         id = nullptr;
     }
+    if (item && !id)
+        id = make_id("_");
 
     auto ds_domain = ahead().isa(TT::D_bracket_l)
         ? parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r)
@@ -551,12 +572,22 @@ Ptr<ItemStmnt> Parser::parse_item_stmnt() {
 
 //------------------------------------------------------------------------------
 
-Ptr<Expr> parse(Compiler& compiler, std::istream& is, const char* filename) {
+Ptr<Expr> parse_expr(Compiler& compiler, std::istream& is, const char* filename) {
     Parser parser(compiler, is, filename);
     return parser.parse_expr();
 }
 
-Ptr<Expr> parse(Compiler& compiler, const char* str) {
+Ptr<Expr> parse_expr(Compiler& compiler, const char* str) {
+    std::istringstream in(str);
+    return parse_expr(compiler, in, "<inline>");
+}
+
+Ptr<Prg> parse(Compiler& compiler, std::istream& is, const char* filename) {
+    Parser parser(compiler, is, filename);
+    return parser.parse_prg();
+}
+
+Ptr<Prg> parse(Compiler& compiler, const char* str) {
     std::istringstream in(str);
     return parse(compiler, in, "<inline>");
 }

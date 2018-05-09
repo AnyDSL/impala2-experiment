@@ -13,12 +13,11 @@
 
 namespace impala {
 
+class Printer;
 class Scopes;
 
 struct Expr;
 struct Stmnt;
-
-class Printer;
 
 template<class T> using Ptr = std::unique_ptr<const T>;
 template<class T> using Ptrs = std::deque<Ptr<T>>;
@@ -52,6 +51,18 @@ struct Node : public thorin::Streamable<Printer> {
     std::ostream& stream_out(std::ostream&) const;
 
     Loc loc;
+};
+
+struct Prg : public Node {
+    Prg(Loc loc, Ptrs<Stmnt>&& stmnts)
+        : Node(loc)
+        , stmnts(std::move(stmnts))
+    {}
+
+    void bind(Scopes& scopes) const;
+    Printer& stream(Printer&) const override;
+
+    Ptrs<Stmnt> stmnts;
 };
 
 struct Id : public Node {

@@ -32,6 +32,7 @@ public:
     Compiler& compiler() { return lexer_.compiler; }
 
     //@{ misc
+    Ptr<Prg>        parse_prg();
     Ptr<Id>         parse_id();
     Ptr<Expr>       parse_type_ascription(const char* ascription_context = nullptr);
     //@}
@@ -86,7 +87,6 @@ public:
     //@}
 
     //@{ Stmnt%s
-    Ptr<Stmnt>      parse_stmnt();
     Ptr<LetStmnt>   parse_let_stmnt();
     Ptr<ItemStmnt>  parse_item_stmnt();
     //@}
@@ -172,8 +172,10 @@ private:
     Loc prev_;
 };
 
-Ptr<Expr> parse(Compiler& compiler, std::istream& is, const char* filename);
-Ptr<Expr> parse(Compiler& compiler, const char*);
+Ptr<Expr> parse_expr(Compiler&, std::istream& is, const char* filename);
+Ptr<Expr> parse_expr(Compiler&, const char*);
+Ptr<Prg> parse(Compiler&, std::istream& is, const char* filename);
+Ptr<Prg> parse(Compiler&, const char*);
 
 }
 

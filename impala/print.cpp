@@ -22,6 +22,12 @@ std::ostream& Node::stream_out(std::ostream& s) const {
  * misc
  */
 
+Printer& Prg::stream(Printer& p) const {
+    for (auto&& stmnt : stmnts)
+        stmnt->stream(p);
+    return p;
+}
+
 Printer& Id::stream(Printer& p) const {
     return streamf(p, "{}", symbol);
 }
