@@ -44,9 +44,15 @@ public:
      * Otherwise, it is mandatory resulting in the given error message if not present.
      */
     ///other
-    Ptr<Ptrn>       parse_ptrn(const char* ascription_context = nullptr);
+    Ptr<Ptrn>       parse_ptrn(const char* context, const char* ascription_context = nullptr);
+    /// May also be an @p Expr which is intererpreted as an @p IdPtrn with an anonymous @p Id.
+    /// If @p ascription_context is not a @c nullptr the type ascription is mandatory.
+    /// Otherwise, it's optional.
+    Ptr<Ptrn>       parse_ptrn_t(const char* context, const char* ascription_context = nullptr);
+    //@}
+
     Ptr<IdPtrn>     parse_id_ptrn(const char* ascription_context = nullptr);
-    Ptr<TuplePtrn>  parse_tuple_ptrn(const char* ascription_context = nullptr, TT delim_l = TT::D_paren_l, TT delim_r = TT::D_paren_r);
+    Ptr<TuplePtrn>  parse_tuple_ptrn(const char* context, const char* ascription_context = nullptr, TT delim_l = TT::D_paren_l, TT delim_r = TT::D_paren_r);
     //@}
 
     //@{ Expr%s
@@ -93,15 +99,6 @@ public:
     //@}
 
 private:
-    //@{ try to parse a Node
-    Ptr<Ptrn>       try_ptrn(const char* context);
-    Ptr<TuplePtrn>  try_tuple_ptrn(const char* context, TT delim_l = TT::D_paren_l, TT delim_r = TT::D_paren_r);
-    /// May also be an @p Expr which is intererpreted as an @p IdPtrn with an anonymous @p Id.
-    /// If @p ascription_context is not a @c nullptr the type ascription is mandatory.
-    /// Otherwise, it's optional.
-    Ptr<Ptrn>       try_ptrn_t(const char* ascription_context = nullptr);
-    //@}
-
     //@{ make AST nodes
     Ptr<BottomExpr>   make_bottom_expr()      { return make_ptr<BottomExpr> (prev_); }
     Ptr<BlockExpr>    make_empty_block_expr() { return make_ptr<BlockExpr>  (prev_, Ptrs<Stmnt>{}, make_unit_tuple()); }

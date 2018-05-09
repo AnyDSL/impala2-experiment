@@ -47,38 +47,6 @@ void Parser::error(const char* what, const Token& tok, const char* context) {
 }
 
 /*
- * try
- */
-
-Ptr<Ptrn> Parser::try_ptrn(const char* context) {
-    switch (ahead().tag()) {
-        case TT::M_id:
-        case TT::D_paren_l: return parse_ptrn();
-        default: break;
-    }
-
-    error("pattern", context);
-    return make_ptr<ErrorPtrn>(prev_);
-}
-
-Ptr<Ptrn> Parser::try_ptrn_t(const char* ascription_context) {
-    if ((ahead(0).isa(TT::M_id) && ahead(1).isa(TT::P_colon)) // IdPtrn
-            || ahead().isa(TT::D_paren_l)) {                  // TuplePtrn
-        return parse_ptrn(ascription_context);
-    }
-    auto tracker = track();
-    auto type = parse_expr("type", TP::Arrow);
-    return make_ptr<IdPtrn>(tracker, make_id("_"), std::move(type), true);
-}
-
-Ptr<TuplePtrn> Parser::try_tuple_ptrn(const char* context, TT delim_l, TT delim_r) {
-    if (ahead().isa(TT::D_paren_l)) return parse_tuple_ptrn(nullptr, delim_l, delim_r);
-
-    error("tuple pattern", context);
-    return make_ptr<TuplePtrn>(prev_, make_ptrs<Ptrn>(), make_unknown_expr(), false);
-}
-
-/*
  * misc
  */
 
@@ -118,13 +86,25 @@ Ptr<Expr> Parser::parse_type_ascription(const char* ascription_context) {
  * Ptrn
  */
 
-Ptr<Ptrn> Parser::parse_ptrn(const char* ascription_context) {
-    Ptr<Ptrn> ptrn;
+Ptr<Ptrn> Parser::parse_ptrn(const char* context, const char* ascription_context) {
     switch (ahead().tag()) {
         case TT::M_id:      return parse_id_ptrn(ascription_context);
         case TT::D_paren_l: return parse_tuple_ptrn(ascription_context);
-        default: THORIN_UNREACHABLE;
+        default:
+            error("pattern", context);
+            return make_ptr<ErrorPtrn>(prev_);
     }
+}
+
+Ptr<Ptrn> Parser::parse_ptrn_t(const char* ascription_context) {
+    if ((ahead(0).isa(TT::M_id) && ahead(1).isa(TT::P_colon)) // IdPtrn
+            || ahead().isa(TT::D_paren_l)) {                  // TuplePtrn
+        return parse_ptrn(nullptr, ascription_context);
+    }
+
+    auto tracker = track();
+    auto type = parse_expr("type");
+    return make_ptr<IdPtrn>(tracker, make_id("_"), std::move(type), true);
 }
 
 Ptr<IdPtrn> Parser::parse_id_ptrn(const char* ascription_context) {
@@ -134,7 +114,12 @@ Ptr<IdPtrn> Parser::parse_id_ptrn(const char* ascription_context) {
     return make_ptr<IdPtrn>(tracker, std::move(id), std::move(type), bool(ascription_context));
 }
 
-Ptr<TuplePtrn> Parser::parse_tuple_ptrn(const char* ascription_context, TT delim_l, TT delim_r) {
+Ptr<TuplePtrn> Parser::parse_tuple_ptrn(const char* context, const char* ascription_context, TT delim_l, TT delim_r) {
+    if (!ahead().isa(TT::D_paren_l)) {
+        error("tuple pattern", context);
+        return make_ptr<TuplePtrn>(prev_, make_ptrs<Ptrn>(), make_unknown_expr(), false);
+    }
+
     auto tracker = track();
     auto ptrns = parse_list("tuple pattern", delim_l, delim_r, [&]{ return try_ptrn("sub-pattern of a tuple pattern"); });
     auto type = parse_type_ascription(ascription_context);
