@@ -48,7 +48,7 @@ public:
     /// May also be an @p Expr which is intererpreted as an @p IdPtrn with an anonymous @p Id.
     /// If @p ascription_context is not a @c nullptr the type ascription is mandatory.
     /// Otherwise, it's optional.
-    Ptr<Ptrn>       parse_ptrn_t(const char* context, const char* ascription_context = nullptr);
+    Ptr<Ptrn>       parse_ptrn_t(const char* ascription_context = nullptr);
     //@}
 
     Ptr<IdPtrn>     parse_id_ptrn(const char* ascription_context = nullptr);

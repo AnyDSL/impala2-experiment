@@ -121,7 +121,7 @@ Ptr<TuplePtrn> Parser::parse_tuple_ptrn(const char* context, const char* ascript
     }
 
     auto tracker = track();
-    auto ptrns = parse_list("tuple pattern", delim_l, delim_r, [&]{ return try_ptrn("sub-pattern of a tuple pattern"); });
+    auto ptrns = parse_list("tuple pattern", delim_l, delim_r, [&]{ return parse_ptrn("sub-pattern of a tuple pattern"); });
     auto type = parse_type_ascription(ascription_context);
     return make_ptr<TuplePtrn>(tracker, std::move(ptrns), std::move(type), bool(ascription_context));
 }
@@ -314,7 +314,7 @@ Ptr<PackExpr> Parser::parse_pack_expr() {
     auto tracker = track();
     eat(TT::K_pk);
     expect(TT::D_paren_l, "opening delimiter of a pack");
-    auto domains = parse_list(TT::P_semicolon, [&]{ return try_ptrn_t("type ascription of a pack's domain"); });
+    auto domains = parse_list(TT::P_semicolon, [&]{ return parse_ptrn_t("type ascription of a pack's domain"); });
     expect(TT::P_semicolon, "pack");
     auto body = parse_expr("body of a pack");
     expect(TT::D_paren_r, "closing delimiter of a pack");
@@ -324,7 +324,7 @@ Ptr<PackExpr> Parser::parse_pack_expr() {
 
 Ptr<SigmaExpr> Parser::parse_sigma_expr() {
     auto tracker = track();
-    auto elems = parse_list("sigma", TT::D_bracket_l, TT::D_bracket_r, [&]{ return try_ptrn_t("type ascription of a sigma element"); });
+    auto elems = parse_list("sigma", TT::D_bracket_l, TT::D_bracket_r, [&]{ return parse_ptrn_t("type ascription of a sigma element"); });
     return make_ptr<SigmaExpr>(tracker, std::move(elems));
 }
 
@@ -358,7 +358,7 @@ Ptr<VariadicExpr> Parser::parse_variadic_expr() {
     auto tracker = track();
     eat(TT::K_ar);
     expect(TT::D_bracket_l, "opening delimiter of a variadic");
-    auto domains = parse_list(TT::P_semicolon, [&]{ return try_ptrn_t("type ascription of a variadic's domain"); });
+    auto domains = parse_list(TT::P_semicolon, [&]{ return parse_ptrn_t("type ascription of a variadic's domain"); });
     expect(TT::P_semicolon, "variadic");
     auto body = parse_expr("body of a variadic");
     expect(TT::D_bracket_r, "closing delimiter of a variadic");
@@ -387,10 +387,10 @@ Ptr<LambdaExpr> Parser::parse_cn_expr(bool item) {
         id = make_id("_");
 
     auto ds_domain = ahead().isa(TT::D_bracket_l)
-        ? parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r)
+        ? parse_tuple_ptrn(nullptr, nullptr, TT::D_bracket_l, TT::D_bracket_r)
         : nullptr;
 
-    auto domain = try_tuple_ptrn("domain of a continuation");
+    auto domain = parse_tuple_ptrn("domain of a continuation");
     auto body = parse_expr("body of a continuation");
 
     auto f = make_ptr<LambdaExpr>(tracker, std::move(domain), make_bottom_expr(), std::move(body));
@@ -416,10 +416,10 @@ Ptr<LambdaExpr> Parser::parse_fn_expr(bool item) {
         id = make_id("_");
 
     auto ds_domain = ahead().isa(TT::D_bracket_l)
-        ? parse_tuple_ptrn(nullptr, TT::D_bracket_l, TT::D_bracket_r)
+        ? parse_tuple_ptrn(nullptr, nullptr, TT::D_bracket_l, TT::D_bracket_r)
         : nullptr;
 
-    auto domain = try_tuple_ptrn("domain of a function");
+    auto domain = parse_tuple_ptrn("domain of a function");
     auto ret = accept(TT::O_arrow) ? parse_expr("codomain of an function", TP::Arrow) : make_unknown_expr();
     // "_: \/ _: ret -> ⊥"
     auto ret_ptrn = make_id_ptrn("return", make_cn_type(make_id_ptrn("_", std::move(ret))));
@@ -442,7 +442,7 @@ Ptr<LambdaExpr> Parser::parse_fn_expr(bool item) {
 Ptr<LambdaExpr> Parser::parse_lambda_expr() {
     auto tracker = track();
     eat(TT::O_lambda);
-    auto domain = try_ptrn("domain of an abstraction");
+    auto domain = parse_ptrn("domain of an abstraction");
     auto codomain = accept(TT::O_arrow) ? parse_expr("codomain of an abstraction", TP::Arrow) : make_unknown_expr();
     auto body = parse_expr("body of an abstraction");
 
@@ -456,7 +456,7 @@ Ptr<LambdaExpr> Parser::parse_lambda_expr() {
 Ptr<ForallExpr> Parser::parse_cn_type_expr() {
     auto tracker = track();
     eat(TT::K_Cn);
-    auto domain = try_ptrn_t();
+    auto domain = parse_ptrn_t();
 
     return make_ptr<ForallExpr>(tracker, std::move(domain), make_bottom_expr());
 }
@@ -464,7 +464,7 @@ Ptr<ForallExpr> Parser::parse_cn_type_expr() {
 Ptr<ForallExpr> Parser::parse_fn_type_expr() {
     auto tracker = track();
     eat(TT::K_Fn);
-    auto domain = try_ptrn_t();
+    auto domain = parse_ptrn_t();
     expect(TT::O_arrow, "function type");
     auto ret = parse_expr("codomain of a function type", TP::Arrow);
     // "_: \/ _: ret -> ⊥"
@@ -480,7 +480,7 @@ Ptr<ForallExpr> Parser::parse_fn_type_expr() {
 Ptr<ForallExpr> Parser::parse_forall_expr() {
     auto tracker = track();
     eat(TT::O_forall);
-    auto domain = try_ptrn_t();
+    auto domain = parse_ptrn_t();
     expect(TT::O_arrow, "for-all type");
     auto codomain = parse_expr("codomain of a for-all type", TP::Arrow);
 
@@ -494,7 +494,7 @@ Ptr<ForallExpr> Parser::parse_forall_expr() {
 Ptr<LetStmnt> Parser::parse_let_stmnt() {
     auto tracker = track();
     eat(TT::K_let);
-    auto ptrn = try_ptrn("let statement");
+    auto ptrn = parse_ptrn("let statement");
     Ptr<Expr> init;
     if (accept(TT::O_assign))
         init = parse_expr("initialization expression of a let statement");
