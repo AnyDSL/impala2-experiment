@@ -174,7 +174,7 @@ Printer& SigmaExpr::stream(Printer& p) const {
 }
 
 Printer& TypeExpr::stream(Printer& p) const {
-    if (auto q = qualifier->isa<QualifierExpr>(); p.fancy() && q && q->tag == QualifierExpr::Tag::U)
+    if (auto q = qualifier->isa<QualifierExpr>(); p.fancy() && q && q->tag == QualifierExpr::Tag::u)
         return streamf(p, "type");
     return streamf(p, "type({})", qualifier);
 }

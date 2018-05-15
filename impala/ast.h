@@ -104,7 +104,7 @@ struct Ptrn : public thorin::RuntimeCast<Ptrn>, public Node {
     {}
 
     virtual void bind(Scopes&) const = 0;
-    virtual void emit(Emitter&) const = 0;
+    virtual void emit(Emitter&, const thorin::Def*) const = 0;
     Printer& stream_ascription(Printer&) const ;
 
     Ptr<Expr> type;
@@ -117,7 +117,7 @@ struct ErrorPtrn : public Ptrn {
     {}
 
     void bind(Scopes&) const override;
-    void emit(Emitter&) const override;
+    void emit(Emitter&, const thorin::Def*) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -130,7 +130,7 @@ struct IdPtrn : public Ptrn {
     Symbol symbol() const { return id->symbol; }
 
     void bind(Scopes&) const override;
-    void emit(Emitter&) const override;
+    void emit(Emitter&, const thorin::Def*) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
@@ -143,7 +143,7 @@ struct TuplePtrn : public Ptrn {
     {}
 
     void bind(Scopes&) const override;
-    void emit(Emitter&) const override;
+    void emit(Emitter&, const thorin::Def*) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> elems;
@@ -390,10 +390,10 @@ struct PostfixExpr : public Expr {
 
 struct QualifierExpr : public Expr {
     enum class Tag {
-        U = int(Token::Tag::U_u),
-        R = int(Token::Tag::U_r),
-        A = int(Token::Tag::U_a),
-        L = int(Token::Tag::U_l),
+        u = int(Token::Tag::U_u),
+        r = int(Token::Tag::U_r),
+        a = int(Token::Tag::U_a),
+        l = int(Token::Tag::U_l),
     };
 
     QualifierExpr(Token token)

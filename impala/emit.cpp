@@ -8,13 +8,13 @@ namespace impala {
  * Ptrn
  */
 
-void IdPtrn::emit(Emitter&) const {
+void IdPtrn::emit(Emitter&, const thorin::Def*) const {
 }
 
-void TuplePtrn::emit(Emitter&) const {
+void TuplePtrn::emit(Emitter&, const thorin::Def*) const {
 }
 
-void ErrorPtrn::emit(Emitter&) const {
+void ErrorPtrn::emit(Emitter&, const thorin::Def*) const {
 }
 
 /*
@@ -22,15 +22,14 @@ void ErrorPtrn::emit(Emitter&) const {
  */
 
 const thorin::Def* AppExpr::emit(Emitter& e) const {
-    callee->emit(e);
-    arg->emit(e);
-    return nullptr;
+    auto c = callee->emit(e);
+    auto a = arg->emit(e);
+    return e.app(c, a);
 }
 
 const thorin::Def* BlockExpr::emit(Emitter& e) const {
     //emit_stmnts(stmnts, e);
-    expr->emit(e);
-    return nullptr;
+    return expr->emit(e);
 }
 
 const thorin::Def* BottomExpr::emit(Emitter&) const {
@@ -43,7 +42,7 @@ const thorin::Def* FieldExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* ForallExpr::emit(Emitter& e) const {
-    domain->emit(e);
+    //domain->emit(e);
     codomain->emit(e);
     return nullptr;
 }
@@ -66,7 +65,7 @@ const thorin::Def* InfixExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* LambdaExpr::emit(Emitter& e) const {
-    domain->emit(e);
+    //domain->emit(e);
     codomain->emit(e);
     body->emit(e);
     return nullptr;
@@ -82,8 +81,14 @@ const thorin::Def* PostfixExpr::emit(Emitter& e) const {
     return nullptr;
 }
 
-const thorin::Def* QualifierExpr::emit(Emitter&) const {
-    return nullptr;
+const thorin::Def* QualifierExpr::emit(Emitter& e) const {
+    switch (tag) {
+        case Tag::u: return e.qualifier(thorin::QualifierTag::u);
+        case Tag::r: return e.qualifier(thorin::QualifierTag::r);
+        case Tag::a: return e.qualifier(thorin::QualifierTag::a);
+        case Tag::l: return e.qualifier(thorin::QualifierTag::l);
+        default: THORIN_UNREACHABLE;
+    }
 }
 
 const thorin::Def* TupleExpr::Elem::emit(Emitter& e) const {
@@ -103,16 +108,17 @@ const thorin::Def* UnknownExpr::emit(Emitter&) const {
 }
 
 const thorin::Def* PackExpr::emit(Emitter& e) const {
-    for (auto&& domain : domains)
-        domain->emit(e);
+    //for (auto&& domain : domains)
+        //domain->emit(e);
     body->emit(e);
     return nullptr;
 }
 
 const thorin::Def* SigmaExpr::emit(Emitter& e) const {
-    for (auto&& elem : elems)
-        elem->emit(e);
-    return nullptr;
+    auto sigma = e.sigma_type(elems.size());
+    //for (auto&& elem : elems)
+        //elem->emit(e);
+    return sigma;
 }
 
 const thorin::Def* TypeExpr::emit(Emitter& e) const {
@@ -121,8 +127,8 @@ const thorin::Def* TypeExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* VariadicExpr::emit(Emitter& e) const {
-    for (auto&& domain : domains)
-        domain->emit(e);
+    //for (auto&& domain : domains)
+        //domain->emit(e);
     body->emit(e);
     return nullptr;
 }
@@ -142,7 +148,7 @@ void ExprStmnt::emit(Emitter& e) const {
 void LetStmnt::emit(Emitter& e) const {
     if (init)
         init->emit(e);
-    ptrn->emit(e);
+    //ptrn->emit(e);
 }
 
 void ItemStmnt::emit(Emitter&) const {
