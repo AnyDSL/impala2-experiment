@@ -13,26 +13,32 @@ using thorin::Loc;
 using thorin::Symbol;
 using namespace thorin::literals;
 
-#define IMPALA_KEYWORDS(f) \
-    f(K_ar,     "ar") \
-    f(K_Cn,     "Cn") \
-    f(K_cn,     "cn") \
-    f(K_else,   "else") \
-    f(K_false,  "false") \
-    f(K_fn,     "fn") \
-    f(K_Fn,     "Fn") \
-    f(K_for,    "for") \
-    f(K_if,     "if") \
-    f(K_impl,   "impl") \
-    f(K_let,    "let") \
-    f(K_match,  "match") \
-    f(K_mut,    "mut") \
-    f(K_pk,     "pk") \
-    f(K_struct, "struct") \
-    f(K_true,   "true") \
-    f(K_trait,  "trait") \
-    f(K_type,   "type") \
-    f(K_while,  "while")
+#define IMPALA_KEYWORDS(f)      \
+    f(K_ar,        "ar")        \
+    f(K_arity,     "arity")     \
+    f(K_Arity,     "Arity")     \
+    f(K_Cn,        "Cn")        \
+    f(K_cn,        "cn")        \
+    f(K_else,      "else")      \
+    f(K_false,     "false")     \
+    f(K_fn,        "fn")        \
+    f(K_Fn,        "Fn")        \
+    f(K_for,       "for")       \
+    f(K_if,        "if")        \
+    f(K_impl,      "impl")      \
+    f(K_let,       "let")       \
+    f(K_marity,    "marity")    \
+    f(K_Marity,    "Marity")    \
+    f(K_match,     "match")     \
+    f(K_mut,       "mut")       \
+    f(K_pk,        "pk")        \
+    f(K_qualifier, "qualifier") \
+    f(K_Qualifier, "Qualifier") \
+    f(K_struct,    "struct")    \
+    f(K_true,      "true")      \
+    f(K_trait,     "trait")     \
+    f(K_type,      "type")      \
+    f(K_while,     "while")
 
 #define CODE(t, str) + 1_s
 constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
