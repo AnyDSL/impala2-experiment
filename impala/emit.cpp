@@ -8,6 +8,12 @@ namespace impala {
  * Ptrn
  */
 
+const thorin::Def* Ptrn::emit(Emitter& e) const {
+    auto t = type->emit(e);
+    emit(e, t);
+    return t;
+}
+
 void IdPtrn::emit(Emitter&, const thorin::Def*) const {
 }
 
@@ -42,9 +48,9 @@ const thorin::Def* FieldExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* ForallExpr::emit(Emitter& e) const {
-    //domain->emit(e);
-    codomain->emit(e);
-    return nullptr;
+    auto d = domain->emit(e);
+    auto c = codomain->emit(e);
+    return e.pi(d, c, loc);
 }
 
 const thorin::Def* IdExpr::emit(Emitter&) const {
@@ -65,10 +71,10 @@ const thorin::Def* InfixExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* LambdaExpr::emit(Emitter& e) const {
-    //domain->emit(e);
-    codomain->emit(e);
-    body->emit(e);
-    return nullptr;
+    auto d = domain->emit(e);
+    //auto c = codomain->emit(e);
+    auto b = body->emit(e);
+    return e.lambda(d, b, loc);
 }
 
 const thorin::Def* PrefixExpr::emit(Emitter& e) const {
@@ -92,15 +98,13 @@ const thorin::Def* QualifierExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* TupleExpr::Elem::emit(Emitter& e) const {
-    expr->emit(e);
-    return nullptr;
+    return expr->emit(e);
 }
 
 const thorin::Def* TupleExpr::emit(Emitter& e) const {
-    for (auto&& elem : elems)
-        elem->emit(e);
-    type->emit(e);
-    return nullptr;
+    thorin::DefArray args(elems.size(), [&](size_t i) { return elems[i]->emit(e); });
+    //type->emit(e);
+    return e.tuple(args, loc);
 }
 
 const thorin::Def* UnknownExpr::emit(Emitter&) const {
@@ -115,10 +119,8 @@ const thorin::Def* PackExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* SigmaExpr::emit(Emitter& e) const {
-    auto sigma = e.sigma_type(elems.size());
-    //for (auto&& elem : elems)
-        //elem->emit(e);
-    return sigma;
+    thorin::DefArray args(elems.size(), [&](size_t i) { return elems[i]->emit(e); });
+    return e.sigma(args, loc);
 }
 
 const thorin::Def* TypeExpr::emit(Emitter& e) const {

@@ -104,6 +104,7 @@ struct Ptrn : public thorin::RuntimeCast<Ptrn>, public Node {
     {}
 
     virtual void bind(Scopes&) const = 0;
+    const thorin::Def* emit(Emitter& e) const;
     virtual void emit(Emitter&, const thorin::Def*) const = 0;
     Printer& stream_ascription(Printer&) const ;
 
