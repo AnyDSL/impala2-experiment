@@ -367,6 +367,25 @@ struct PostfixExpr : public Expr {
     Tag tag;
 };
 
+struct QualifierExpr : public Expr {
+    enum class Tag {
+        U = int(Token::Tag::U_u),
+        R = int(Token::Tag::U_r),
+        A = int(Token::Tag::U_a),
+        L = int(Token::Tag::U_l),
+    };
+
+    QualifierExpr(Token token)
+        : Expr(token.loc())
+        , tag((Tag) token.tag())
+    {}
+
+    Printer& stream(Printer&) const override;
+    void bind(Scopes&) const override;
+
+    Tag tag;
+};
+
 struct TupleExpr : public Expr {
     struct Elem : public Node {
         Elem(Loc loc, Ptr<Id>&& id, Ptr<Expr>&& expr)
@@ -396,12 +415,15 @@ struct TupleExpr : public Expr {
 };
 
 struct TypeExpr : public Expr {
-    TypeExpr(Loc loc)
+    TypeExpr(Loc loc, Ptr<Expr>&& qualifier)
         : Expr(loc)
+        , qualifier(std::move(qualifier))
     {}
 
     void bind(Scopes&) const override;
     Printer& stream(Printer&) const override;
+
+    Ptr<Expr> qualifier;
 };
 
 struct VariadicExpr : public Expr {

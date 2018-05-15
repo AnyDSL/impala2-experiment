@@ -145,6 +145,10 @@ Printer& PostfixExpr::stream(Printer& p) const {
     return streamf(p, "({}{})", lhs, Token::tag2str((Token::Tag) tag));
 }
 
+Printer& QualifierExpr::stream(Printer& p) const {
+    return streamf(p, "{}", Token::tag2str((Token::Tag) tag));
+}
+
 Printer& TupleExpr::Elem::stream(Printer& p) const {
     if (p.fancy() && id->symbol.is_anonymous())
         return streamf(p, "{}", expr);
@@ -170,7 +174,9 @@ Printer& SigmaExpr::stream(Printer& p) const {
 }
 
 Printer& TypeExpr::stream(Printer& p) const {
-    return streamf(p, "type");
+    if (auto q = qualifier->isa<QualifierExpr>(); p.fancy() && q && q->tag == QualifierExpr::Tag::U)
+        return streamf(p, "type");
+    return streamf(p, "type({})", qualifier);
 }
 
 Printer& VariadicExpr::stream(Printer& p) const {

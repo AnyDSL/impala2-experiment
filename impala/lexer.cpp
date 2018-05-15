@@ -150,11 +150,17 @@ Token Lexer::lex() {
             return {loc(), TT::P_colon};
         }
 
-        // operators
+        // backslash
         if (accept('\\')) {
-            if (accept('/')) return {loc(), TT::O_forall};
-            return {loc(), TT::O_lambda};
+            if (accept('/')) return {loc(), TT::B_forall};
+            if (accept('u')) return {loc(), TT::U_u};
+            if (accept('r')) return {loc(), TT::U_r};
+            if (accept('a')) return {loc(), TT::U_a};
+            if (accept('l')) return {loc(), TT::U_l};
+            return {loc(), TT::B_lambda};
         }
+
+        // operators
         if (accept('=')) {
             if (accept('=')) return {loc(), TT::O_eq};
             return {loc(), TT::O_assign};
@@ -233,7 +239,11 @@ Token Lexer::lex() {
             return i == keywords_.end() ? Token{loc(), symbol} : Token{loc(), i->second};
         }
 
-        // TODO utf-8 stuff here
+        // utf-8
+        if (accept(U'ᵁ')) return {loc(), TT::U_u};
+        if (accept(U'ᴿ')) return {loc(), TT::U_r};
+        if (accept(U'ᴬ')) return {loc(), TT::U_a};
+        if (accept(U'ᴸ')) return {loc(), TT::U_l};
 
         error("invalid character '{}'", peek_bytes_);
         next();

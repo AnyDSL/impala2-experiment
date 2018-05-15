@@ -48,27 +48,32 @@ constexpr auto Num_Keywords  = 0_s IMPALA_KEYWORDS(CODE);
     f(M_eof,          "<eof>") \
     f(M_id,           "<identifier>") \
     /* delimiters */ \
-    f(D_angle_l,      "‹") \
-    f(D_angle_r,      "›") \
-    f(D_brace_l,      "{") \
-    f(D_brace_r,      "}") \
-    f(D_bracket_l,    "[") \
-    f(D_bracket_r,    "]") \
-    f(D_paren_l,      "(") \
-    f(D_paren_r,      ")") \
-    f(D_quote_l,      "«") \
-    f(D_quote_r,      "»") \
+    f(D_angle_l,      "‹")  \
+    f(D_angle_r,      "›")  \
+    f(D_brace_l,      "{")  \
+    f(D_brace_r,      "}")  \
+    f(D_bracket_l,    "[")  \
+    f(D_bracket_r,    "]")  \
+    f(D_paren_l,      "(")  \
+    f(D_paren_r,      ")")  \
+    f(D_quote_l,      "«")  \
+    f(D_quote_r,      "»")  \
     /* punctation */ \
-    f(P_colon,        ":") \
+    f(P_colon,        ":")  \
     f(P_colon_colon,  "::") \
-    f(P_comma,        ",") \
-    f(P_dot,          ".") \
-    f(P_semicolon,    ";") \
-    /* operators */ \
+    f(P_comma,        ",")  \
+    f(P_dot,          ".")  \
+    f(P_semicolon,    ";")  \
+    /* utf-8 */ \
+    f(U_u,            "ᵁ")  \
+    f(U_r,            "ᴿ")  \
+    f(U_a,            "ᴬ")  \
+    f(U_l,            "ᴸ")  \
+    /* backslash */ \
+    f(B_lambda,       "\\") \
+    f(B_forall,       "\\/")
 
 #define IMPALA_OPS(f) \
-    f(O_lambda,     "\\",  Error,   "") \
-    f(O_forall,     "\\/", Error,   "") \
     f(O_arrow,      "->",  Error,   "") \
     f(O_inc,        "++",  Error,   "") \
     f(O_dec,        "--",  Error,   "") \

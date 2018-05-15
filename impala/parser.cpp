@@ -115,7 +115,7 @@ Ptr<IdPtrn> Parser::parse_id_ptrn(const char* ascription_context) {
 }
 
 Ptr<TuplePtrn> Parser::parse_tuple_ptrn(const char* context, const char* ascription_context, TT delim_l, TT delim_r) {
-    if (!ahead().isa(TT::D_paren_l)) {
+    if (!ahead().isa(delim_l)) {
         error("tuple pattern", context);
         return make_ptr<TuplePtrn>(prev_, make_ptrs<Ptrn>(), make_unknown_expr(), false);
     }
@@ -207,6 +207,10 @@ Ptr<Expr> Parser::parse_primary_expr(const char* context) {
         case TT::O_not:
         case TT::O_sub:
         case TT::O_tilde:     return parse_prefix_expr();
+        case TT::U_u:
+        case TT::U_r:
+        case TT::U_a:
+        case TT::U_l:         return make_ptr<QualifierExpr>(lex());
         case TT::D_brace_l:   return parse_block_expr(nullptr);
         case TT::D_bracket_l: return parse_sigma_expr();
         case TT::D_paren_l:   return parse_tuple_expr();
@@ -227,8 +231,8 @@ Ptr<Expr> Parser::parse_primary_expr(const char* context) {
         case TT::L_s:         return nullptr; // TODO
         case TT::L_u:         return nullptr; // TODO
         case TT::M_id:        return parse_id_expr();
-        case TT::O_forall:    return parse_forall_expr();
-        case TT::O_lambda:    return parse_lambda_expr();
+        case TT::B_forall:    return parse_forall_expr();
+        case TT::B_lambda:    return parse_lambda_expr();
         default:
             error("expression", context ? context : "primary expression");
             return make_error_expr();
@@ -351,7 +355,16 @@ Ptr<TupleExpr> Parser::parse_tuple_expr(TT delim_l, TT delim_r) {
 Ptr<TypeExpr> Parser::parse_type_expr() {
     auto tracker = track();
     eat(TT::K_type);
-    return make_ptr<TypeExpr>(tracker);
+    Ptr<Expr> qualifier;
+
+    if (accept(TT::D_paren_l)) {
+        qualifier = parse_expr("qualifier of a kind");
+        expect(TT::D_paren_r, "closing delimiter of a qualified kind");
+    } else {
+        qualifier = make_ptr<QualifierExpr>(Token(prev_, TT::U_u));
+    }
+
+    return make_ptr<TypeExpr>(tracker, std::move(qualifier));
 }
 
 Ptr<VariadicExpr> Parser::parse_variadic_expr() {
@@ -441,7 +454,7 @@ Ptr<LambdaExpr> Parser::parse_fn_expr(bool item) {
 
 Ptr<LambdaExpr> Parser::parse_lambda_expr() {
     auto tracker = track();
-    eat(TT::O_lambda);
+    eat(TT::B_lambda);
     auto domain = parse_ptrn("domain of an abstraction");
     auto codomain = accept(TT::O_arrow) ? parse_expr("codomain of an abstraction", TP::Arrow) : make_unknown_expr();
     auto body = parse_expr("body of an abstraction");
@@ -479,7 +492,7 @@ Ptr<ForallExpr> Parser::parse_fn_type_expr() {
 
 Ptr<ForallExpr> Parser::parse_forall_expr() {
     auto tracker = track();
-    eat(TT::O_forall);
+    eat(TT::B_forall);
     auto domain = parse_ptrn_t();
     expect(TT::O_arrow, "for-all type");
     auto codomain = parse_expr("codomain of a for-all type", TP::Arrow);

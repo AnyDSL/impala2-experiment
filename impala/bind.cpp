@@ -151,6 +151,8 @@ void PostfixExpr::bind(Scopes& scopes) const {
     lhs->bind(scopes);
 }
 
+void QualifierExpr::bind(Scopes&) const {}
+
 void TupleExpr::Elem::bind(Scopes& scopes) const {
     expr->bind(scopes);
 }
@@ -174,7 +176,9 @@ void SigmaExpr::bind(Scopes& scopes) const {
         elem->bind(scopes);
 }
 
-void TypeExpr::bind(Scopes&) const {}
+void TypeExpr::bind(Scopes& scopes) const {
+    qualifier->bind(scopes);
+}
 
 void VariadicExpr::bind(Scopes& scopes) const {
     for (auto&& domain : domains)
