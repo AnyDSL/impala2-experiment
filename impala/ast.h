@@ -13,6 +13,7 @@
 
 namespace impala {
 
+class Emitter;
 class Printer;
 class Scopes;
 
@@ -103,6 +104,7 @@ struct Ptrn : public thorin::RuntimeCast<Ptrn>, public Node {
     {}
 
     virtual void bind(Scopes&) const = 0;
+    virtual void emit(Emitter&) const = 0;
     Printer& stream_ascription(Printer&) const ;
 
     Ptr<Expr> type;
@@ -115,6 +117,7 @@ struct ErrorPtrn : public Ptrn {
     {}
 
     void bind(Scopes&) const override;
+    void emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -127,6 +130,7 @@ struct IdPtrn : public Ptrn {
     Symbol symbol() const { return id->symbol; }
 
     void bind(Scopes&) const override;
+    void emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
@@ -139,6 +143,7 @@ struct TuplePtrn : public Ptrn {
     {}
 
     void bind(Scopes&) const override;
+    void emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> elems;
@@ -154,6 +159,7 @@ struct Expr : public thorin::RuntimeCast<Expr>, public Node {
     {}
 
     virtual void bind(Scopes&) const = 0;
+    virtual const thorin::Def* emit(Emitter&) const = 0;
 };
 
 struct AppExpr : public Expr {
@@ -165,6 +171,7 @@ struct AppExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> callee;
@@ -180,6 +187,7 @@ struct BlockExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Stmnt> stmnts;
@@ -192,6 +200,7 @@ struct BottomExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -201,6 +210,7 @@ struct ErrorExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -213,6 +223,7 @@ struct IdExpr : public Expr {
     Symbol symbol() const { return id->symbol; }
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
@@ -228,6 +239,7 @@ struct IfExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> cond;
@@ -250,6 +262,7 @@ struct InfixExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> lhs;
@@ -265,6 +278,7 @@ struct FieldExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> lhs;
@@ -279,6 +293,7 @@ struct ForallExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Ptrn> domain;
@@ -287,6 +302,7 @@ struct ForallExpr : public Expr {
 
 struct ForExpr : public Expr {
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -299,6 +315,7 @@ struct LambdaExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     mutable const Id* id = nullptr;
@@ -309,6 +326,7 @@ struct LambdaExpr : public Expr {
 
 struct MatchExpr : public Expr {
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -320,6 +338,7 @@ struct PackExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> domains;
@@ -342,6 +361,7 @@ struct PrefixExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Tag tag;
@@ -361,6 +381,7 @@ struct PostfixExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> lhs;
@@ -382,6 +403,7 @@ struct QualifierExpr : public Expr {
 
     Printer& stream(Printer&) const override;
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
 
     Tag tag;
 };
@@ -395,6 +417,7 @@ struct TupleExpr : public Expr {
         {}
 
         void bind(Scopes&) const;
+        const thorin::Def* emit(Emitter&) const;
         Printer& stream(Printer&) const override;
 
         Ptr<Id> id;
@@ -408,6 +431,7 @@ struct TupleExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Elem> elems;
@@ -421,6 +445,7 @@ struct TypeExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> qualifier;
@@ -434,6 +459,7 @@ struct VariadicExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> domains;
@@ -447,6 +473,7 @@ struct SigmaExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptrs<Ptrn> elems;
@@ -458,6 +485,7 @@ struct UnknownExpr : public Expr {
     {}
 
     void bind(Scopes&) const override;
+    const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 };
 
@@ -474,6 +502,7 @@ struct Stmnt : public thorin::RuntimeCast<Stmnt>, public Node {
     {}
 
     virtual void bind(Scopes&) const = 0;
+    virtual void emit(Emitter&) const = 0;
 };
 
 struct ExprStmnt : public Stmnt {
@@ -483,6 +512,7 @@ struct ExprStmnt : public Stmnt {
     {}
 
     void bind(Scopes&) const override;
+    void emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Expr> expr;
@@ -495,6 +525,7 @@ struct ItemStmnt : public Stmnt {
     {}
 
     void bind(Scopes&) const override;
+    void emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Item> item;
@@ -508,6 +539,7 @@ struct LetStmnt : public Stmnt {
     {}
 
     void bind(Scopes&) const override;
+    void emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
 
     Ptr<Ptrn> ptrn;

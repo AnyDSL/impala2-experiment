@@ -12,6 +12,8 @@ add_library(impala
     impala/ast.h
     impala/bind.cpp
     impala/bind.h
+    impala/emit.cpp
+    impala/emit.h
     impala/compiler.h
     impala/lexer.cpp
     impala/parser.cpp
