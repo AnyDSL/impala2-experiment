@@ -24,7 +24,7 @@ void ErrorPtrn::emit(Emitter&, const thorin::Def*) const {
 const thorin::Def* AppExpr::emit(Emitter& e) const {
     auto c = callee->emit(e);
     auto a = arg->emit(e);
-    return e.app(c, a);
+    return e.app(c, a, loc);
 }
 
 const thorin::Def* BlockExpr::emit(Emitter& e) const {
@@ -122,8 +122,7 @@ const thorin::Def* SigmaExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* TypeExpr::emit(Emitter& e) const {
-    qualifier->emit(e);
-    return nullptr;
+    return e.star(qualifier->emit(e));
 }
 
 const thorin::Def* VariadicExpr::emit(Emitter& e) const {
@@ -133,8 +132,8 @@ const thorin::Def* VariadicExpr::emit(Emitter& e) const {
     return nullptr;
 }
 
-const thorin::Def* ErrorExpr::emit(Emitter&) const {
-    return nullptr;
+const thorin::Def* ErrorExpr::emit(Emitter& e) const {
+    return e.bottom(e.star());
 }
 
 /*
