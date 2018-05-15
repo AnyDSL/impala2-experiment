@@ -135,6 +135,9 @@ struct IdPtrn : public Ptrn {
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
+
+private:
+    mutable const thorin::Def* def_;
 };
 
 struct TuplePtrn : public Ptrn {

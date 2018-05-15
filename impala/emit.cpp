@@ -14,10 +14,14 @@ const thorin::Def* Ptrn::emit(Emitter& e) const {
     return t;
 }
 
-void IdPtrn::emit(Emitter&, const thorin::Def*) const {
+void IdPtrn::emit(Emitter&, const thorin::Def* def) const {
+    def_ = def;
 }
 
-void TuplePtrn::emit(Emitter&, const thorin::Def*) const {
+void TuplePtrn::emit(Emitter& e, const thorin::Def* def) const {
+    size_t i = 0;
+    for (auto&& elem : elems)
+        elem->emit(e, e.extract(def, i++, elems.size(), elem->loc));
 }
 
 void ErrorPtrn::emit(Emitter&, const thorin::Def*) const {
