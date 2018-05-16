@@ -84,12 +84,17 @@ struct Item : public Node {
         , expr(std::move(expr))
     {}
 
+    const thorin::Def* def() const { return def_; }
     void bind(Scopes& scopes) const;
     void bind_rec(Scopes& scopes) const;
+    const thorin::Def* emit(Emitter&) const;
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;
     Ptr<Expr> expr;
+
+private:
+    mutable const thorin::Def* def_ = nullptr;
 };
 
 /*
@@ -104,7 +109,7 @@ struct Ptrn : public thorin::RuntimeCast<Ptrn>, public Node {
     {}
 
     virtual void bind(Scopes&) const = 0;
-    const thorin::Def* emit(Emitter& e) const;
+    const thorin::Def* emit(Emitter&) const;
     virtual void emit(Emitter&, const thorin::Def*) const = 0;
     Printer& stream_ascription(Printer&) const ;
 
@@ -129,6 +134,7 @@ struct IdPtrn : public Ptrn {
     {}
 
     Symbol symbol() const { return id->symbol; }
+    const thorin::Def* def() const { return def_; }
 
     void bind(Scopes&) const override;
     void emit(Emitter&, const thorin::Def*) const override;
@@ -137,7 +143,7 @@ struct IdPtrn : public Ptrn {
     Ptr<Id> id;
 
 private:
-    mutable const thorin::Def* def_;
+    mutable const thorin::Def* def_ = nullptr;
 };
 
 struct TuplePtrn : public Ptrn {

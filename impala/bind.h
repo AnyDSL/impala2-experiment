@@ -32,6 +32,7 @@ struct Decl {
         , item_(item)
     {}
 
+    Tag tag() const { return tag_; }
     bool is_valid() const { return tag_ != Tag::None; }
     const IdPtrn* id_ptrn() const { assert(tag_ == Tag::IdPtrn); return id_ptrn_; }
     const Item* item() const { assert(tag_ == Tag::Item); return item_; }

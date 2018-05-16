@@ -4,6 +4,10 @@
 
 namespace impala {
 
+const thorin::Def* Item::emit(Emitter&) const {
+    return nullptr;
+}
+
 /*
  * Ptrn
  */
@@ -24,8 +28,7 @@ void TuplePtrn::emit(Emitter& e, const thorin::Def* def) const {
         elem->emit(e, e.extract(def, i++, elems.size(), elem->loc));
 }
 
-void ErrorPtrn::emit(Emitter&, const thorin::Def*) const {
-}
+void ErrorPtrn::emit(Emitter&, const thorin::Def*) const {}
 
 /*
  * Expr
@@ -57,8 +60,16 @@ const thorin::Def* ForallExpr::emit(Emitter& e) const {
     return e.pi(d, c, loc);
 }
 
-const thorin::Def* IdExpr::emit(Emitter&) const {
-    return nullptr;
+const thorin::Def* IdExpr::emit(Emitter& e) const {
+    switch (decl.tag()) {
+        case Decl::Tag::IdPtrn: return decl.id_ptrn()->def();
+        case Decl::Tag::Item: {
+            auto item = decl.item();
+            return item->def() ? item->def() : item->emit(e);
+        }
+        case Decl::Tag::None: THORIN_UNREACHABLE;
+    }
+    THORIN_UNREACHABLE;
 }
 
 const thorin::Def* IfExpr::emit(Emitter& e) const {
@@ -151,9 +162,8 @@ void ExprStmnt::emit(Emitter& e) const {
 }
 
 void LetStmnt::emit(Emitter& e) const {
-    if (init)
-        init->emit(e);
-    //ptrn->emit(e);
+    auto i = init ? init->emit(e) : e.bottom(e.star());
+    ptrn->emit(e, i);
 }
 
 void ItemStmnt::emit(Emitter&) const {
