@@ -122,8 +122,8 @@ const thorin::Def* TupleExpr::emit(Emitter& e) const {
     return e.tuple(args, loc);
 }
 
-const thorin::Def* UnknownExpr::emit(Emitter&) const {
-    return nullptr;
+const thorin::Def* UnknownExpr::emit(Emitter& e) const {
+    return e.unknown(loc);
 }
 
 const thorin::Def* PackExpr::emit(Emitter& e) const {

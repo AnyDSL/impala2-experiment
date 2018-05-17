@@ -16,7 +16,6 @@ struct Node;
 
 //------------------------------------------------------------------------------
 
-// TODO use std::variant - but currently clang has a bug...
 struct Decl {
     enum class Tag { None, IdPtrn, Item };
 
