@@ -41,50 +41,50 @@ void Scopes::insert(Decl decl) {
 
 //------------------------------------------------------------------------------
 
-static void bind_stmnts(const Ptrs<Stmnt>& stmnts, Scopes& scopes) {
+static void bind_stmnts(const Ptrs<Stmnt>& stmnts, Scopes& s) {
     auto i = stmnts.begin(), e = stmnts.end();
     while (i != e) {
         if ((*i)->isa<ItemStmnt>()) {
             for (auto j = i; j != e && (*j)->isa<ItemStmnt>(); ++j)
-                (*j)->as<ItemStmnt>()->item->bind_rec(scopes);
+                (*j)->as<ItemStmnt>()->item->bind_rec(s);
             for (; i != e && (*i)->isa<ItemStmnt>(); ++i)
-                (*i)->as<ItemStmnt>()->item->bind(scopes);
+                (*i)->as<ItemStmnt>()->item->bind(s);
         } else {
-            (*i)->bind(scopes);
+            (*i)->bind(s);
             ++i;
         }
     }
 }
 
-void Prg::bind(Scopes& scopes) const {
-    scopes.push();
-    bind_stmnts(stmnts, scopes);
-    scopes.pop();
+void Prg::bind(Scopes& s) const {
+    s.push();
+    bind_stmnts(stmnts, s);
+    s.pop();
 }
 
-void Item::bind(Scopes& scopes) const {
-    scopes.push();
-    expr->bind(scopes);
-    scopes.pop();
+void Item::bind(Scopes& s) const {
+    s.push();
+    expr->bind(s);
+    s.pop();
 }
 
-void Item::bind_rec(Scopes& scopes) const {
-    scopes.insert({this});
+void Item::bind_rec(Scopes& s) const {
+    s.insert({this});
 }
 
 /*
  * Ptrn
  */
 
-void IdPtrn::bind(Scopes& scopes) const {
-    scopes.insert(this);
-    type->bind(scopes);
+void IdPtrn::bind(Scopes& s) const {
+    s.insert(this);
+    type->bind(s);
 }
 
-void TuplePtrn::bind(Scopes& scopes) const {
+void TuplePtrn::bind(Scopes& s) const {
     for (auto&& elem : elems)
-        elem->bind(scopes);
-    type->bind(scopes);
+        elem->bind(s);
+    type->bind(s);
 }
 
 void ErrorPtrn::bind(Scopes&) const {}
@@ -93,97 +93,97 @@ void ErrorPtrn::bind(Scopes&) const {}
  * Expr
  */
 
-void AppExpr::bind(Scopes& scopes) const {
-    callee->bind(scopes);
-    arg->bind(scopes);
+void AppExpr::bind(Scopes& s) const {
+    callee->bind(s);
+    arg->bind(s);
 }
 
-void BlockExpr::bind(Scopes& scopes) const {
-    scopes.push();
-    bind_stmnts(stmnts, scopes);
-    expr->bind(scopes);
-    scopes.pop();
+void BlockExpr::bind(Scopes& s) const {
+    s.push();
+    bind_stmnts(stmnts, s);
+    expr->bind(s);
+    s.pop();
 }
 
 void BottomExpr::bind(Scopes&) const {}
 
-void FieldExpr::bind(Scopes& scopes) const {
-    lhs->bind(scopes);
+void FieldExpr::bind(Scopes& s) const {
+    lhs->bind(s);
 }
 
-void ForallExpr::bind(Scopes& scopes) const {
-    domain->bind(scopes);
-    codomain->bind(scopes);
+void ForallExpr::bind(Scopes& s) const {
+    domain->bind(s);
+    codomain->bind(s);
 }
 
-void IdExpr::bind(Scopes& scopes) const {
+void IdExpr::bind(Scopes& s) const {
     if (!symbol().is_anonymous()) {
-        decl = scopes.find(symbol());
+        decl = s.find(symbol());
         if (!decl.is_valid())
-            scopes.compiler().error(loc, "use of undeclared identifier '{}'", symbol());
+            s.compiler().error(loc, "use of undeclared identifier '{}'", symbol());
     } else {
-        scopes.compiler().error(loc, "identifier '_' is reserved for anonymous declarations");
+        s.compiler().error(loc, "identifier '_' is reserved for anonymous declarations");
     }
 }
 
-void IfExpr::bind(Scopes& scopes) const {
-    cond->bind(scopes);
-    then_expr->bind(scopes);
-    else_expr->bind(scopes);
+void IfExpr::bind(Scopes& s) const {
+    cond->bind(s);
+    then_expr->bind(s);
+    else_expr->bind(s);
 }
 
-void InfixExpr::bind(Scopes& scopes) const {
-    lhs->bind(scopes);
-    rhs->bind(scopes);
+void InfixExpr::bind(Scopes& s) const {
+    lhs->bind(s);
+    rhs->bind(s);
 }
 
-void LambdaExpr::bind(Scopes& scopes) const {
-    domain->bind(scopes);
-    codomain->bind(scopes);
-    body->bind(scopes);
+void LambdaExpr::bind(Scopes& s) const {
+    domain->bind(s);
+    codomain->bind(s);
+    body->bind(s);
 }
 
-void PrefixExpr::bind(Scopes& scopes) const {
-    rhs->bind(scopes);
+void PrefixExpr::bind(Scopes& s) const {
+    rhs->bind(s);
 }
 
-void PostfixExpr::bind(Scopes& scopes) const {
-    lhs->bind(scopes);
+void PostfixExpr::bind(Scopes& s) const {
+    lhs->bind(s);
 }
 
 void QualifierExpr::bind(Scopes&) const {}
 
-void TupleExpr::Elem::bind(Scopes& scopes) const {
-    expr->bind(scopes);
+void TupleExpr::Elem::bind(Scopes& s) const {
+    expr->bind(s);
 }
 
-void TupleExpr::bind(Scopes& scopes) const {
+void TupleExpr::bind(Scopes& s) const {
     for (auto&& elem : elems)
-        elem->bind(scopes);
-    type->bind(scopes);
+        elem->bind(s);
+    type->bind(s);
 }
 
 void UnknownExpr::bind(Scopes&) const {}
 
-void PackExpr::bind(Scopes& scopes) const {
+void PackExpr::bind(Scopes& s) const {
     for (auto&& domain : domains)
-        domain->bind(scopes);
-    body->bind(scopes);
+        domain->bind(s);
+    body->bind(s);
 }
 
-void SigmaExpr::bind(Scopes& scopes) const {
+void SigmaExpr::bind(Scopes& s) const {
     for (auto&& elem : elems)
-        elem->bind(scopes);
+        elem->bind(s);
 }
 
-void TypeExpr::bind(Scopes& scopes) const {
-    qualifier->bind(scopes);
+void TypeExpr::bind(Scopes& s) const {
+    qualifier->bind(s);
 }
 
-void VariadicExpr::bind(Scopes& scopes) const {
+void VariadicExpr::bind(Scopes& s) const {
     for (auto&& domain : domains)
-        domain->bind(scopes);
-    body->bind(scopes);
+        domain->bind(s);
+    body->bind(s);
 }
 
 void ErrorExpr::bind(Scopes&) const {}
@@ -192,18 +192,18 @@ void ErrorExpr::bind(Scopes&) const {}
  * Stmnt
  */
 
-void ExprStmnt::bind(Scopes& scopes) const {
-    expr->bind(scopes);
+void ExprStmnt::bind(Scopes& s) const {
+    expr->bind(s);
 }
 
-void LetStmnt::bind(Scopes& scopes) const {
+void LetStmnt::bind(Scopes& s) const {
     if (init)
-        init->bind(scopes);
-    ptrn->bind(scopes);
+        init->bind(s);
+    ptrn->bind(s);
 }
 
-void ItemStmnt::bind(Scopes& scopes) const {
-    item->bind(scopes);
+void ItemStmnt::bind(Scopes& s) const {
+    item->bind(s);
 }
 
 }
