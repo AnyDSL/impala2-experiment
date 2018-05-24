@@ -9,10 +9,14 @@ namespace impala {
 
 using thorin::Symbol;
 
+template<class T> using Ptr = std::unique_ptr<const T>;
+template<class T> using Ptrs = std::deque<Ptr<T>>;
+
 struct Id;
 struct IdPtrn;
 struct Item;
 struct Node;
+struct Stmnt;
 
 //------------------------------------------------------------------------------
 
@@ -37,6 +41,7 @@ struct Decl {
     const Item* item() const { assert(tag_ == Tag::Item); return item_; }
     const Id* id() const;
     Symbol symbol() const;
+    const thorin::Def* def() const;
 
 private:
     Tag tag_;
@@ -61,8 +66,10 @@ public:
     void pop()  { scopes_.pop_back(); }
     void insert(Decl);
     Decl find(Symbol symbol);
+    void bind_stmnts(const Ptrs<Stmnt>&);
 
 private:
+
     Compiler& compiler_;
     std::vector<thorin::SymbolMap<Decl>> scopes_;
 };

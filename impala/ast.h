@@ -20,8 +20,6 @@ class Scopes;
 struct Expr;
 struct Stmnt;
 
-template<class T> using Ptr = std::unique_ptr<const T>;
-template<class T> using Ptrs = std::deque<Ptr<T>>;
 template<class T, class... Args>
 Ptr<T> make_ptr(Args... args) { return std::make_unique<const T>(std::forward<Args>(args)...); }
 
@@ -60,7 +58,8 @@ struct Prg : public Node {
         , stmnts(std::move(stmnts))
     {}
 
-    void bind(Scopes& scopes) const;
+    void bind(Scopes&) const;
+    void emit(Emitter&) const;
     Printer& stream(Printer&) const override;
 
     Ptrs<Stmnt> stmnts;
@@ -85,9 +84,10 @@ struct Item : public Node {
     {}
 
     const thorin::Def* def() const { return def_; }
-    void bind(Scopes& scopes) const;
-    void bind_rec(Scopes& scopes) const;
-    const thorin::Def* emit(Emitter&) const;
+    void bind_rec(Scopes&) const;
+    void bind(Scopes&) const;
+    void emit_rec(Emitter&) const;
+    void emit(Emitter&) const;
     Printer& stream(Printer&) const override;
 
     Ptr<Id> id;

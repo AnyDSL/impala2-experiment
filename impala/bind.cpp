@@ -14,6 +14,14 @@ const Id* Decl::id() const {
     }
 }
 
+const thorin::Def* Decl::def() const {
+    switch (tag_) {
+        case Tag::IdPtrn: return id_ptrn_->def();
+        case Tag::Item:   return item_->def();
+        default: THORIN_UNREACHABLE;
+    }
+}
+
 Symbol Decl::symbol() const { return id()->symbol; }
 
 //------------------------------------------------------------------------------
@@ -39,26 +47,26 @@ void Scopes::insert(Decl decl) {
     }
 }
 
-//------------------------------------------------------------------------------
-
-static void bind_stmnts(const Ptrs<Stmnt>& stmnts, Scopes& s) {
+void Scopes::bind_stmnts(const Ptrs<Stmnt>& stmnts) {
     auto i = stmnts.begin(), e = stmnts.end();
     while (i != e) {
         if ((*i)->isa<ItemStmnt>()) {
             for (auto j = i; j != e && (*j)->isa<ItemStmnt>(); ++j)
-                (*j)->as<ItemStmnt>()->item->bind_rec(s);
+                (*j)->as<ItemStmnt>()->item->bind_rec(*this);
             for (; i != e && (*i)->isa<ItemStmnt>(); ++i)
-                (*i)->as<ItemStmnt>()->item->bind(s);
+                (*i)->as<ItemStmnt>()->item->bind(*this);
         } else {
-            (*i)->bind(s);
+            (*i)->bind(*this);
             ++i;
         }
     }
 }
 
+//------------------------------------------------------------------------------
+
 void Prg::bind(Scopes& s) const {
     s.push();
-    bind_stmnts(stmnts, s);
+    s.bind_stmnts(stmnts);
     s.pop();
 }
 
@@ -100,7 +108,7 @@ void AppExpr::bind(Scopes& s) const {
 
 void BlockExpr::bind(Scopes& s) const {
     s.push();
-    bind_stmnts(stmnts, s);
+    s.bind_stmnts(stmnts);
     expr->bind(s);
     s.pop();
 }
@@ -205,5 +213,7 @@ void LetStmnt::bind(Scopes& s) const {
 void ItemStmnt::bind(Scopes& s) const {
     item->bind(s);
 }
+
+//------------------------------------------------------------------------------
 
 }

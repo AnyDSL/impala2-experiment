@@ -4,8 +4,39 @@
 
 namespace impala {
 
-const thorin::Def* Item::emit(Emitter&) const {
-    return nullptr;
+//------------------------------------------------------------------------------
+
+void Emitter::emit_stmnts(const Ptrs<Stmnt>& stmnts) {
+    auto i = stmnts.begin(), e = stmnts.end();
+    while (i != e) {
+        if ((*i)->isa<ItemStmnt>()) {
+            for (auto j = i; j != e && (*j)->isa<ItemStmnt>(); ++j)
+                (*j)->as<ItemStmnt>()->item->emit_rec(*this);
+            for (; i != e && (*i)->isa<ItemStmnt>(); ++i)
+                (*i)->as<ItemStmnt>()->item->emit(*this);
+        } else {
+            (*i)->emit(*this);
+            ++i;
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void Prg::emit(Emitter& e) const {
+    e.emit_stmnts(stmnts);
+}
+
+void Item::emit_rec(Emitter&) const {
+    if (expr->isa<LambdaExpr>()) {
+        def_ = nullptr; // TODO
+    } else if (expr->isa<SigmaExpr>()) {
+        def_ = nullptr; // TODO
+    }
+}
+
+void Item::emit(Emitter& e) const {
+    expr->emit(e);
 }
 
 /*
@@ -41,7 +72,7 @@ const thorin::Def* AppExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* BlockExpr::emit(Emitter& e) const {
-    //emit_stmnts(stmnts, e);
+    e.emit_stmnts(stmnts);
     return expr->emit(e);
 }
 
@@ -60,14 +91,17 @@ const thorin::Def* ForallExpr::emit(Emitter& e) const {
     return e.pi(d, c, loc);
 }
 
-const thorin::Def* IdExpr::emit(Emitter& e) const {
+const thorin::Def* IdExpr::emit(Emitter&) const {
     switch (decl.tag()) {
-        case Decl::Tag::IdPtrn: return decl.id_ptrn()->def();
+        case Decl::Tag::IdPtrn:
+            return decl.id_ptrn()->def();
         case Decl::Tag::Item: {
             auto item = decl.item();
-            return item->def() ? item->def() : item->emit(e);
+            assert(item->def());
+            return item->def();
         }
-        case Decl::Tag::None: THORIN_UNREACHABLE;
+        case Decl::Tag::None:
+            THORIN_UNREACHABLE;
     }
     THORIN_UNREACHABLE;
 }
@@ -169,5 +203,7 @@ void LetStmnt::emit(Emitter& e) const {
 void ItemStmnt::emit(Emitter&) const {
     //item->emit(e);
 }
+
+//------------------------------------------------------------------------------
 
 }
