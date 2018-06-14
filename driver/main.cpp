@@ -44,10 +44,11 @@ static const auto usage =
 "Mandatory arguments to long options are mandatory for short options too.\n"
 ;
 
-template<class... Args> [[noreturn]] void errln(const char* fmt, Args... args) {
-    thorin::errf("impala: error: ");
-    thorin::streamln(std::cerr, fmt, std::forward<Args>(args)...);
-    exit(EXIT_FAILURE);
+template<class... Args> [[noreturn]] void errln(const char* fmt, Args&&... args) {
+    std::ostringstream oss;
+    thorin::streamf(oss, "impala: error: ");
+    thorin::streamln(oss, fmt, std::forward<Args>(args)...);
+    throw std::logic_error(oss.str());
 }
 
 int main(int argc, char** argv) {
@@ -160,8 +161,10 @@ int main(int argc, char** argv) {
 
         return EXIT_SUCCESS;
     } catch (std::exception const& e) {
-        errln("{}",  e.what());
+        thorin::errln("impala: error: {}", e.what());
+        return EXIT_FAILURE;
     } catch (...) {
-        errln("unknown exception");
+        thorin::errln("unknown exception");
+        return EXIT_FAILURE;
     }
 }
