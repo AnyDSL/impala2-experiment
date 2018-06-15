@@ -12,8 +12,6 @@
 #include "impala/parser.h"
 #include "impala/print.h"
 
-using thorin::outln;
-
 #ifndef NDEBUG
 #define LOG_LEVELS "error|warn|info|verbose|debug"
 #else
@@ -45,7 +43,7 @@ static const auto usage =
 "Mandatory arguments to long options are mandatory for short options too.\n"
 ;
 
-template<class... Args> [[noreturn]] void errln(const char* fmt, Args&&... args) {
+template<class... Args> [[noreturn]] void error(const char* fmt, Args&&... args) {
     std::ostringstream oss;
     thorin::streamf(oss, "impala: error: ");
     thorin::streamln(oss, fmt, std::forward<Args>(args)...);
@@ -54,7 +52,7 @@ template<class... Args> [[noreturn]] void errln(const char* fmt, Args&&... args)
 
 int main(int argc, char** argv) {
     try {
-        if (argc < 1) errln("no input files");
+        if (argc < 1) error("no input files");
 
         impala::Compiler compiler;
         std::vector<std::string> infiles;
@@ -74,7 +72,7 @@ int main(int argc, char** argv) {
 
             auto get_arg = [&] {
                 if (i+1 == argc)
-                    errln("missing argument for option '{}'", cur_option);
+                    error("missing argument for option '{}'", cur_option);
                 return std::string(argv[++i]);
             };
 
@@ -95,7 +93,7 @@ int main(int argc, char** argv) {
                 else if (log_level == "info"   ) thorin::Log::set_min_level(thorin::Log::Info   );
                 else if (log_level == "verbose") thorin::Log::set_min_level(thorin::Log::Verbose);
                 else if (log_level == "debug"  ) thorin::Log::set_min_level(thorin::Log::Debug  );
-                else errln("log level must be one of {{" LOG_LEVELS "}}");
+                else error("log level must be one of {{" LOG_LEVELS "}}");
             } else if (cmp("-o") || cmp("--output")) {
                 module_name = get_arg();
 #ifndef NDEBUG
@@ -112,7 +110,7 @@ int main(int argc, char** argv) {
                     } else if (std::isdigit(c)) {
                         num = num*10 + c - '0';
                     } else {
-                        errln("invalid breakpoint '{}'", b);
+                        error("invalid breakpoint '{}'", b);
                     }
                 }
 
@@ -122,18 +120,18 @@ int main(int argc, char** argv) {
                 compiler.world.enable_history();
 #endif
             } else if (argv[i][0] == '-') {
-                errln("unrecognized command line option '{}'", argv[i]);
+                error("unrecognized command line option '{}'", argv[i]);
             } else {
                 std::string infile = argv[i];
                 auto i = infile.find_last_of('.');
                 if (infile.substr(i + 1) != "impala")
-                    errln("input file '{}' does not have '.impala' extension", infile);
+                    error("input file '{}' does not have '.impala' extension", infile);
                 auto rest = infile.substr(0, i);
                 auto f = rest.find_last_of('/');
                 if (f != std::string::npos)
                     rest = rest.substr(f+1);
                 if (rest.empty())
-                    errln("input file '{}' has empty module name", infile);
+                    error("input file '{}' has empty module name", infile);
                 if (module_name.empty())
                     module_name = rest;
                 infiles.emplace_back(infile);
@@ -144,10 +142,10 @@ int main(int argc, char** argv) {
         thorin::Log::set_stream(log_name == "-" ? std::cout : (log_file.open(log_name), log_file));
 
         if (infiles.empty())
-            errln("no input files");
+            error("no input files");
 
         if (infiles.size() != 1)
-            outln("at the moment there is only one input file supported");
+            thorin::outln("at the moment there is only one input file supported");
 
         auto filename = infiles.front().c_str();
         std::ifstream file(filename, std::ios::binary);
