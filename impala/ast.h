@@ -302,6 +302,8 @@ struct ForallExpr : public Expr {
         , codomain(std::move(codomain))
     {}
 
+    bool returns_bottom() const { return codomain->isa<BottomExpr>(); }
+
     void bind(Scopes&) const override;
     const thorin::Def* emit(Emitter&) const override;
     Printer& stream(Printer&) const override;
@@ -323,6 +325,8 @@ struct LambdaExpr : public Expr {
         , codomain(std::move(codomain))
         , body(std::move(body))
     {}
+
+    bool returns_bottom() const { return codomain->isa<BottomExpr>(); }
 
     void bind(Scopes&) const override;
     const thorin::Def* emit(Emitter&) const override;

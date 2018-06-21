@@ -10,6 +10,26 @@ using thorin::streamf;
 
 //------------------------------------------------------------------------------
 
+/*
+ * helpers
+ */
+
+static bool is_cn_type(const Expr* expr) {
+    if (auto forall = expr->isa<ForallExpr>(); forall && forall->returns_bottom())
+        return true;
+    return false;
+}
+
+static bool is_cn_type(const Ptrn* ptrn) { return is_cn_type(ptrn->type.get()); }
+
+static std::optional<std::pair<const Ptrn*, const Ptrn*>> dissect_ptrn(const Ptrn* ptrn) {
+    if (auto tuple = ptrn->isa<TuplePtrn>(); tuple && tuple->elems.size() == 2 && is_cn_type(tuple->elems.back().get()) && tuple->elems.back()->as<IdPtrn>()->symbol() == "return")
+        return std::optional(std::pair{tuple->elems.front().get(), tuple->elems.back().get()});
+    return {};
+}
+
+//------------------------------------------------------------------------------
+
 std::ostream& Node::stream_out(std::ostream& s) const {
     Printer printer(s);
     stream(printer);
@@ -33,6 +53,25 @@ Printer& Id::stream(Printer& p) const {
 }
 
 Printer& Item::stream(Printer& p) const {
+    if (p.fancy()) {
+        auto e = this->expr.get();
+        const LambdaExpr* lambda = nullptr;
+        if (auto l = e->isa<LambdaExpr>(); l && !l->returns_bottom()) {
+            lambda = l;
+            e = l->body.get();
+        }
+
+        if (auto f = e->isa<LambdaExpr>()) {
+            if (lambda) {
+                if (auto xy = dissect_ptrn(f->domain.get()))
+                    return streamf(p, "fn {}[{, }]{} {}", id, lambda->domain, xy->first, f->body);
+                else
+                    return streamf(p, "fn {}[{, }]{} {}", id, lambda->domain, f->domain, f->body);
+            } else {
+                return streamf(p, "fn {}{} {}", id, f->domain, f->body);
+            }
+        }
+    }
     return streamf(p, "letrec {} = {};", id, expr);
 }
 
@@ -94,15 +133,6 @@ Printer& FieldExpr::stream(Printer& p) const {
     return streamf(p, "{}.{}", lhs, id);
 }
 
-bool is_cn_type(const Expr* expr) {
-    if (auto forall = expr->isa<ForallExpr>(); forall && forall->codomain->isa<BottomExpr>())
-        return true;
-    return false;
-}
-
-bool is_cn_type(const Ptrn* ptrn) { return is_cn_type(ptrn->type.get()); }
-
-
 Printer& ForallExpr::stream(Printer& p) const {
     if (p.fancy() && is_cn_type(this)) {
         if (auto sigma = domain->type->isa<SigmaExpr>(); sigma && sigma->elems.size() == 2 && is_cn_type(sigma->elems.back().get()))
@@ -126,9 +156,9 @@ Printer& InfixExpr::stream(Printer& p) const {
 
 Printer& LambdaExpr::stream(Printer& p) const {
     if (p.fancy()) {
-        if (codomain->isa<BottomExpr>()) {
-            if (auto tuple = domain->isa<TuplePtrn>(); tuple && tuple->elems.size() == 2 && is_cn_type(tuple->elems.back().get()) && tuple->elems.back()->as<IdPtrn>()->symbol() == "return")
-                return streamf(p, "fn {} {}", tuple->elems.front(), body);
+        if (returns_bottom()) {
+            if (auto xy = dissect_ptrn(domain.get()))
+                return streamf(p, "fn {} {}", xy->first, body);
             return streamf(p, "cn {} {}", domain, body);
         }
         if (codomain->isa<UnknownExpr>())
