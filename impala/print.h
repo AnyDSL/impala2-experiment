@@ -5,10 +5,10 @@
 
 namespace impala {
 
-class Printer : public thorin::IndentPrinter<Printer> {
+class Printer : public thorin::PrinterBase<Printer> {
 public:
     explicit Printer(std::ostream& ostream, bool fancy = false, const char* tab = "    ")
-        : thorin::IndentPrinter<Printer>(ostream, tab)
+        : thorin::PrinterBase<Printer>(ostream, tab)
         , fancy_(fancy)
     {}
 

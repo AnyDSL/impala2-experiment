@@ -138,10 +138,10 @@ const thorin::Def* PostfixExpr::emit(Emitter& e) const {
 
 const thorin::Def* QualifierExpr::emit(Emitter& e) const {
     switch (tag) {
-        case Tag::u: return e.qualifier(thorin::QualifierTag::u);
-        case Tag::r: return e.qualifier(thorin::QualifierTag::r);
-        case Tag::a: return e.qualifier(thorin::QualifierTag::a);
-        case Tag::l: return e.qualifier(thorin::QualifierTag::l);
+        case Tag::u: return e.lit(thorin::Qualifier::u);
+        case Tag::r: return e.lit(thorin::Qualifier::r);
+        case Tag::a: return e.lit(thorin::Qualifier::a);
+        case Tag::l: return e.lit(thorin::Qualifier::l);
         default: THORIN_UNREACHABLE;
     }
 }
@@ -173,7 +173,7 @@ const thorin::Def* SigmaExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* TypeExpr::emit(Emitter& e) const {
-    return e.star(qualifier->emit(e));
+    return e.kind_star(qualifier->emit(e));
 }
 
 const thorin::Def* VariadicExpr::emit(Emitter& e) const {
@@ -184,7 +184,7 @@ const thorin::Def* VariadicExpr::emit(Emitter& e) const {
 }
 
 const thorin::Def* ErrorExpr::emit(Emitter& e) const {
-    return e.bottom(e.star());
+    return e.bot(e.kind_star());
 }
 
 /*
@@ -196,7 +196,7 @@ void ExprStmnt::emit(Emitter& e) const {
 }
 
 void LetStmnt::emit(Emitter& e) const {
-    auto i = init ? init->emit(e) : e.bottom(e.star());
+    auto i = init ? init->emit(e) : e.bot(e.kind_star());
     ptrn->emit(e, i);
 }
 
